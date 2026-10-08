@@ -6,7 +6,8 @@
 deck.json 형식은 DECK_SPEC.md 참고. 결과: OUTDIR/card1~5.png (1080x1350) + card1~5.jpg (Instagram 업로드용)
 """
 import json, os, sys
-from PIL import Image, ImageDraw, ImageFont
+import math
+from PIL import Image, ImageDraw, ImageFont, ImageChops, ImageFilter
 import qrcode
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -23,12 +24,13 @@ GRAY = (0x6B, 0x76, 0x88); LGRAY = (0x9A, 0xA6, 0xB2); ORANGE = (0xFF, 0x8A, 0x3
 ICE_TEXT = (0x18, 0x5F, 0xA5); NAVY_PAGE = (0x6E, 0x86, 0xAC); NAVY_NOTE = (0x8F, 0xA5, 0xC7)
 STRIPE = (0xEE, 0xF3, 0xFA)  # 아이스블루 50%
 
-BG = {"navy": NAVY, "ice": ICE, "white": WHITE, "orange": ORANGE}
+BG = {"navy": NAVY, "ice": ICE, "white": WHITE, "orange": ORANGE, "blue": BLUE}
 # 배경별 색 규칙: line(상하 라인), title, body, sub, accent(핵심 수치/강조), page, symbol(선), dot(점)
 THEME = {
     "white":  dict(line=NAVY, title=NAVY, body=GRAY, sub=GRAY, accent=BLUE, page=LGRAY, sym=NAVY, dot=NAVY, label=GRAY, stripe=STRIPE, border=True),
     "navy":   dict(line=ICE, title=WHITE, body=ICE, sub=NAVY_NOTE, accent=ICE, page=NAVY_PAGE, sym=ICE, dot=ICE, label=ICE, stripe=(0x24, 0x38, 0x5F), border=False),
     "ice":    dict(line=BLUE, title=NAVY, body=NAVY, sub=BLUE, accent=BLUE, page=GRAY, sym=NAVY, dot=BLUE, label=BLUE, stripe=(0xEA, 0xF1, 0xFA), border=False),
+    "blue":   dict(line=ICE, title=WHITE, body=ICE, sub=ICE, accent=WHITE, page=ICE, sym=WHITE, dot=WHITE, label=ICE, stripe=(0x3A, 0x6C, 0xBA), border=False),
     "orange": dict(line=OFFWHITE, title=WHITE, body=WHITE, sub=(0xFF, 0xE3, 0xC8), accent=NAVY, page=(0xFF, 0xE3, 0xC8), sym=OFFWHITE, dot=NAVY, label=(0xFF, 0xE3, 0xC8), stripe=(0xFF, 0x9B, 0x5C), border=False),
 }
 
@@ -118,6 +120,8 @@ class Card:
 
     def finish(self, n):
         self.frame(); self.symbol(); self.page_no(n); self.qr_badge()
+        if getattr(self, "illust", False):  # 일러스트 사용 시 실제 제품 사진이 아님을 표기
+            self.text(70, 1236, "※ 이해를 돕기 위한 일러스트입니다", font("regular", 22), self.t["page"], "lm")
 
     def save(self, path_base):
         out = self.img.resize((W, H), Image.LANCZOS)
@@ -369,6 +373,269 @@ def b_cta(spec):
     return build
 
 
+
+# ---------- 제품 이미지: 배경 제거(컷아웃) ----------
+def cutout(src, dst=None, tol=18):
+    """제품 사진의 흰색/단색 배경을 제거해 투명 PNG로 저장. 실패(배경이 단색이 아님 등)하면 None 반환."""
+    im = Image.open(src)
+    if im.mode in ("RGBA", "LA", "P"):
+        im = im.convert("RGBA")
+        if im.getchannel("A").getextrema()[0] < 250:  # 이미 투명 배경
+            out = im.crop(im.getchannel("A").point(lambda v: 255 if v > 8 else 0).getbbox())
+            if dst: out.save(dst)
+            return out
+    rgb = im.convert("RGB")
+    if max(rgb.size) > 1600:
+        k = 1600 / max(rgb.size); rgb = rgb.resize((int(rgb.width * k), int(rgb.height * k)), Image.LANCZOS)
+    w, h = rgb.size
+    border = [rgb.getpixel((x, 0)) for x in range(0, w, 6)] + [rgb.getpixel((x, h - 1)) for x in range(0, w, 6)] \
+        + [rgb.getpixel((0, y)) for y in range(0, h, 6)] + [rgb.getpixel((w - 1, y)) for y in range(0, h, 6)]
+    med = tuple(sorted(c[i] for c in border)[len(border) // 2] for i in range(3))
+    near = sum(1 for c in border if sum(abs(c[i] - med[i]) for i in range(3)) <= 54) / len(border)
+    if near < 0.9:
+        return None  # 배경이 단색이 아님 → 사용자에게 흰 배경/투명 PNG 요청
+    marker = (255, 0, 255)
+    flood = rgb.copy()
+    seeds = [(0, 0), (w - 1, 0), (0, h - 1), (w - 1, h - 1), (w // 2, 0), (w // 2, h - 1), (0, h // 2), (w - 1, h // 2)]
+    for sd in seeds:
+        if flood.getpixel(sd) != marker and sum(abs(flood.getpixel(sd)[i] - med[i]) for i in range(3)) <= 54:
+            ImageDraw.floodfill(flood, sd, marker, thresh=tol)
+    r, g, b = flood.split()
+    bgm = ImageChops.darker(ImageChops.darker(r.point(lambda v: 255 if v == 255 else 0), g.point(lambda v: 255 if v == 0 else 0)),
+                            b.point(lambda v: 255 if v == 255 else 0))
+    alpha = ImageChops.invert(bgm).filter(ImageFilter.MedianFilter(5)).filter(ImageFilter.MinFilter(3)).filter(ImageFilter.GaussianBlur(1.1))
+    area = sum(alpha.histogram()[128:]) / (w * h)
+    if area < 0.03 or area > 0.97:
+        return None
+    out = rgb.convert("RGBA"); out.putalpha(alpha)
+    out = out.crop(alpha.point(lambda v: 255 if v > 8 else 0).getbbox())
+    if dst: out.save(dst)
+    return out
+
+
+
+# ---------- 제품 일러스트 (적절한 실물 이미지를 못 찾았을 때 사용) ----------
+ILLUST_KINDS = ["stick_vacuum", "robot_vacuum", "fridge", "kimchi_fridge", "washer", "dryer", "tv", "aircon",
+                "air_purifier", "microwave", "dishwasher", "generic"]
+
+
+def illustration(kind):
+    """브랜드 스타일(네이비 선 + 아이스블루 면 + 오렌지 포인트) 평면 일러스트를 RGBA로 반환. 특정 모델을 흉내내지 않는 범용 형태."""
+    K = 2; LW = 9 * K
+    OUT = NAVY; MID = (0x40, 0x52, 0x78); FILL = ICE; SHADE = (0xC4, 0xD5, 0xEA); GLASS = (0xA9, 0xC4, 0xE6)
+    sizes = {"stick_vacuum": (420, 1100), "robot_vacuum": (800, 800), "fridge": (600, 1050), "kimchi_fridge": (760, 860),
+             "washer": (700, 820), "dryer": (700, 820), "tv": (1000, 720), "aircon": (1000, 340), "air_purifier": (520, 860),
+             "microwave": (860, 600), "dishwasher": (700, 780), "generic": (700, 700)}
+    w, h = sizes.get(kind, sizes["generic"]); w2, h2 = w * K, h * K
+    im = Image.new("RGBA", (w2, h2), (0, 0, 0, 0)); d = ImageDraw.Draw(im)
+
+    def rr(x1, y1, x2, y2, r, fill=FILL, outline=OUT, ow=LW):
+        d.rounded_rectangle((x1 * K, y1 * K, x2 * K, y2 * K), radius=r * K, fill=fill, outline=outline, width=ow)
+
+    def ov(cx, cy, r, fill=FILL, outline=OUT, ow=LW):
+        d.ellipse(((cx - r) * K, (cy - r) * K, (cx + r) * K, (cy + r) * K), fill=fill, outline=outline, width=ow)
+
+    def ln(x1, y1, x2, y2, wd=LW, c=OUT):
+        d.line((x1 * K, y1 * K, x2 * K, y2 * K), fill=c, width=wd)
+
+    m = 14
+    if kind == "stick_vacuum":
+        rr(130, m, 290, 110, 40)                       # 손잡이
+        rr(100, 100, 320, 520, 50)                     # 본체
+        rr(140, 150, 280, 330, 26, fill=BLUE)          # 먼지통
+        ov(210, 420, 24, fill=ORANGE)                  # 버튼
+        rr(190, 520, 230, 900, 8, fill=SHADE)          # 파이프
+        rr(40, 900, 380, 1040, 56, fill=MID)           # 헤드
+        ov(210, 970, 26, fill=ORANGE, outline=ORANGE)
+    elif kind == "robot_vacuum":
+        ov(400, 400, 380); ov(400, 400, 290, fill=WHITE, ow=LW - 2)
+        ov(400, 400, 70, fill=ORANGE); ov(400, 400, 22, fill=NAVY, outline=NAVY)
+        rr(300, 90, 500, 130, 14, fill=SHADE, ow=LW - 3)
+        ov(150, 190, 14, fill=NAVY, outline=NAVY); ov(650, 190, 14, fill=NAVY, outline=NAVY)
+    elif kind in ("fridge", "kimchi_fridge"):
+        tall = kind == "fridge"
+        rr(m, m, w - m, h - m, 38)
+        top = 40 if tall else 30
+        if tall:
+            ln(w / 2, m, w / 2, h * 0.62); ln(m, h * 0.62, w - m, h * 0.62)
+            rr(w / 2 - 40, 120, w / 2 - 22, 360, 8, fill=NAVY); rr(w / 2 + 22, 120, w / 2 + 40, 360, 8, fill=NAVY)
+            rr(w / 2 - 110, h * 0.62 + 40, w / 2 + 110, h * 0.62 + 62, 10, fill=NAVY)
+            ov(w - 90, h * 0.62 + 120, 12, fill=ORANGE, outline=ORANGE)
+        else:
+            ln(m, h * 0.30, w - m, h * 0.30)
+            rr(90, 90, w - 90, 130, 12, fill=SHADE, ow=LW - 3)
+            rr(w - 130, h * 0.30 + 70, w - 100, h * 0.30 + 320, 10, fill=NAVY)
+            ov(110, h * 0.30 + 110, 14, fill=ORANGE, outline=ORANGE)
+    elif kind in ("washer", "dryer"):
+        rr(m, m, w - m, h - m, 36)
+        ln(m, 170, w - m, 170)
+        ov(130, 92, 36, fill=SHADE); rr(230, 62, 470, 124, 16, fill=NAVY)
+        ov(w - 120, 92, 14, fill=ORANGE, outline=ORANGE)
+        ov(w / 2, 500, 250); ov(w / 2, 500, 190, fill=GLASS); ov(w / 2, 500, 190, fill=None, ow=LW - 3)
+        if kind == "washer":
+            ov(w / 2 - 20, 560, 90, fill=(0x8F, 0xB1, 0xDC), outline=None, ow=0)
+        else:
+            for i in range(4): ln(w / 2 - 110, 430 + i * 52, w / 2 + 110, 430 + i * 52, 6, SHADE)
+        d.arc(((w / 2 - 150) * K, (500 - 150) * K, (w / 2 + 150) * K, (500 + 150) * K), 200, 260, fill=WHITE, width=12 * K // 2)
+    elif kind == "tv":
+        rr(m, m, w - m, 600, 26, fill=MID)
+        rr(m + 22, m + 22, w - m - 22, 578, 14, fill=(0x2E, 0x5E, 0xAA))
+        d.polygon([(130 * K, 578 * K), (420 * K, 578 * K), (240 * K, m * K + 22 * K), (130 * K, m * K + 22 * K)], fill=(0x3A, 0x6C, 0xBA))
+        ov(w - 90, 580, 6, fill=ORANGE, outline=ORANGE, ow=0)
+        rr(w / 2 - 40, 600, w / 2 + 40, 650, 4, fill=SHADE); rr(w / 2 - 190, 650, w / 2 + 190, 700, 22)
+    elif kind == "aircon":
+        rr(m, m, w - m, 250, 60)
+        rr(70, 170, w - 70, 220, 22, fill=NAVY)
+        ov(w - 130, 100, 11, fill=ORANGE, outline=ORANGE); rr(100, 80, 300, 118, 12, fill=SHADE, ow=LW - 3)
+        for i, x in enumerate((220, 420, 620, 820)):
+            d.arc(((x - 60) * K, 250 * K, (x + 60) * K, 330 * K), 20, 160, fill=BLUE, width=9 * K)
+    elif kind == "air_purifier":
+        rr(m, m, w - m, h - m, 70)
+        for i in range(6): ln(120, 100 + i * 24, w - 120, 100 + i * 24, 7)
+        ov(w / 2, 470, 190); ov(w / 2, 470, 120, fill=SHADE)
+        for i in range(5): ln(w / 2 - 100, 420 + i * 24, w / 2 + 100, 420 + i * 24, 6, WHITE)
+        ov(w / 2, 740, 14, fill=ORANGE, outline=ORANGE)
+    elif kind == "microwave":
+        rr(m, m, w - m, h - m, 36)
+        rr(60, 70, 590, 530, 20, fill=GLASS); rr(90, 100, 560, 500, 12, fill=(0x8F, 0xB1, 0xDC), outline=None, ow=0)
+        ln(640, 70, 640, 530)
+        rr(680, 90, 800, 160, 14, fill=NAVY); ov(740, 250, 40); ov(740, 360, 14, fill=ORANGE, outline=ORANGE)
+        rr(690, 430, 790, 500, 14, fill=SHADE)
+    elif kind == "dishwasher":
+        rr(m, m, w - m, h - m, 36)
+        rr(70, 70, w - 70, 150, 20, fill=NAVY); ov(w - 130, 110, 12, fill=ORANGE, outline=ORANGE)
+        rr(70, 200, w - 70, h - 150, 22, fill=SHADE, ow=LW - 3)
+        rr(w / 2 - 140, 230, w / 2 + 140, 262, 14, fill=NAVY)
+    else:
+        rr(m, m, w - m, h - m, 120); ov(w / 2, h / 2, 110, fill=NAVY, outline=NAVY)
+        ln(w / 2 - 70, m, w / 2 - 70, -40); ov(w / 2, h / 2, 40, fill=ORANGE, outline=ORANGE)
+    return im.resize((w, h), Image.LANCZOS)
+
+
+def place_image(c, path, box, anchor="center", max_up=1.4):
+    """제품 이미지를 비율 유지한 채 box(x1,y1,x2,y2) 안에 배치. 늘리거나 자르지 않는다."""
+    if isinstance(path, str) and path.startswith("illust:"):
+        im = illustration(path.split(":", 1)[1]); c.illust = True; max_up = max(max_up, 1.8)
+    else:
+        im = Image.open(path).convert("RGBA")
+    bw, bh = box[2] - box[0], box[3] - box[1]
+    k = min(bw / im.width, bh / im.height, max_up)
+    nw, nh = max(1, int(im.width * k)), max(1, int(im.height * k))
+    im = im.resize((nw * S, nh * S), Image.LANCZOS)
+    x = box[0] + (bw - nw) / 2
+    y = box[1] + (bh - nh) / 2 if anchor == "center" else box[3] - nh
+    c.img.paste(im, (int(x * S), int(y * S)), im)
+    return (x, y, x + nw, y + nh)
+
+
+def pill(c, x, y, text, size=26, fill=None, outline=None, color=WHITE, h=46):
+    f = font("semibold", size); w = c.text_w(text, f) + 40
+    c.d.rounded_rectangle((x * S, y * S, (x + w) * S, (y + h) * S), radius=h / 2 * S, fill=fill, outline=outline, width=2 * S if outline else 0)
+    c.text(x + w / 2, y + h / 2, text, f, color, "mm")
+    return w
+
+
+def burst(c, cx, cy, r, fill, points=22, inner=0.86):
+    pts = []
+    for i in range(points * 2):
+        rr = r if i % 2 == 0 else r * inner
+        a = math.pi * i / points - math.pi / 2
+        pts.append(((cx + rr * math.cos(a)) * S, (cy + rr * math.sin(a)) * S))
+    c.d.polygon(pts, fill=fill)
+
+
+# ---------- 전체 레이아웃 카드 (제품 / 포스터) ----------
+def full_product_cover(c, spec):
+    """제품 뉴스 표지: 제목은 위, 제품 전체 모습을 배경·프레임 없이 크게."""
+    t = c.t
+    if spec.get("label"): c.text(W / 2, 190, spec["label"], font("regular", 28), t["label"], "ma")
+    y = 190 + (28 + 26 if spec.get("label") else 0)
+    for ln in spec["title"].split("\n"):
+        c.text(W / 2, y, ln, font("bold", 46), t["title"], "ma"); y += 46 + 22
+    if spec.get("subtitle"):
+        c.text(W / 2, y + 8, spec["subtitle"], font("regular", 28), t["sub"], "ma"); y += 8 + 28
+    if spec.get("image"):
+        place_image(c, spec["image"], (110, y + 60, W - 110, 1110))
+    if spec.get("source"):
+        c.text(90, 1230, spec["source"], font("regular", 20), t["page"], "lm")
+
+
+def full_product(c, spec):
+    """제품 카드: 좌측 텍스트·스펙, 우측 제품 전체 컷."""
+    t = c.t
+    y = 170
+    if spec.get("tag"): pill(c, 90, y, spec["tag"], fill=None, outline=ORANGE, color=ORANGE); y += 46 + 40
+    f = font("bold", 46)
+    for ln in c.wrap(spec["title"], f, 470):
+        c.text(90, y, ln, f, t["title"]); y += 46 + 16
+    if spec.get("subtitle"):
+        y += 6
+        for ln in c.wrap(spec["subtitle"], font("regular", 28), 470):
+            c.text(90, y, ln, font("regular", 28), t["sub"]); y += 28 + 14
+    y += 20
+    c.d.rectangle((90 * S, y * S, 150 * S, (y + 4) * S), fill=ORANGE if c.bg != "orange" else NAVY); y += 40
+    for lab, val in spec.get("specs", [])[:4]:
+        c.text(90, y, lab, font("semibold", 24), t["sub"]); c.text(90, y + 34, val, font("bold", 34), t["title"]); y += 104
+    if spec.get("price"):
+        if spec.get("original"):
+            c.text(90, y, spec["original"], font("regular", 26), t["page"])
+            c.hline(y + 15, 90, 90 + c.text_w(spec["original"], font("regular", 26)), t["page"], 1.5); y += 40
+        c.text(90, y, spec["price"], font("bold", 64), ORANGE); y += 74
+        if spec.get("price_note"): c.text(90, y, spec["price_note"], font("regular", 24), t["sub"]); y += 30
+    if spec.get("image"):
+        place_image(c, spec["image"], (540, 220, W - 50, 1110))
+    if spec.get("source"):
+        c.text(90, 1230, spec["source"], font("regular", 20), t["page"], "lm")
+
+
+def full_poster(c, spec):
+    """혜택·행사 안내용 전단/포스터형 카드."""
+    t = c.t; mode = spec.get("mode", "headline")
+    pill_fill, pill_txt = (NAVY, WHITE) if c.bg in ("orange", "blue", "ice") else (ORANGE, WHITE)
+    if mode == "headline":
+        y = 150
+        if spec.get("tag"): pill(c, 90, y, spec["tag"], size=30, fill=pill_fill, color=pill_txt, h=56); y += 56 + 36
+        hl = spec.get("highlight", 1)
+        f = font("bold", 96)
+        for i, ln in enumerate(spec["headline"].split("\n")):
+            tw = c.text_w(ln, f)
+            if i == hl:
+                c.d.rectangle((70 * S, (y + 4) * S, (90 + tw + 24) * S, (y + 118) * S), fill=NAVY if c.bg != "navy" else ORANGE)
+                c.text(90, y, ln, f, WHITE)
+            else:
+                c.text(90, y, ln, f, t["title"])
+            y += 128
+        if spec.get("subtitle"): c.text(90, y + 14, spec["subtitle"], font("semibold", 32), t["sub"] if c.bg != "orange" else WHITE); y += 14 + 32
+        top_img = y + 30
+        if spec.get("image"):
+            place_image(c, spec["image"], (60, top_img, 700, 1100), anchor="bottom", max_up=1.6)
+        if spec.get("burst_main"):
+            cx, cy = (790, top_img + 190) if spec.get("image") else (W / 2, top_img + 230)
+            burst(c, cx, cy, 200, NAVY if c.bg != "navy" else ORANGE)
+            if spec.get("burst_top"): c.text(cx, cy - 92, spec["burst_top"], font("semibold", 34), ICE, "mm")
+            c.text(cx, cy - 8, spec["burst_main"], font("bold", 92), WHITE, "mm")
+            if spec.get("burst_sub"): c.text(cx, cy + 84, spec["burst_sub"], font("semibold", 28), ICE, "mm")
+        if spec.get("note"):
+            ny = 1120
+            for ln in c.wrap(spec["note"], font("regular", 24), 560):
+                c.text(90, ny, ln, font("regular", 24), t["sub"] if c.bg != "orange" else WHITE); ny += 34
+    else:  # benefits
+        c.text(90, 160, spec["title"], font("bold", 64), t["title"])
+        if spec.get("subtitle"): c.text(90, 250, spec["subtitle"], font("regular", 30), t["sub"] if c.bg != "orange" else WHITE)
+        y = 330
+        for i, it in enumerate(spec["items"][:4], 1):
+            head, desc = it[0], it[1]; val = it[2] if len(it) > 2 else None
+            c.d.rounded_rectangle((90 * S, y * S, (W - 90) * S, (y + 170) * S), radius=28 * S, fill=WHITE)
+            c.d.ellipse((124 * S, (y + 41) * S, 212 * S, (y + 129) * S), fill=NAVY)
+            c.text(168, y + 85, str(i), font("bold", 46), WHITE, "mm")
+            c.text(244, y + 62, head, font("bold", 40), NAVY, "lm"); c.text(244, y + 116, desc, font("regular", 26), GRAY, "lm")
+            if val: c.text(W - 126, y + 85, val, font("bold", 54), ORANGE, "rm")
+            y += 170 + 24
+        if spec.get("note"): c.text(90, y + 10, spec["note"], font("regular", 24), t["sub"] if c.bg != "orange" else WHITE)
+
+
+FULL = {"product_cover": full_product_cover, "product": full_product, "poster": full_poster}
+
 BUILDERS = {"cover": b_cover, "formula": b_formula, "table": b_table, "checklist": b_checklist, "compare": b_compare,
             "steps": b_steps, "contact": b_contact, "review": b_review, "deal": b_deal, "cta": b_cta}
 LEFT_ALIGNED = {"checklist", "review", "deal", "steps"}  # 문서 레이아웃: 목록·표·후기는 좌측 150px 시작
@@ -382,15 +649,21 @@ def render(deck, outdir):
     cover_color = deck.get("cover_color", "navy")
     for i, spec in enumerate(cards, 1):
         kind = spec["type"]
-        bg = cover_color if i == 1 else ("navy" if i == 5 else spec.get("bg", "white"))
+        bg = spec.get("bg") or (cover_color if i == 1 else ("navy" if i == 5 else "white"))
         c = Card(bg)
-        build = BUILDERS[kind](spec)
-        layout_center(c, build, center=spec.get("center", 690))
+        if kind in FULL:
+            FULL[kind](c, spec)
+        else:
+            build = BUILDERS[kind](spec)
+            layout_center(c, build, center=spec.get("center", 690))
         c.finish(i)
         c.save(os.path.join(outdir, f"card{i}"))
     return outdir
 
 
 if __name__ == "__main__":
+    if len(sys.argv) >= 4 and sys.argv[1] == "--cutout":  # python3 gen_cards.py --cutout in.jpg out.png [tol: 18(기본)/40/60 — 그림자가 남으면 값을 올린다]
+        r = cutout(sys.argv[2], sys.argv[3], tol=int(sys.argv[4]) if len(sys.argv) > 4 else 18); print("OK" if r is not None else "FAIL: 배경이 단색이 아니거나 제거 불가")
+        sys.exit(0 if r is not None else 2)
     deck = json.load(open(sys.argv[1], encoding="utf-8"))
     print(render(deck, sys.argv[2]))
