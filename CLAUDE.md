@@ -11,11 +11,19 @@
 
 ## 릴스 (매 회차 적용)
 - 카드 5장 완성·로고 합성 후 `python3.13 make_reel.py out/YYYYMMDD` 로 하이라이트 릴스(1,2,3,5장, 약 12초)를 만든다. 카드 구성상 다른 장이 핵심이면 `make_reel.py out/YYYYMMDD 1,2,4,5`처럼 장 번호를 지정한다.
-- `out/YYYYMMDD/reel.mp4` 를 `cards/YYYYMMDD/reel.mp4` 로 복사해 카드와 함께 커밋·푸시하고, 텔레그램 승인 요청에 sendVideo 로 미리보기를 함께 보낸다.
-- 승인 후 카드 발행(`publish.py`)에 이어 `python3.13 publish_reel.py YYYYMMDD ig캡션.txt fb캡션.txt` 로 Instagram·Facebook 릴스를 올린다. 릴스 실패는 카드 발행 결과와 별도로 보고·로그한다.
-- 로그에는 결과 칸에 "IG 릴스 성공/실패", "FB 릴스 성공/실패"를 함께 적는다.
+- `out/YYYYMMDD/reel.mp4` 를 `cards/YYYYMMDD/reel.mp4` 로 복사해 카드와 함께 커밋·푸시한다. 미리보기 전송·릴스 발행·로그는 아래 [승인·발행] 의 GitHub Actions 가 한다.
+
+## 승인·발행 (GitHub Actions 가 처리 — 프롬프트 step5·step6·step7 보다 우선)
+모델 세션은 Instagram·Facebook 발행 명령(`publish.py`, `publish_reel.py`)을 실행하지 않는다(자동 모드에서 외부 게시로 차단된다). 텔레그램 승인 요청·응답 대기도 하지 않는다.
+대신 카드 완성 후 아래 파일을 `cards/YYYYMMDD/` 에 만들어 **한 커밋으로 main 에 푸시**하면 끝이다.
+- `card1~5.jpg`, `reel.mp4`
+- `ig.txt`, `fb.txt` : Instagram·Facebook 캡션 전문
+- `meta.txt` : 로그 앞부분 한 줄 `YYYYMMDD | 주제 | 유형 | 표지색 | 2~4장 카드 유형`
+- `approval.txt` : 승인 메시지 본문(주제 요약, 표지색·카드 유형과 이유, 수치·출처, 이미지 출처·사용권, 표지 폰트·v2 여부, 미확인 항목). **이 파일이 푸시되면 Actions(`.github/workflows/publish-on-approval.yml`)가 시작되므로 반드시 마지막에, 다른 파일과 같은 커밋으로 올린다.**
+Actions 가 카드·릴스 미리보기와 [발행]/[취소] 버튼을 텔레그램으로 보내고 60분 기다린 뒤, [발행]일 때만 `publish.py`·`publish_reel.py` 를 실행한다. 결과는 `cards/YYYYMMDD/status.txt` 와 `log/ig-card-news-log.md` 에 Actions 가 기록한다. 모델은 결과 로그 줄을 따로 쓰지 않는다.
+- 루틴 환경에 TELEGRAM·IG·FB 환경변수가 없어도 카드 제작과 푸시는 진행한다(토큰은 GitHub Secrets 에 있다). 이전 회차를 다시 승인 요청하려면 Actions 의 workflow_dispatch 에 회차명을 넣어 실행한다.
+- main 푸시가 거부되면 Actions 가 돌지 않으므로, 그 사실을 알림으로 보고한다.
 
 ## 발행
-- 발행은 `python3.13 publish.py YYYYMMDD ig캡션.txt fb캡션.txt` 로 한다(텔레그램 승인 후에만).
 - 카드 생성·로고 합성은 `python3.13` 으로 실행한다(Pillow·numpy·qrcode가 python3.13에 설치됨).
 - `deck.json`, `fonts/`, `out/`, `img/` 는 커밋하지 않는다(.gitignore 등록됨).
