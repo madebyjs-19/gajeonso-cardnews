@@ -48,10 +48,10 @@ class ContentTests(unittest.TestCase):
 
     def test_incomplete_api_response_rejected_and_no_secret_in_errors(self):
         import io
-        with patch.dict(os.environ, {'OPENAI_API_KEY': 'do-not-print'}), \
-             patch.object(content.urllib.request, 'urlopen', return_value=io.BytesIO(b'{"status":"incomplete"}')):
-            with self.assertRaisesRegex(RuntimeError, 'OpenAI content request failed'):
-                content.response('test', content.QA_SCHEMA)
+        with patch.dict(os.environ, {'GEMINI_API_KEY': 'do-not-print'}), \
+             patch('gemini_client.urllib.request.urlopen', return_value=io.BytesIO(b'{"status":"incomplete"}')):
+            with self.assertRaisesRegex(RuntimeError, 'Gemini content request failed'):
+                content.response([{'role': 'user', 'content': 'test'}], content.QA_SCHEMA)
 
     def test_pipeline_with_mocked_api_and_renderers(self):
         try:
@@ -75,6 +75,8 @@ class ContentTests(unittest.TestCase):
             replies = ['research', sample_content(), 'independent fact review',
                        {'passed': True, 'issues': []}, {'passed': True, 'issues': []}]
             with patch.object(content, 'ROOT', root), patch.object(content, 'response', side_effect=replies), \
+                 patch.object(content, 'recent_sources', return_value=([{'source_url': 'https://www.samsung.com/sec/'}], [])), \
+                 patch.object(content, 'recheck', return_value=[{'text': 'official document'}]), \
                  patch.object(content.subprocess, 'run', side_effect=process):
                 brief = content.prepare_content('20261012')
             target = root / 'cards' / '20261012'

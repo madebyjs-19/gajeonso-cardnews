@@ -13,7 +13,7 @@ from publish_state import BLOCKED, ROOT, fingerprint, locked_state, validate_run
 from publish_common import notify, verify_remote_media
 from telegram_approval import bot, poll, send_preview, verify_bot
 
-REQUIRED = ('OPENAI_API_KEY', 'TELEGRAM_BOT_TOKEN', 'TELEGRAM_CHAT_ID', 'IG_USER_ID', 'IG_ACCESS_TOKEN')
+REQUIRED = ('GEMINI_API_KEY', 'TELEGRAM_BOT_TOKEN', 'TELEGRAM_CHAT_ID', 'IG_USER_ID', 'IG_ACCESS_TOKEN')
 
 
 def now_korea():
@@ -36,17 +36,8 @@ def check():
     need(call('GET', '/' + os.environ['IG_USER_ID'], fields='id', access_token=os.environ['IG_ACCESS_TOKEN']), 'id')
     if os.environ.get('FB_PAGE_ID'):
         need(call('GET', '/' + os.environ['FB_PAGE_ID'], fields='id', access_token=os.environ['FB_PAGE_ACCESS_TOKEN']), 'id')
-    import urllib.request
-    try:
-        model = os.environ.get('OPENAI_MODEL') or 'gpt-5.4'
-        from urllib.parse import quote
-        request = urllib.request.Request('https://api.openai.com/v1/models/' + quote(model, safe=''),
-                                         headers={'Authorization': 'Bearer ' + os.environ['OPENAI_API_KEY']})
-        with urllib.request.urlopen(request, timeout=30) as response:
-            if not json.load(response).get('id'):
-                raise RuntimeError()
-    except Exception:
-        raise ValueError('OpenAI key or configured model check failed') from None
+    from gemini_client import check_model
+    check_model()
     print('Configuration read checks passed. No content generated or published.')
 
 
