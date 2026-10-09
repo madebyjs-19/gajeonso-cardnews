@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "run": "20261009",
+  "approval": {
+    "status": "unapproved"
+  },
+  "channels": {
+    "ig_card": {
+      "status": "legacy_success"
+    },
+    "fb_card": {
+      "status": "legacy_success"
+    },
+    "ig_reel": {
+      "status": "legacy_success"
+    },
+    "fb_reel": {
+      "status": "legacy_success"
+    }
+  },
+  "metadata": {
+    "topic": "일체형 세탁건조기 구매 가이드(삼성 비스포크 AI 콤보 2026)",
+    "type": "B",
+    "cover": "ice",
+    "cards": "table, compare, checklist"
+  },
+  "legacy_log": [
+    "20261009 | 일체형 세탁건조기 구매 가이드(삼성 비스포크 AI 콤보 2026) | B | ice | table, compare, checklist | IG 발행 성공 · FB 발행 성공 (사용자 재개 지시 후 발행) · IG 릴스 성공 · FB 릴스 요청 완료(시험발행)"
+  ]
+}

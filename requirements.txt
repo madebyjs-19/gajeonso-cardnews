@@ -1,0 +1,5 @@
+Pillow>=11,<13
+numpy>=2,<3
+qrcode>=8,<9
+jsonschema>=4,<5
+PyYAML>=6,<7

@@ -1,0 +1,77 @@
+name: Daily gajeonso cardnews
+
+on:
+  schedule:
+    - cron: '0 1 * * *'          # 10:00 Asia/Seoul: preparation
+    - cron: '15,35,55 1 * * *'  # 10:15/10:35/10:55: approval polling
+    - cron: '0 2 * * *'          # 11:00: final approval check + publishing
+  workflow_dispatch:
+    inputs:
+      phase:
+        description: 'check is read-only; prepare sends previews; publish requires Telegram approval'
+        required: true
+        type: choice
+        default: check
+        options: [check, prepare, approval, publish]
+
+# All production mutation workflows must share this exact group.
+concurrency:
+  group: gajeonso-production
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  daily:
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || vars.GAJEONSO_ENABLED == 'true')
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      OPENAI_MODEL: ${{ vars.OPENAI_MODEL || 'gpt-5.4' }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      TELEGRAM_APPROVER_ID: ${{ secrets.TELEGRAM_APPROVER_ID }}
+      IG_USER_ID: ${{ secrets.IG_USER_ID }}
+      IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+      FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
+      FB_PAGE_ACCESS_TOKEN: ${{ secrets.FB_PAGE_ACCESS_TOKEN }}
+      GAJEONSO_DURABLE_GIT: '1'
+      REQUESTED_PHASE: ${{ inputs.phase }}
+      TRIGGER_SCHEDULE: ${{ github.event.schedule }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+      - name: Install dependencies
+        run: |
+          python -m pip install -r requirements.txt
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg
+      - name: Run scheduled phase
+        run: |
+          if [ -z "$REQUESTED_PHASE" ]; then
+            case "$TRIGGER_SCHEDULE" in
+              '0 1 * * *') REQUESTED_PHASE=prepare ;;
+              '15,35,55 1 * * *') REQUESTED_PHASE=approval ;;
+              '0 2 * * *') REQUESTED_PHASE=publish ;;
+              *) exit 1 ;;
+            esac
+          fi
+          python daily_automation.py "$REQUESTED_PHASE"
+      - name: Preserve recovery files
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: recovery-${{ github.run_id }}
+          path: |
+            log/publish-state/*.json
+            log/telegram-offset.json
+          retention-days: 14
+          if-no-files-found: ignore

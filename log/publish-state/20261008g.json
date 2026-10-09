@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "run": "20261008g",
+  "approval": {
+    "status": "unapproved"
+  },
+  "channels": {
+    "ig_card": {
+      "status": "legacy_success"
+    },
+    "fb_card": {
+      "status": "legacy_success"
+    }
+  },
+  "metadata": {
+    "topic": "한전 고효율 가전 지원사업 안내",
+    "type": "B",
+    "cover": "navy",
+    "cards": "table, checklist, steps"
+  },
+  "legacy_log": [
+    "20261008g | 한전 고효율 가전 지원사업 안내 | B | navy | table, checklist, steps | IG 발행 성공 · FB 발행 성공 (사용자 직접 허용 후 재실행)"
+  ]
+}
