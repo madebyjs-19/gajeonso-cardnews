@@ -10,4 +10,4 @@
 20261008f | 10월 하이마트 가전 할인전 | C | orange | poster(benefits), table, checklist | IG 발행 성공 · FB 설정 누락
 20261008g | 한전 고효율 가전 지원사업 안내 | B | navy | table, checklist, steps | 승인됨, IG·FB 발행은 실행 권한 거부로 미실행
 20261008g | 한전 고효율 가전 지원사업 안내 | B | navy | table, checklist, steps | IG 발행 성공 · FB 발행 성공 (사용자 직접 허용 후 재실행)
-20261009 | 일체형 세탁건조기 구매 가이드(삼성 비스포크 AI 콤보 2026) | B | ice | table, compare, checklist | 승인됨, IG·FB 발행은 실행 권한 거부로 미실행
+20261009 | 일체형 세탁건조기 구매 가이드(삼성 비스포크 AI 콤보 2026) | B | ice | table, compare, checklist | IG 발행 성공 · FB 발행 성공 (사용자 재개 지시 후 발행)
