@@ -86,6 +86,9 @@ class ContentTests(unittest.TestCase):
 
 class ApprovalTests(unittest.TestCase):
     def setUp(self):
+        env = patch.dict(os.environ, {'GITHUB_ACTIONS': 'test', 'GAJEONSO_DURABLE_GIT': '0'})
+        env.start()
+        self.addCleanup(env.stop)
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
         self.root = Path(self.tmp.name)

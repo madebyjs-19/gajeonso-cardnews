@@ -10,7 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GAJEONSO_DURABLE_GIT: '0'
-      GITHUB_ACTIONS: 'test'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

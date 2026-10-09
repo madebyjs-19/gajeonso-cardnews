@@ -24,7 +24,7 @@ class PublishingTests(unittest.TestCase):
         self.paths = [self.root / 'ig.txt', self.root / 'fb.txt']
         for path, caption in zip(self.paths, self.captions):
             path.write_text(caption)
-        self.env = patch.dict(os.environ, {'TELEGRAM_CHAT_ID': '123', 'IG_ACCESS_TOKEN': 'secret-ig',
+        self.env = patch.dict(os.environ, {'GITHUB_ACTIONS': 'test', 'GAJEONSO_DURABLE_GIT': '0', 'TELEGRAM_CHAT_ID': '123', 'IG_ACCESS_TOKEN': 'secret-ig',
                               'IG_USER_ID': 'ig', 'FB_PAGE_ACCESS_TOKEN': 'secret-fb', 'FB_PAGE_ID': 'fb'})
         self.env.start()
         self.addCleanup(self.env.stop)
