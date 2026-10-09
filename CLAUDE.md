@@ -9,6 +9,12 @@
 - 표지 이후 로고는 `stamp_logo.py`로 합성한다. 이미지·제목·로고가 겹치지 않는지 직접 확인한다.
 - 유형 C(포스터형)는 `poster`의 `image` 항목을 쓴다.
 
+## 릴스 (매 회차 적용)
+- 카드 5장 완성·로고 합성 후 `python3.13 make_reel.py out/YYYYMMDD` 로 하이라이트 릴스(1,2,3,5장, 약 12초)를 만든다. 카드 구성상 다른 장이 핵심이면 `make_reel.py out/YYYYMMDD 1,2,4,5`처럼 장 번호를 지정한다.
+- `out/YYYYMMDD/reel.mp4` 를 `cards/YYYYMMDD/reel.mp4` 로 복사해 카드와 함께 커밋·푸시하고, 텔레그램 승인 요청에 sendVideo 로 미리보기를 함께 보낸다.
+- 승인 후 카드 발행(`publish.py`)에 이어 `python3.13 publish_reel.py YYYYMMDD ig캡션.txt fb캡션.txt` 로 Instagram·Facebook 릴스를 올린다. 릴스 실패는 카드 발행 결과와 별도로 보고·로그한다.
+- 로그에는 결과 칸에 "IG 릴스 성공/실패", "FB 릴스 성공/실패"를 함께 적는다.
+
 ## 발행
 - 발행은 `python3.13 publish.py YYYYMMDD ig캡션.txt fb캡션.txt` 로 한다(텔레그램 승인 후에만).
 - 카드 생성·로고 합성은 `python3.13` 으로 실행한다(Pillow·numpy·qrcode가 python3.13에 설치됨).
