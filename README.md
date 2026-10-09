@@ -9,7 +9,7 @@ GitHub Actions가 조사·제작 → Telegram 승인 → Instagram/Facebook 발�
 
 | Secret 이름 | 값 |
 |---|---|
-| OPENAI_API_KEY | OpenAI API 키. ChatGPT 구독과 별도로 API 사용료가 발생한다. |
+| GEMINI_API_KEY | Google AI Studio의 **결제 미연결 Free Tier 프로젝트**에서 발급한 Gemini API 키 |
 | TELEGRAM_BOT_TOKEN | 이 자동화 전용 Telegram 봇의 토큰 |
 | TELEGRAM_CHAT_ID | 미리보기·승인을 받을 개인 채팅 ID |
 | IG_USER_ID | 기존 Instagram 전문 계정 ID |
@@ -20,9 +20,9 @@ GitHub Actions가 조사·제작 → Telegram 승인 → Instagram/Facebook 발�
 
 Telegram 봇은 BotFather에서 만들고 해당 봇과 개인 채팅을 시작한다. 기존 Claude 자동화가 같은 봇을 조회한다면 그 자동화를 멈추거나 새 봇을 사용한다. 활성 webhook이 있는 봇은 거부한다. 이 코드가 webhook을 삭제하거나 기존 수신기를 교체하지는 않는다. Meta 토큰이 만료되면 갱신하여 같은 Secret 이름으로 교체한다.
 
-3. 저장소 Actions → **Daily gajeonso cardnews** → **Run workflow** → `phase=check`를 실행한다. 이 단계는 OpenAI 모델 접근, Telegram 봇, Meta 계정의 연결을 읽기만 하며 콘텐츠 제작·게시를 하지 않는다. 모델 조회 성공은 모든 게시 권한이나 실제 생성 품질을 보장하지 않는다.
+3. 저장소 Actions → **Daily gajeonso cardnews** → **Run workflow** → `phase=check`를 실행한다. 이 단계는 Gemini 모델 접근, Telegram 봇, Meta 계정의 연결을 읽기만 하며 콘텐츠 제작·게시를 하지 않는다. 모델 조회 성공은 모든 게시 권한이나 실제 생성 품질을 보장하지 않는다.
 4. 오전 11시 이전에 `phase=prepare`를 수동 실행하여 카드 5장·릴스·캡션이 Telegram에 오는지 확인한다. 검수 후 [발행 승인] 또는 [취소]를 누른다. `phase=approval`을 실행하면 선택이 기록된다. 실제 첫 발행은 오전 11시~11시59분에 `phase=publish`로 확인한다. 승인 없이는 게시하지 않는다.
-5. 시험 확인 후 Actions **Variables** 탭에서 `GAJEONSO_ENABLED`를 `true`로 등록한다. 이제 매일 예약 실행된다. 중지하려면 `false`로 변경한다. 선택 변수 `OPENAI_MODEL`로 기본 `gpt-5.4`를 변경할 수 있지만 웹 검색·이미지 입력·구조화 출력을 지원하는 모델이어야 한다.
+5. 시험 확인 후 Actions **Variables** 탭에서 `GAJEONSO_ENABLED`를 `true`로 등록한다. 이제 매일 예약 실행된다. 중지하려면 `false`로 변경한다. 모델은 무료 입력·출력 등급이 제공되는 `gemini-3.8-flash`로 고정한다. 기존 `OPENAI_API_KEY`와 `OPENAI_MODEL`은 사용하지 않는다.
 
 main의 쓰기 권한이 필요하다. 워크플로는 `contents: write`와 checkout 인증으로 상태·콘텐츠를 푸시한다. 조직 정책/브랜치 보호가 자동 커밋을 차단하면 게시도 중단한다. 보호 설정을 무조건 해제하지 말고 승인된 자동화의 쓰기 방식을 별도로 설정한다.
 
@@ -36,7 +36,12 @@ main의 쓰기 권한이 필요하다. 워크플로는 `contents: write`와 chec
 
 GitHub 예약은 UTC로 설정했다(한국 오전 10시=UTC 01시, 11시=UTC 02시). 예약 실행은 지연되거나 누락될 수 있으므로 정확한 11:00 게시를 보장하지 않는다. 정오 이후 시작된 발행은 중단한다. [GitHub 공식 예약 실행 안내](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule).
 
-카드·캡션은 공식 원문을 근거로 OpenAI Responses API가 작성하고, 별도의 웹 검색으로 최종 주장·수치를 검수한다. 최종 이미지 5장도 이미지 입력으로 검수한다. 자동 검수는 오류를 완전히 보장할 수 없으므로 Telegram 사람 승인까지 있어야 발행한다. 초기에 제품 컷은 저작권·다운로드 변수를 줄이기 위해 생성기가 지원하는 브랜드 일러스트를 사용한다. [OpenAI 웹 검색](https://developers.openai.com/api/docs/guides/tools-web-search), [구조화 출력](https://developers.openai.com/api/docs/guides/structured-outputs).
+삼성 한국 뉴스룸 RSS와 LG 공식 뉴스룸 공개 기사 목록에서 최근 14일 가전 자료를 직접 수집한다. 초기 조사 범위는 이 두 뉴스룸이며 검색 엔진 전체를 탐색하지 않는다. 수집된 기사 URL만 사실 근거로 허용하고, 최종 원고의 출처를 다시 읽어 Gemini가 독립 검수한다. 최종 이미지 5장도 Gemini가 확인한다. 원문 부족·수집 실패·검수 실패 시 해당 회차를 중단한다. 기존 생성기의 브랜드 일러스트를 사용하며 Telegram 사람 승인까지 있어야 발행한다.
+
+### 무료 API 설정
+[Google AI Studio](https://aistudio.google.com/api-keys)에서 결제 미연결 프로젝트의 API 키를 만들고 Secrets에 `GEMINI_API_KEY`로 등록한다. AI Studio에 **Free Tier**로 표시되는지 확인한다. 무료 한도는 프로젝트·지역·모델별로 달라지며 계속 발행을 보장하지 않는다. Google 공식 요금표 기준 `gemini-3.8-flash`의 무료 등급은 텍스트·이미지 입력과 텍스트 출력이 무료다. 유료 Google Search 도구는 호출하지 않는다. 하루 정상 제작은 최대 5회 AI 요청이며 요청 시작을 최소 15초 간격으로 나눈다. 429 한도 오류 시 중단하고 다른 제공자나 모델로 자동 전환하지 않는다.
+
+**프로그램은 API 키만으로 Google 프로젝트의 결제 연결 여부를 검증할 수 없다.** 이미 결제를 연결한 프로젝트의 키를 넣으면 Google 요금이 발생할 수 있으므로 Free Tier 프로젝트를 사용한다. 기존 OpenAI Secret은 남아 있어도 읽거나 호출하지 않는다. `phase=check`는 모델 조회만 하므로 실제 무료 생성 한도까지 보장하지 않는다. [Google 공식 요금표](https://ai.google.dev/gemini-api/docs/pricing), [무료 한도 안내](https://ai.google.dev/gemini-api/docs/rate-limits), [모델 안내](https://ai.google.dev/gemini-api/docs/models/gemini-3.8-flash).
 
 출력은 `cards/YYYYMMDD/`: JPG 5장, reel.mp4, IG/FB 캡션, brief.json(출처·검수 메모). 원본 생성 임시 폴더 `out/`·`fonts/`는 커밋하지 않는다. 생성·검수 실패 시 승인 요청·게시를 하지 않는다. 재실행하면 이미 만들어진 승인 대기 콘텐츠를 유지한다. 승인 후 파일·캡션 변경은 차단한다.
 
@@ -83,4 +88,4 @@ python -m pip install -r requirements.txt
 python -m unittest discover -s tests -v
 ```
 
-가짜 API 응답과 로컬 Git 원격 저장소로 승인 차단, 콘텐츠 검증, 콜백 인증, 중복 재실행, 응답 유실, 동시 쓰기, 서버 종료 마커, 기존 로그와 로고 합성을 검증한다. 테스트는 실제 소셜 게시·OpenAI 유료 생성 요청을 하지 않는다.
+가짜 API 응답과 로컬 Git 원격 저장소로 승인 차단, 콘텐츠 검증, 콜백 인증, 중복 재실행, 응답 유실, 동시 쓰기, 서버 종료 마커, 기존 로그와 로고 합성을 검증한다. 테스트는 실제 소셜 게시·Gemini 생성 요청을 하지 않는다.
