@@ -30,14 +30,33 @@ def configuration():
 
 def check():
     configuration()
-    verify_bot()
-    bot('getMe')
     from publish_common import call, need
-    need(call('GET', '/' + os.environ['IG_USER_ID'], fields='id', access_token=os.environ['IG_ACCESS_TOKEN']), 'id')
-    if os.environ.get('FB_PAGE_ID'):
-        need(call('GET', '/' + os.environ['FB_PAGE_ID'], fields='id', access_token=os.environ['FB_PAGE_ACCESS_TOKEN']), 'id')
     from gemini_client import check_model
-    check_model()
+    def telegram_check():
+        verify_bot()
+        bot('getMe')
+    checks = [('Telegram', telegram_check),
+              ('Instagram', lambda: need(call('GET', '/' + os.environ['IG_USER_ID'], fields='id', access_token=os.environ['IG_ACCESS_TOKEN']), 'id')),
+              ('Gemini', check_model)]
+    if os.environ.get('FB_PAGE_ID'):
+        checks.append(('Facebook', lambda: need(call('GET', '/' + os.environ['FB_PAGE_ID'], fields='id', access_token=os.environ['FB_PAGE_ACCESS_TOKEN']), 'id')))
+    failed = []
+    for label, action in checks:
+        try:
+            action()
+            print(label + ': connection read check passed')
+        except Exception as exc:
+            failed.append(label)
+            # Only fixed local messages may be reported. Never echo HTTP bodies or IDs.
+            details = str(exc) if isinstance(exc, ValueError) and str(exc) in (
+                'TELEGRAM_CHAT_ID must be a numeric chat ID',
+                'TELEGRAM_APPROVER_ID must be a positive numeric user ID',
+                'Group chats require TELEGRAM_APPROVER_ID',
+                'Use a dedicated Telegram bot with no active webhook',
+                'Gemini key or model access check failed') else 'Verify the configured credentials and account access'
+            print(label + ': ' + details)
+    if failed:
+        raise ValueError('Connection checks failed: ' + ', '.join(failed))
     print('Configuration read checks passed. No content generated or published.')
 
 

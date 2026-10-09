@@ -26,13 +26,18 @@ def bot(method, **params):
 
 
 def verify_bot():
+    import re
+    chat = os.environ['TELEGRAM_CHAT_ID']
+    if not re.fullmatch(r'-?[1-9][0-9]*', chat):
+        raise ValueError('TELEGRAM_CHAT_ID must be a numeric chat ID')
+    approver = os.environ.get('TELEGRAM_APPROVER_ID') or (chat if int(chat) > 0 else '')
+    if not approver:
+        raise ValueError('Group chats require TELEGRAM_APPROVER_ID')
+    if not re.fullmatch(r'[1-9][0-9]*', approver):
+        raise ValueError('TELEGRAM_APPROVER_ID must be a positive numeric user ID')
     # Never silently delete an existing webhook or steal another bot's updates.
     if bot('getWebhookInfo').get('url'):
         raise ValueError('Use a dedicated Telegram bot with no active webhook')
-    chat = os.environ['TELEGRAM_CHAT_ID']
-    approver = os.environ.get('TELEGRAM_APPROVER_ID') or (chat if int(chat) > 0 else '')
-    if not approver or int(approver) <= 0:
-        raise ValueError('Group chats require TELEGRAM_APPROVER_ID')
     return chat, approver
 
 
