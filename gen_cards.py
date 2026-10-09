@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""가전소 카드뉴스 생성기 (브랜드 가이드 Ver 1.0 기준)
+"""가전소 카드뉴스 생성기 (브랜드 가이드 Ver 1.1 기준)
 
 사용법:
   python3 gen_cards.py deck.json OUTDIR
 deck.json 형식은 DECK_SPEC.md 참고. 결과: OUTDIR/card1~5.png (1080x1350) + card1~5.jpg (Instagram 업로드용)
+deck.json 에 "cover_style": "v2" 를 넣으면 1장(cover·product_cover)이 새 표지 디자인(Do Hyeon 제목, 제품 영역 카드, VS 배지)으로 만들어진다.
 """
 import json, os, sys
 import math
@@ -36,21 +37,43 @@ THEME = {
 
 
 FONT_URL = "https://raw.githubusercontent.com/orioncactus/pretendard/main/packages/pretendard/dist/public/static/"
+DISPLAY_FONT_FILE = "DoHyeon-Regular.ttf"
+DISPLAY_FONT_URL = "https://raw.githubusercontent.com/google/fonts/main/ofl/dohyeon/DoHyeon-Regular.ttf"
+DISPLAY_OK = True      # Do Hyeon 사용 가능 여부(다운로드 실패 시 Pretendard Bold 로 대체)
+USE_DISPLAY = False    # cover_style v2 일 때 포스터형 헤드라인·태그에도 Do Hyeon 사용
 
 
 def ensure_fonts():
     """폰트 파일이 없으면 Pretendard(OFL)를 내려받는다."""
     import urllib.request
     os.makedirs(FONT_DIR, exist_ok=True)
-    for n in ("Pretendard-Regular.otf", "Pretendard-SemiBold.otf", "Pretendard-Bold.otf"):
+    for n in ("Pretendard-Regular.otf", "Pretendard-Medium.otf", "Pretendard-SemiBold.otf", "Pretendard-Bold.otf"):
         p = os.path.join(FONT_DIR, n)
         if not os.path.exists(p) or os.path.getsize(p) < 100000:
             urllib.request.urlretrieve(FONT_URL + n, p)
+    global DISPLAY_OK
+    p = os.path.join(FONT_DIR, DISPLAY_FONT_FILE)
+    try:
+        if not os.path.exists(p) or os.path.getsize(p) < 100000:
+            urllib.request.urlretrieve(DISPLAY_FONT_URL, p)
+        ImageFont.truetype(p, 20)
+        DISPLAY_OK = True
+    except Exception as e:  # 실패해도 생성은 계속(표지 제목은 Pretendard Bold 로 대체)
+        DISPLAY_OK = False
+        print("COVER_FONT_FALLBACK: Do Hyeon 사용 불가, Pretendard Bold 로 대체 -", e)
 
 
 def font(weight, px):
-    name = {"regular": "Pretendard-Regular.otf", "semibold": "Pretendard-SemiBold.otf", "bold": "Pretendard-Bold.otf"}[weight]
+    name = {"regular": "Pretendard-Regular.otf", "medium": "Pretendard-Medium.otf",
+            "semibold": "Pretendard-SemiBold.otf", "bold": "Pretendard-Bold.otf"}[weight]
     return ImageFont.truetype(os.path.join(FONT_DIR, name), int(px * S))
+
+
+def dfont(px):
+    """표지·강조용 디자인 폰트(Do Hyeon). 사용 불가면 Pretendard Bold."""
+    if DISPLAY_OK:
+        return ImageFont.truetype(os.path.join(FONT_DIR, DISPLAY_FONT_FILE), int(px * S))
+    return font("bold", px)
 
 
 class Card:
@@ -118,7 +141,10 @@ class Card:
     def box_lines(self, top, bottom):
         self.hline(top, 90, W - 90, self.t["line"]); self.hline(bottom, 90, W - 90, self.t["line"])
 
-    def finish(self, n):
+    def finish(self, n, cover_v2=False):
+        if cover_v2:  # 새 표지: 테두리·페이지 번호·힌트는 cover_v2()가 그리고, 콘센트 심볼은 쓰지 않는다. QR 상담 배지만 공통
+            self.qr_badge()
+            return
         self.frame(); self.symbol(); self.page_no(n); self.qr_badge()
         if getattr(self, "illust", False):  # 일러스트 사용 시 실제 제품 사진이 아님을 표기
             self.text(70, 1236, "※ 이해를 돕기 위한 일러스트입니다", font("regular", 22), self.t["page"], "lm")
@@ -415,7 +441,7 @@ def cutout(src, dst=None, tol=18):
 
 
 # ---------- 제품 일러스트 (적절한 실물 이미지를 못 찾았을 때 사용) ----------
-ILLUST_KINDS = ["stick_vacuum", "robot_vacuum", "fridge", "kimchi_fridge", "washer", "dryer", "tv", "aircon",
+ILLUST_KINDS = ["stick_vacuum", "robot_vacuum", "fridge", "kimchi_fridge", "washer", "washer_drum", "washer_top", "dryer", "tv", "aircon",
                 "air_purifier", "microwave", "dishwasher", "generic"]
 
 
@@ -424,7 +450,7 @@ def illustration(kind):
     K = 2; LW = 9 * K
     OUT = NAVY; MID = (0x40, 0x52, 0x78); FILL = ICE; SHADE = (0xC4, 0xD5, 0xEA); GLASS = (0xA9, 0xC4, 0xE6)
     sizes = {"stick_vacuum": (420, 1100), "robot_vacuum": (800, 800), "fridge": (600, 1050), "kimchi_fridge": (760, 860),
-             "washer": (700, 820), "dryer": (700, 820), "tv": (1000, 720), "aircon": (1000, 340), "air_purifier": (520, 860),
+             "washer": (700, 820), "washer_drum": (700, 820), "washer_top": (700, 820), "dryer": (700, 820), "tv": (1000, 720), "aircon": (1000, 340), "air_purifier": (520, 860),
              "microwave": (860, 600), "dishwasher": (700, 780), "generic": (700, 700)}
     w, h = sizes.get(kind, sizes["generic"]); w2, h2 = w * K, h * K
     im = Image.new("RGBA", (w2, h2), (0, 0, 0, 0)); d = ImageDraw.Draw(im)
@@ -466,17 +492,25 @@ def illustration(kind):
             rr(90, 90, w - 90, 130, 12, fill=SHADE, ow=LW - 3)
             rr(w - 130, h * 0.30 + 70, w - 100, h * 0.30 + 320, 10, fill=NAVY)
             ov(110, h * 0.30 + 110, 14, fill=ORANGE, outline=ORANGE)
-    elif kind in ("washer", "dryer"):
+    elif kind in ("washer", "washer_drum", "dryer"):
         rr(m, m, w - m, h - m, 36)
         ln(m, 170, w - m, 170)
         ov(130, 92, 36, fill=SHADE); rr(230, 62, 470, 124, 16, fill=NAVY)
         ov(w - 120, 92, 14, fill=ORANGE, outline=ORANGE)
         ov(w / 2, 500, 250); ov(w / 2, 500, 190, fill=GLASS); ov(w / 2, 500, 190, fill=None, ow=LW - 3)
-        if kind == "washer":
+        if kind in ("washer", "washer_drum"):
             ov(w / 2 - 20, 560, 90, fill=(0x8F, 0xB1, 0xDC), outline=None, ow=0)
         else:
             for i in range(4): ln(w / 2 - 110, 430 + i * 52, w / 2 + 110, 430 + i * 52, 6, SHADE)
         d.arc(((w / 2 - 150) * K, (500 - 150) * K, (w / 2 + 150) * K, (500 + 150) * K), 200, 260, fill=WHITE, width=12 * K // 2)
+    elif kind == "washer_top":                         # 통돌이(상부 투입형): 윗면 뚜껑 + 조작부
+        rr(m, 130, w - m, h - m, 36)
+        rr(70, m, w - 70, 190, 30, fill=SHADE)         # 뚜껑
+        ov(w / 2, 102, 30, fill=BLUE)                  # 뚜껑 손잡이
+        ln(m, 270, w - m, 270)
+        ov(130, 350, 38, fill=SHADE); rr(260, 322, 500, 380, 16, fill=NAVY)
+        ov(w - 120, 350, 14, fill=ORANGE, outline=ORANGE)
+        rr(130, 470, w - 130, h - 120, 28, fill=SHADE, ow=LW - 3)
     elif kind == "tv":
         rr(m, m, w - m, 600, 26, fill=MID)
         rr(m + 22, m + 22, w - m - 22, 578, 14, fill=(0x2E, 0x5E, 0xAA))
@@ -528,8 +562,8 @@ def place_image(c, path, box, anchor="center", max_up=1.4):
     return (x, y, x + nw, y + nh)
 
 
-def pill(c, x, y, text, size=26, fill=None, outline=None, color=WHITE, h=46):
-    f = font("semibold", size); w = c.text_w(text, f) + 40
+def pill(c, x, y, text, size=26, fill=None, outline=None, color=WHITE, h=46, display=False):
+    f = dfont(size) if display else font("semibold", size); w = c.text_w(text, f) + 40
     c.d.rounded_rectangle((x * S, y * S, (x + w) * S, (y + h) * S), radius=h / 2 * S, fill=fill, outline=outline, width=2 * S if outline else 0)
     c.text(x + w / 2, y + h / 2, text, f, color, "mm")
     return w
@@ -594,9 +628,9 @@ def full_poster(c, spec):
     pill_fill, pill_txt = (NAVY, WHITE) if c.bg in ("orange", "blue", "ice") else (ORANGE, WHITE)
     if mode == "headline":
         y = 150
-        if spec.get("tag"): pill(c, 90, y, spec["tag"], size=30, fill=pill_fill, color=pill_txt, h=56); y += 56 + 36
+        if spec.get("tag"): pill(c, 90, y, spec["tag"], size=30, fill=pill_fill, color=pill_txt, h=56, display=USE_DISPLAY); y += 56 + 36
         hl = spec.get("highlight", 1)
-        f = font("bold", 96)
+        f = dfont(104) if USE_DISPLAY else font("bold", 96)
         for i, ln in enumerate(spec["headline"].split("\n")):
             tw = c.text_w(ln, f)
             if i == hl:
@@ -613,7 +647,7 @@ def full_poster(c, spec):
             cx, cy = (790, top_img + 190) if spec.get("image") else (W / 2, top_img + 230)
             burst(c, cx, cy, 200, NAVY if c.bg != "navy" else ORANGE)
             if spec.get("burst_top"): c.text(cx, cy - 92, spec["burst_top"], font("semibold", 34), ICE, "mm")
-            c.text(cx, cy - 8, spec["burst_main"], font("bold", 92), WHITE, "mm")
+            c.text(cx, cy - 8, spec["burst_main"], dfont(100) if USE_DISPLAY else font("bold", 92), WHITE, "mm")
             if spec.get("burst_sub"): c.text(cx, cy + 84, spec["burst_sub"], font("semibold", 28), ICE, "mm")
         if spec.get("note"):
             ny = 1120
@@ -634,6 +668,103 @@ def full_poster(c, spec):
         if spec.get("note"): c.text(90, y + 10, spec["note"], font("regular", 24), t["sub"] if c.bg != "orange" else WHITE)
 
 
+# ---------- 새 표지(cover_style v2): 큰 제목 + 제품 영역 카드 ----------
+import re
+
+# 표지색별 색 조합 (태그 알약, VS 배지, 제목 1·2줄, 부제, 힌트, 페이지 번호, 제품 영역 카드)
+V2 = {
+    "ice":    dict(t1=NAVY,     t2=BLUE,       sub=BLUE,       tag_fill=ORANGE, tag_txt=WHITE,    badge=ORANGE, vs=BLUE,       hint=BLUE,       page=NAVY,     panel=WHITE),
+    "white":  dict(t1=NAVY,     t2=BLUE,       sub=BLUE,       tag_fill=ORANGE, tag_txt=WHITE,    badge=ORANGE, vs=BLUE,       hint=BLUE,       page=NAVY,     panel=STRIPE),
+    "navy":   dict(t1=OFFWHITE, t2=NAVY_NOTE,  sub=NAVY_NOTE,  tag_fill=ORANGE, tag_txt=WHITE,    badge=ORANGE, vs=NAVY_NOTE,  hint=NAVY_NOTE,  page=OFFWHITE, panel=WHITE),
+    "orange": dict(t1=NAVY,     t2=NAVY,       sub=NAVY,       tag_fill=NAVY,   tag_txt=OFFWHITE, badge=NAVY,   vs=NAVY,       hint=NAVY,       page=NAVY,     panel=WHITE),
+    "blue":   dict(t1=WHITE,    t2=ICE,        sub=ICE,        tag_fill=ORANGE, tag_txt=WHITE,    badge=ORANGE, vs=ICE,        hint=ICE,        page=ICE,      panel=WHITE),
+}
+VS_RE = re.compile(r"\s+(?:vs\.?|VS\.?)\s+")
+
+
+def _split_vs(line):
+    parts = VS_RE.split(line, maxsplit=1)
+    return (parts[0].strip(), parts[1].strip()) if len(parts) == 2 else None
+
+
+def _line_w(c, ln, px):
+    sv = _split_vs(ln)
+    if sv:
+        return c.text_w(sv[0], dfont(px)) + 28 + c.text_w("vs", dfont(px * 0.61)) + 28 + c.text_w(sv[1], dfont(px))
+    return c.text_w(ln, dfont(px))
+
+
+def _draw_line(c, x, y, ln, px, color, vs_color):
+    sv = _split_vs(ln)
+    if not sv:
+        c.text(x, y, ln, dfont(px), color, "ls"); return
+    f, fv = dfont(px), dfont(px * 0.61)
+    c.text(x, y, sv[0], f, color, "ls"); x += c.text_w(sv[0], f) + 28
+    c.text(x, y, "vs", fv, vs_color, "ls"); x += c.text_w("vs", fv) + 28
+    c.text(x, y, sv[1], f, color, "ls")
+
+
+def cover_v2(c, spec, total=5):
+    """1장 표지. 태그 → 제목 2줄(Do Hyeon 128) → 부제 → 제품 영역 카드 → 하단 힌트·페이지 번호. 로고는 stamp_logo.py 가 하단 중앙에 넣는다."""
+    p = V2[c.bg]; d = c.d
+    if c.bg == "ice":      # 6px 네이비 테두리, 가장자리 안쪽 30px
+        d.rectangle((30 * S, 30 * S, (W - 30) * S, (H - 30) * S), outline=NAVY, width=6 * S)
+    elif c.bg == "white":  # 기존 흰 배경 카드 규칙
+        c.frame()
+    vis = list(spec.get("visuals") or [])
+    if not vis and spec.get("image"):
+        vis = [spec["image"]]
+    vis = vis[:2]
+    lines = spec["title"].split("\n")[: (2 if vis else 3)]
+
+    # 태그 알약
+    if spec.get("tag"):
+        tf = dfont(38); tw = c.text_w(spec["tag"], tf)
+        d.rounded_rectangle((90 * S, 105 * S, (90 + tw + 80) * S, (105 + 74) * S), radius=37 * S, fill=p["tag_fill"])
+        c.text(90 + 40, 156, spec["tag"], tf, p["tag_txt"], "ls")
+
+    # 제목: 폭 900px 안에 들어오도록 8px씩 줄임(최소 96px)
+    px = 128 if vis else 144
+    while px > 96 and max(_line_w(c, ln, px) for ln in lines) > 900:
+        px -= 8
+    step = round(px * 1.094)
+    y = 330 if vis else 440     # 제품 영역이 없으면 위쪽이 너무 비지 않도록 조금 아래에서 시작
+    for i, ln in enumerate(lines):
+        _draw_line(c, 90, y, ln, px, p["t1"] if i == 0 else p["t2"], p["vs"])
+        y += step
+    last = y - step
+
+    # 부제
+    sub_y = 575 if vis else last + 100
+    if spec.get("subtitle"):
+        sz = 40
+        while sz > 30 and c.text_w(spec["subtitle"], font("medium", sz)) > 900:
+            sz -= 2
+        c.text(90, sub_y, spec["subtitle"], font("medium", sz), p["sub"], "ls")
+
+    # 제품 영역 카드
+    if vis:
+        d.rounded_rectangle((90 * S, 630 * S, 990 * S, 1080 * S), radius=40 * S, fill=p["panel"])
+        if len(vis) == 1:
+            place_image(c, vis[0], (130, 655, 950, 1040))
+        else:
+            place_image(c, vis[0], (130, 655, 500, 990)); place_image(c, vis[1], (580, 655, 950, 990))
+            if spec.get("badge"):
+                d.ellipse((482 * S, 772 * S, 598 * S, 888 * S), fill=p["badge"])
+                c.text(540, 830, spec["badge"], dfont(52), p["tag_txt"], "mm")
+            labels = spec.get("labels")
+            if not labels:
+                sv = _split_vs(lines[0]); labels = list(sv) if sv else None
+            if labels and len(labels) == 2:
+                c.text(315, 1030, labels[0], dfont(46), NAVY, "mm"); c.text(765, 1030, labels[1], dfont(46), NAVY, "mm")
+        if getattr(c, "illust", False):
+            c.text(540, 1064, "※ 이해를 돕기 위한 일러스트입니다", font("regular", 22), GRAY, "mm")
+
+    # 하단 좌측: 힌트 + 페이지 번호
+    c.text(90, 1210, "넘겨서 확인하기 →", font("medium", 34), p["hint"], "ls")
+    c.text(90, 1262, f"1 / {total}", dfont(34), p["page"], "ls")
+
+
 FULL = {"product_cover": full_product_cover, "product": full_product, "poster": full_poster}
 
 BUILDERS = {"cover": b_cover, "formula": b_formula, "table": b_table, "checklist": b_checklist, "compare": b_compare,
@@ -642,21 +773,29 @@ LEFT_ALIGNED = {"checklist", "review", "deal", "steps"}  # 문서 레이아웃: 
 
 
 def render(deck, outdir):
+    global USE_DISPLAY
     ensure_fonts()
     os.makedirs(outdir, exist_ok=True)
     cards = deck["cards"]
     assert len(cards) == 5, "게시물은 항상 5장"
     cover_color = deck.get("cover_color", "navy")
+    cover_style = deck.get("cover_style")
+    USE_DISPLAY = (cover_style == "v2")
     for i, spec in enumerate(cards, 1):
         kind = spec["type"]
         bg = spec.get("bg") or (cover_color if i == 1 else ("navy" if i == 5 else "white"))
+        # 새 표지: 1장의 cover·product_cover (브랜드 소개용 logo:true 표지는 기존 레이아웃 유지)
+        v2 = (i == 1 and cover_style == "v2" and kind in ("cover", "product_cover")
+              and not (kind == "cover" and spec.get("logo")) and bg in V2)
         c = Card(bg)
-        if kind in FULL:
+        if v2:
+            cover_v2(c, spec, total=len(cards))
+        elif kind in FULL:
             FULL[kind](c, spec)
         else:
             build = BUILDERS[kind](spec)
             layout_center(c, build, center=spec.get("center", 690))
-        c.finish(i)
+        c.finish(i, cover_v2=v2)
         c.save(os.path.join(outdir, f"card{i}"))
     return outdir
 
