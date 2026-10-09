@@ -116,8 +116,9 @@ class ApprovalTests(unittest.TestCase):
         self.callback['data'] = 'cancel:20261012:key'
         self.assertTrue(tg.apply_callback(self.callback, self.state, '123', '123'))
         self.assertEqual(self.state.data['approval']['status'], 'cancelled')
-        with patch.object(tg, 'bot', return_value={'url': 'https://existing-handler.example'}):
-            with self.assertRaises(ValueError):
+        with patch.dict(os.environ, {'TELEGRAM_CHAT_ID': '123', 'TELEGRAM_APPROVER_ID': ''}), \
+             patch.object(tg, 'bot', return_value={'url': 'https://existing-handler.example'}):
+            with self.assertRaisesRegex(ValueError, 'no active webhook'):
                 tg.verify_bot()
 
     def test_poller_durably_saves_decision_and_offset(self):
