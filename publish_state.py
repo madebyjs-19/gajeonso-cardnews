@@ -11,6 +11,8 @@ import re
 import tempfile
 import uuid
 
+from git_checkpoint import CheckpointError, checkpoint
+
 ROOT = Path(__file__).resolve().parent
 CHANNELS = ('ig_card', 'fb_card', 'ig_reel', 'fb_reel')
 BLOCKED = {'success', 'submitted', 'publishing', 'unknown', 'legacy_success'}
@@ -110,6 +112,7 @@ class RunState:
         with (self.root / 'log' / '.status.lock').open('a') as lock:
             fcntl.flock(lock, fcntl.LOCK_EX)
             self.update_log()
+            checkpoint(self.root, self.run)
 
     def update_log(self):
         lines = self.log.read_text(encoding='utf-8').splitlines() if self.log.exists() else []
@@ -117,6 +120,8 @@ class RunState:
         def clean(value):
             return str(value).replace('|', '/').replace('\n', ' ')
         results = [self.data['approval']['status'].upper()]
+        if self.data.get('preparation'):
+            results.append('PREP=' + self.data['preparation']['status'].upper())
         for channel in CHANNELS:
             item = self.data['channels'].get(channel)
             if item:
@@ -206,7 +211,7 @@ def main():
                 state.save()
             print(json.dumps(state.data, ensure_ascii=False, indent=2))
         return 0
-    except (ValueError, OSError, KeyError) as exc:
+    except (ValueError, OSError, KeyError, CheckpointError) as exc:
         print(str(exc) if isinstance(exc, ValueError) else 'State operation failed: ' + type(exc).__name__, file=__import__('sys').stderr)
         return 1
 

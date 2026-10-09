@@ -8,8 +8,10 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
+import uuid
 
 from publish_state import BLOCKED, ROOT, locked_state
+from git_checkpoint import CheckpointError
 
 G = 'https://graph.facebook.com/v26.0'
 RAW = 'https://raw.githubusercontent.com/madebyjs-19/gajeonso-cardnews/main/cards'
@@ -50,7 +52,7 @@ def wait(container, token, attempts=24):
 def publish_visible(state, channel, method, path, field='id', status='success', **params):
     # Write-ahead marker survives a process crash, timeout or missing response ID.
     # Even a definite API rejection remains blocked until an operator reconciles it.
-    state.set_channel(channel, 'publishing')
+    state.set_channel(channel, 'publishing', attempt_id=uuid.uuid4().hex)
     response = need(call(method, path, **params))
     if field == 'success':
         if response.get('success') is not True:
@@ -70,6 +72,8 @@ def permalink(state, channel, media_id, token, field):
             parsed = urllib.parse.urlparse(link)
             if parsed.scheme == 'https' and parsed.hostname in ('www.instagram.com', 'instagram.com', 'www.facebook.com', 'facebook.com') and not parsed.query:
                 state.set_channel(channel, state.data['channels'][channel]['status'], permalink=link)
+    except CheckpointError:
+        raise
     except Exception:
         pass  # Successful publication must remain successful when lookup fails.
 
@@ -185,6 +189,8 @@ def main(reel=False):
                     state.set_channel(channel, 'preparing', account_id=os.environ[id_name])
                     try:
                         fn(state, caption, os.environ[token_name], os.environ[id_name], reel=reel)
+                    except CheckpointError:
+                        raise
                     except Exception as exc:
                         current = state.data['channels'][channel]['status']
                         # Persist failure stage, but never raw exception text or secrets.
@@ -196,10 +202,10 @@ def main(reel=False):
                 results.append(channel + ': ' + item['status'] + (' ' + item['permalink'] if item.get('permalink') else ''))
             msg = '[' + args.run + (' 릴스 결과' if reel else ' 카드 결과') + ']\n' + '\n'.join(results)
             print(msg)
-            if not notify(msg):
+            if os.environ.get('GAJEONSO_SILENT_TELEGRAM') != '1' and not notify(msg):
                 print('TELEGRAM_NOTIFICATION_FAILED (publish state preserved)')
             return 1 if failed else 0
-    except (ValueError, OSError, KeyError, urllib.error.URLError) as exc:
+    except (ValueError, OSError, KeyError, urllib.error.URLError, CheckpointError) as exc:
         # All ValueErrors raised by this module/state are controlled, credential-free messages.
-        print(str(exc) if isinstance(exc, ValueError) else 'Pre-flight failed: ' + type(exc).__name__)
+        print(str(exc) if isinstance(exc, (ValueError, CheckpointError)) else 'Pre-flight failed: ' + type(exc).__name__)
         return 1
