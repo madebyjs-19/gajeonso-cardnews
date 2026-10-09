@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(python3.13 publish.py *)"
+      "Bash(python3.13 publish.py *)",
+      "Bash(python3.13 publish_reel.py *)"
     ]
   }
 }
