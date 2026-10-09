@@ -3,3 +3,6 @@ fonts/
 out/
 img/
 __pycache__/
+log/publish-state/*.lock
+log/.status.lock
+log/**/.state-*

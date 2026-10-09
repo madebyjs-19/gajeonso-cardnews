@@ -8,7 +8,6 @@
 2026-10-08 | 롯데하이마트 가전수리올케어(20261008c) | 승인 만료(발행 안 함)
 20261008e | 김장철 김치냉장고 구매 가이드 | B | navy | compare, checklist, steps | 승인됨, Instagram 발행은 실행 권한 거부로 미실행
 20261008f | 10월 하이마트 가전 할인전 | C | orange | poster(benefits), table, checklist | IG 발행 성공 · FB 설정 누락
-20261008g | 한전 고효율 가전 지원사업 안내 | B | navy | table, checklist, steps | 승인됨, IG·FB 발행은 실행 권한 거부로 미실행
 20261008g | 한전 고효율 가전 지원사업 안내 | B | navy | table, checklist, steps | IG 발행 성공 · FB 발행 성공 (사용자 직접 허용 후 재실행)
 20261009 | 일체형 세탁건조기 구매 가이드(삼성 비스포크 AI 콤보 2026) | B | ice | table, compare, checklist | IG 발행 성공 · FB 발행 성공 (사용자 재개 지시 후 발행) · IG 릴스 성공 · FB 릴스 요청 완료(시험발행)
 20261009b | 온수매트 vs 전기매트 구매 가이드 | B | navy | compare, checklist, steps | 승인됨, IG·FB 카드·릴스 발행은 실행 권한 거부로 미실행
