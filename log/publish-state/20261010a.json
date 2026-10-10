@@ -6,7 +6,8 @@
     "key": "9c0eaa3f33114cc5873d19bb4a4cf12e",
     "chat_id": "5687403592",
     "fingerprint": "a346df129b3dc18f3d89dbc17f8e18c1cf56d5133fdab75c9fe99a7263434cce",
-    "delivery": "sending"
+    "delivery": "sent",
+    "message_id": 93
   },
   "channels": {},
   "metadata": {
@@ -20,5 +21,5 @@
   "preparation": {
     "status": "ready"
   },
-  "updated_at": "2026-10-10T07:56:11.508047+00:00"
+  "updated_at": "2026-10-10T07:56:18.885885+00:00"
 }
