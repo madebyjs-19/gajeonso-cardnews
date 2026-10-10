@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "run": "20261010a",
+  "approval": {
+    "status": "ready_for_approval",
+    "key": "9c0eaa3f33114cc5873d19bb4a4cf12e",
+    "chat_id": "5687403592",
+    "fingerprint": "a346df129b3dc18f3d89dbc17f8e18c1cf56d5133fdab75c9fe99a7263434cce"
+  },
+  "channels": {},
+  "metadata": {
+    "topic": "하이마트 정왕역점 브랜드위크: 가을 이사·혼수 가전 견적 비교",
+    "type": "C",
+    "cover": "orange",
+    "cards": "table, checklist, steps"
+  },
+  "manual_test": true,
+  "request_hash": "874a8b231fac666df98abb022a402520ba3a9b76164dc3fb011222ebef363b51",
+  "preparation": {
+    "status": "ready"
+  },
+  "updated_at": "2026-10-10T07:56:08.885194+00:00"
+}

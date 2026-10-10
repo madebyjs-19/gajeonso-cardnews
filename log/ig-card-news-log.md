@@ -14,3 +14,4 @@
 
 20261010 | 주제 선정 전 중단(환경 재확인) | — | — | — | 텔레그램 승인 설정 누락 · 카드 미제작 · IG 설정 누락, 발행 안 함 · FB 설정 누락, 발행 안 함 · 텔레그램 알림 전송 불가
 20261009b | 온수매트 vs 전기매트 구매 가이드 | B | navy | compare, checklist, steps | IG 발행 성공 · FB 발행 성공 · IG 릴스 성공 · FB 릴스 성공 (Actions)
+20261010a | 하이마트 정왕역점 브랜드위크: 가을 이사·혼수 가전 견적 비교 | C | orange | table, checklist, steps | READY_FOR_APPROVAL · PREP=READY
