@@ -46,7 +46,7 @@ SCHEMA = obj({'safe_to_prepare': BOOL, 'topic': STR, 'type': {'type': 'string', 
 QA_SCHEMA = obj({'passed': BOOL, 'issues': arr(STR)})
 
 
-def validate_content(content):
+def validate_content(content, *, operator_source=None, allow_store_branding=False):
     import jsonschema
     jsonschema.validate(content, SCHEMA)
     if not content['safe_to_prepare'] or not content['facts'] or len(content['candidates']) < 3:
@@ -79,6 +79,8 @@ def validate_content(content):
         if kind == 'compare' and len(c['cols']) != 2:
             raise ValueError('Invalid compare columns')
     for fact in content['facts']:
+        if operator_source and fact['source_url'] == operator_source:
+            continue
         parsed = urlparse(fact['source_url'])
         host = parsed.hostname or ''
         if parsed.scheme != 'https' or not any(host == d or host.endswith('.' + d) for d in DOMAINS):
@@ -94,7 +96,7 @@ def validate_content(content):
         raise ValueError('Missing brand caption requirements')
     # Check the deliverable text only, not citations that can mention a store.
     visible = json.dumps(deck, ensure_ascii=False) + content['caption_ig'] + content['caption_fb']
-    if '롯데하이마트 정왕역점' in visible:
+    if not allow_store_branding and '롯데하이마트 정왕역점' in visible:
         raise ValueError('Disallowed store branding')
 
 
@@ -150,6 +152,13 @@ def prepare_content(run):
                         {'role': 'user', 'content': review}], QA_SCHEMA)
     if not verdict['passed']:
         raise ValueError('Fact QA rejected content')
+    return render_content(run, content, verdict)
+
+
+def render_content(run, content, verdict, source_method='official_newsrooms'):
+    """Use the original renderers and visual QA for both daily and curated runs."""
+    work = ROOT / 'out' / run
+    work.mkdir(parents=True, exist_ok=True)
     deck_path = work / 'deck.json'
     deck_path.write_text(json.dumps(content['deck'], ensure_ascii=False, indent=2), encoding='utf-8')
     for script, args in [('gen_cards.py', [str(deck_path), str(work)]),
@@ -169,6 +178,6 @@ def prepare_content(run):
         (target / (key + '.txt')).write_text(content[key], encoding='utf-8')
     brief = {k: content[k] for k in ('topic', 'type', 'reason', 'candidates', 'facts', 'warnings')}
     brief.update(cover=content['deck']['cover_color'], card_types=[c['type'] for c in content['deck']['cards'][1:4]],
-                 visual_qa=qa, fact_qa=verdict, source_method='official_newsrooms', ai_model='gemini-3.8-flash', checked_at=datetime.now(ZoneInfo('Asia/Seoul')).isoformat())
+                 visual_qa=qa, fact_qa=verdict, source_method=source_method, ai_model='gemini-3.8-flash', checked_at=datetime.now(ZoneInfo('Asia/Seoul')).isoformat())
     (target / 'brief.json').write_text(json.dumps(brief, ensure_ascii=False, indent=2), encoding='utf-8')
     return brief

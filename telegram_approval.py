@@ -64,7 +64,9 @@ def send_preview(run):
         text = (f"[{run} 승인 요청]\n주제: {brief['topic']}\n유형: {brief['type']} / 표지: {brief['cover']}\n"
                 + '카드: ' + ', '.join(brief['card_types']) + '\n제품 이미지: 브랜드 일러스트\n'
                 + '출처와 확인 사항:\n' + json.dumps(brief['facts'], ensure_ascii=False)
-                + '\n주의: ' + '; '.join(brief['warnings']) + '\n승인된 오늘 회차만 오전 11시에 발행합니다.')
+                + '\n주의: ' + '; '.join(brief['warnings'])
+                + ('\n수동 테스트: 승인 후 별도 수동 실행에서 즉시 발행합니다.'
+                   if state.data.get('manual_test') else '\n승인된 오늘 회차만 오전 11시에 발행합니다.'))
         # Telegram counts UTF-16 code units. Split long text conservatively.
         for heading, content in [('근거', text), ('Instagram 캡션', (directory / 'caption_ig.txt').read_text()),
                                  ('Facebook 캡션', (directory / 'caption_fb.txt').read_text())]:

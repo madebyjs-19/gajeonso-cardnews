@@ -72,6 +72,12 @@ Telegram 알림 실패는 게시 실패가 아니다. 승인 대기 미리보기
 
 ## 수동 도구
 
+### 당일 수동 테스트 발행
+
+**Manual gajeonso test**는 예약이 없는 별도 수동 워크플로다. 사용자가 제공한 행사 정보로 작성·검토한 `automation/manual/YYYYMMDDa.json`을 main에 저장한 뒤 `test_run=YYYYMMDDa`, `phase=prepare`로 실행한다. 원본 생성기로 제작하고 Gemini 시각 검수를 통과한 카드·릴스·본문을 Telegram으로 보낸다. 실제 [발행 승인] 버튼을 누른 후 `phase=publish`를 별도로 수동 실행하면 당일 즉시 발행한다. 매일 오전 11시 예약은 기존 시간 제한을 유지한다.
+
+수동 행사 정보는 실제 제공자의 안내로 출처를 기록하며 공식 원문으로 검증했다고 표시하지 않는다. 매장명 예외는 지정 회차에만 적용한다. 소문자 접미사가 있는 당일 회차만 허용하고, 같은 회차의 입력 변경·콘텐츠 지문 불일치·미승인·중복·결과 불확실 게시를 차단한다. 두 워크플로는 같은 concurrency와 영구 체크포인트를 사용한다.
+
 ```sh
 python3.13 gen_cards.py deck.json out/YYYYMMDD
 python3.13 stamp_logo.py out/YYYYMMDD/card1.png
