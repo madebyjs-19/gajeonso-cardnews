@@ -70,7 +70,7 @@ class ManualTests(unittest.TestCase):
 
     def test_publish_waits_for_real_approval_without_sending_media(self):
         with tempfile.TemporaryDirectory() as tmp, \
-             patch.dict(os.environ, {'GAJEONSO_DURABLE_GIT': '0'}):
+             patch.dict(os.environ, {'GITHUB_ACTIONS': 'test', 'GAJEONSO_DURABLE_GIT': '0'}):
             state = RunState(tmp, '20261010a')
             state.data.update(manual_test=True, request_hash='request', preparation={'status': 'ready'})
             state.data['approval'] = {'status': 'ready_for_approval'}
