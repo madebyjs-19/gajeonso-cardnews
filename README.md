@@ -18,13 +18,15 @@ GitHub Actions가 조사·제작 → Telegram 승인 → Instagram/Facebook 발�
 | FB_PAGE_ACCESS_TOKEN | 선택: 같은 페이지의 발행 권한 토큰 |
 | TELEGRAM_APPROVER_ID | 그룹 채팅일 때 필수: 승인할 Telegram 사용자 ID. 개인 채팅은 기본적으로 채팅 사용자 본인이다. |
 
-Telegram 봇은 BotFather에서 만들고 해당 봇과 개인 채팅을 시작한다. 기존 Claude 자동화가 같은 봇을 조회한다면 그 자동화를 멈추거나 새 봇을 사용한다. 활성 webhook이 있는 봇은 거부한다. 이 코드가 webhook을 삭제하거나 기존 수신기를 교체하지는 않는다. Meta 토큰이 만료되면 갱신하여 같은 Secret 이름으로 교체한다.
+Telegram 봇은 BotFather에서 만들고 해당 봇과 개인 채팅을 시작한다. 다른 자동화가 같은 봇을 조회한다면 그 자동화를 멈추거나 새 봇을 사용한다. 활성 webhook이 있는 봇은 거부한다. 이 코드가 webhook을 삭제하거나 기존 수신기를 교체하지는 않는다. Meta 토큰이 만료되면 갱신하여 같은 Secret 이름으로 교체한다.
 
 3. 저장소 Actions → **Daily gajeonso cardnews** → **Run workflow** → `phase=check`를 실행한다. 이 단계는 Gemini 모델 접근, Telegram 봇, Meta 계정의 연결을 읽기만 하며 콘텐츠 제작·게시를 하지 않는다. 모델 조회 성공은 모든 게시 권한이나 실제 생성 품질을 보장하지 않는다.
 4. 오전 11시 이전에 `phase=prepare`를 수동 실행하여 카드 5장·릴스·캡션이 Telegram에 오는지 확인한다. 검수 후 [발행 승인] 또는 [취소]를 누른다. `phase=approval`을 실행하면 선택이 기록된다. 실제 첫 발행은 오전 11시~11시59분에 `phase=publish`로 확인한다. 승인 없이는 게시하지 않는다.
 5. 시험 확인 후 Actions **Variables** 탭에서 `GAJEONSO_ENABLED`를 `true`로 등록한다. 이제 매일 예약 실행된다. 중지하려면 `false`로 변경한다. 모델은 무료 입력·출력 등급이 제공되는 `gemini-3.8-flash`로 고정한다. 기존 `OPENAI_API_KEY`와 `OPENAI_MODEL`은 사용하지 않는다.
 
 main의 쓰기 권한이 필요하다. 워크플로는 `contents: write`와 checkout 인증으로 상태·콘텐츠를 푸시한다. 조직 정책/브랜치 보호가 자동 커밋을 차단하면 게시도 중단한다. 보호 설정을 무조건 해제하지 말고 승인된 자동화의 쓰기 방식을 별도로 설정한다.
+
+Claude 전용 설정·지시문과 구형 승인 워크플로는 정리했다. 매일 자동 실행과 승인은 `daily-cardnews.yml` 한 경로로 처리하며, 기존 카드·릴스와 발행 상태는 보존한다.
 
 ## 하루 흐름 (Asia/Seoul)
 
