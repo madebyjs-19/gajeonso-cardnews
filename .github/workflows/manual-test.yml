@@ -1,0 +1,66 @@
+name: Manual gajeonso test
+
+on:
+  workflow_dispatch:
+    inputs:
+      phase:
+        description: 'prepare previews first; publish requires the actual Telegram approval'
+        required: true
+        type: choice
+        default: prepare
+        options: [prepare, approval, publish]
+      test_run:
+        description: 'Today YYYYMMDD plus a lowercase suffix; a committed manual plan is required'
+        required: true
+        type: string
+
+concurrency:
+  group: gajeonso-production
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  manual:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      TELEGRAM_APPROVER_ID: ${{ secrets.TELEGRAM_APPROVER_ID }}
+      IG_USER_ID: ${{ secrets.IG_USER_ID }}
+      IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+      FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
+      FB_PAGE_ACCESS_TOKEN: ${{ secrets.FB_PAGE_ACCESS_TOKEN }}
+      GAJEONSO_DURABLE_GIT: '1'
+      REQUESTED_PHASE: ${{ inputs.phase }}
+      TEST_RUN: ${{ inputs.test_run }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+      - name: Install dependencies
+        run: |
+          python -m pip install -r requirements.txt
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg
+      - name: Run manual test phase
+        run: python manual_test.py "$REQUESTED_PHASE" --run "$TEST_RUN"
+      - name: Preserve recovery files
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: manual-recovery-${{ github.run_id }}
+          path: |
+            log/publish-state/*.json
+            log/telegram-offset.json
+          retention-days: 14
+          if-no-files-found: ignore
