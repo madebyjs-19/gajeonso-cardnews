@@ -79,7 +79,7 @@ class ManualTests(unittest.TestCase):
                 locked.return_value.__enter__.return_value = state
                 manual.publish('20261010a')
                 post.assert_not_called()
-                self.assertEqual(state.data['approval']['status'], 'approval_timeout')
+                self.assertEqual(state.data['approval']['status'], 'ready_for_approval')
 
 
 if __name__ == '__main__':

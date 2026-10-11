@@ -1,5 +1,5 @@
 """A dedicated Telegram bot: preview delivery and authenticated callback polling."""
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 import os
 from pathlib import Path
@@ -8,6 +8,7 @@ import uuid
 from zoneinfo import ZoneInfo
 
 from git_checkpoint import checkpoint
+from telegram_text import TYPE, COLOR, CARD
 from publish_state import ROOT, atomic_write, locked_state, validate_run
 
 
@@ -61,22 +62,24 @@ def send_preview(run):
         bot('sendMediaGroup', chat_id=chat, media=[{'type': 'photo', 'media': raw + f'/card{i}.jpg'} for i in range(1, 6)])
         bot('sendVideo', chat_id=chat, video=raw + '/reel.mp4', caption=run + ' 릴스 미리보기')
         brief = json.loads((directory / 'brief.json').read_text(encoding='utf-8'))
-        text = (f"[{run} 승인 요청]\n주제: {brief['topic']}\n유형: {brief['type']} / 표지: {brief['cover']}\n"
-                + '카드: ' + ', '.join(brief['card_types']) + '\n제품 이미지: 브랜드 일러스트\n'
-                + '출처와 확인 사항:\n' + json.dumps(brief['facts'], ensure_ascii=False)
+        text = (f"[{run} 승인 요청]\n주제: {brief['topic']}\n유형: {TYPE.get(brief['type'], '정보 안내')} / 표지: {COLOR.get(brief['cover'], '브랜드 색상')}\n"
+                + '카드: ' + ', '.join(CARD.get(c, '정보 안내') for c in brief['card_types']) + '\n제품 이미지: 브랜드 일러스트\n'
+                + '출처와 확인 사항:\n' + '\n'.join('내용: ' + f['claim'] + '\n출처: ' + f['source_url'] + '\n확인: ' + f.get('verification', '공식 자료 확인') for f in brief['facts'])
                 + '\n주의: ' + '; '.join(brief['warnings'])
                 + ('\n수동 테스트: 승인 후 별도 수동 실행에서 즉시 발행합니다.'
-                   if state.data.get('manual_test') else '\n승인된 오늘 회차만 오전 11시에 발행합니다.'))
+                   if state.data.get('manual_test') else '\n승인 대기 시간은 전송 후 60분입니다. 오전 11시 이전 승인은 11시부터, 이후 승인은 당일 다음 복구 점검에서 발행합니다. 예약이 지연되면 처리도 늦어질 수 있습니다.'))
         # Telegram counts UTF-16 code units. Split long text conservatively.
-        for heading, content in [('근거', text), ('Instagram 캡션', (directory / 'caption_ig.txt').read_text()),
-                                 ('Facebook 캡션', (directory / 'caption_fb.txt').read_text())]:
+        for heading, content in [('근거', text), ('인스타그램 본문', (directory / 'caption_ig.txt').read_text()),
+                                 ('페이스북 본문', (directory / 'caption_fb.txt').read_text())]:
             for offset in range(0, len(content), 1800):
                 bot('sendMessage', chat_id=chat, text=heading + '\n' + content[offset:offset + 1800])
         message = bot('sendMessage', chat_id=chat, text=run + ' 카드 5장·릴스·캡션을 확인한 후 선택해 주세요.',
                       reply_markup={'inline_keyboard': [[
                           {'text': '발행 승인', 'callback_data': f"approve:{run}:{approval['key']}"},
                           {'text': '취소', 'callback_data': f"cancel:{run}:{approval['key']}"}]]})
-        approval.update(message_id=message['message_id'], delivery='sent')
+        sent_at = datetime.now(ZoneInfo('Asia/Seoul'))
+        approval.update(message_id=message['message_id'], delivery='sent', sent_at=sent_at.isoformat(),
+                        expires_at=(sent_at + timedelta(minutes=60)).isoformat())
         state.save()
 
 
@@ -90,6 +93,8 @@ def apply_callback(callback, state, chat, approver):
             or str(callback.get('from', {}).get('id')) != approver
             or message.get('message_id') != approval.get('message_id')
             or approval.get('chat_id') != chat or not callback.get('id')):
+        return False
+    if approval.get('expires_at') and datetime.now(ZoneInfo('Asia/Seoul')) >= datetime.fromisoformat(approval['expires_at']):
         return False
     approval.update(status='approved' if data[0] == 'approve' else 'cancelled',
                     callback_id=callback['id'], approved_by=approver,
@@ -115,7 +120,7 @@ def poll(run):
                     accepted = apply_callback(callback, state, chat, approver)
                 try:
                     bot('answerCallbackQuery', callback_query_id=callback['id'],
-                        text='승인 기록 완료' if accepted else '처리된 요청 또는 유효하지 않은 요청입니다.')
+                        text=('취소를 기록했습니다.' if callback.get('data', '').startswith('cancel:') else '승인을 기록했습니다.') if accepted else '처리된 요청 또는 유효하지 않은 요청입니다.')
                 except RuntimeError:
                     pass
             offset = max(offset, update['update_id'] + 1)

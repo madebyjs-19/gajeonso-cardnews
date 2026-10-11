@@ -2,9 +2,8 @@ name: Daily gajeonso cardnews
 
 on:
   schedule:
-    - cron: '0 1 * * *'          # 10:00 Asia/Seoul: preparation
-    - cron: '15,35,55 1 * * *'  # 10:15/10:35/10:55: approval polling
-    - cron: '0 2 * * *'          # 11:00: final approval check + publishing
+    - cron: '7,17,27,37,47,57 1-14 * * *' # 한국 10:07~23:57, 지연·누락 복구
+    - cron: '0 2 * * *'                  # 한국 11:00 목표 발행
   workflow_dispatch:
     inputs:
       phase:
@@ -12,7 +11,7 @@ on:
         required: true
         type: choice
         default: check
-        options: [check, prepare, approval, publish]
+        options: [check, tick, prepare, approval, publish]
 
 # All production mutation workflows must share this exact group.
 concurrency:
@@ -56,12 +55,7 @@ jobs:
       - name: Run scheduled phase
         run: |
           if [ -z "$REQUESTED_PHASE" ]; then
-            case "$TRIGGER_SCHEDULE" in
-              '0 1 * * *') REQUESTED_PHASE=prepare ;;
-              '15,35,55 1 * * *') REQUESTED_PHASE=approval ;;
-              '0 2 * * *') REQUESTED_PHASE=publish ;;
-              *) exit 1 ;;
-            esac
+            REQUESTED_PHASE=tick
           fi
           python daily_automation.py "$REQUESTED_PHASE"
       - name: Preserve recovery files

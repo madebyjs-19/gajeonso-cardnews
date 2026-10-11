@@ -1,6 +1,6 @@
 """GitHub Actions entry point for PREP, Telegram approval polling and PUBLISH."""
 import argparse
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 import os
 from pathlib import Path
@@ -9,11 +9,14 @@ import sys
 from zoneinfo import ZoneInfo
 
 from git_checkpoint import CheckpointError
-from publish_state import BLOCKED, ROOT, fingerprint, locked_state, validate_run
+from publish_state import BLOCKED, CHANNELS, ROOT, fingerprint, locked_state, validate_run
+from telegram_text import channel_result, error_text, status_text
 from publish_common import notify, verify_remote_media
 from telegram_approval import bot, poll, send_preview, verify_bot
 
-REQUIRED = ('GEMINI_API_KEY', 'TELEGRAM_BOT_TOKEN', 'TELEGRAM_CHAT_ID', 'IG_USER_ID', 'IG_ACCESS_TOKEN')
+REQUIRED = ('GEMINI_API_KEY', 'TELEGRAM_BOT_TOKEN', 'TELEGRAM_CHAT_ID')
+MAX_PREP_ATTEMPTS = 6
+MAX_PUBLISH_ATTEMPTS = 3
 
 
 def now_korea():
@@ -22,8 +25,6 @@ def now_korea():
 
 def configuration():
     missing = [key for key in REQUIRED if not os.environ.get(key)]
-    if bool(os.environ.get('FB_PAGE_ID')) != bool(os.environ.get('FB_PAGE_ACCESS_TOKEN')):
-        missing.append('FB_PAGE_ID + FB_PAGE_ACCESS_TOKEN (both required together)')
     if missing:
         raise ValueError('Missing GitHub Actions secrets: ' + ', '.join(missing))
 
@@ -95,11 +96,15 @@ def publish(run):
         approval = state.data['approval']
         if approval.get('status') != 'approved':
             if approval.get('status') == 'ready_for_approval':
+                # A delayed publisher must not end the user's approval window early.
+                expires = approval.get('expires_at')
+                if not expires or now_korea() < datetime.fromisoformat(expires):
+                    return
                 approval['status'] = 'approval_timeout'
-            state.save()
-            print('PUBLISH_SKIPPED_' + approval['status'].upper())
+                state.save()
             if not state.data.get('skip_notice_sent'):
-                if notify('[' + run + '] 승인이 없어 발행하지 않았습니다. 상태: ' + approval['status']):
+                if notify('[' + run + '] 인스타그램·페이스북 발행을 진행하지 않았습니다. 상태: '
+                          + status_text(approval['status'])):
                     state.data['skip_notice_sent'] = True
                     state.save()
             return
@@ -113,8 +118,7 @@ def publish(run):
         # If a checkpoint failed and HEAD is ahead/behind remote, the next publisher
         # fails its pre-flight checkpoint too. It cannot proceed to a visible POST.
     with locked_state(run) as state:
-        results = [c.upper() + ': ' + item['status'] + (' ' + item['permalink'] if item.get('permalink') else '')
-                   for c, item in state.data['channels'].items()]
+        results = [channel_result(c, item) for c, item in state.data['channels'].items()]
         marker = json.dumps(results, ensure_ascii=False)
         if state.data.get('last_report') != marker:
             if notify('[' + run + ' 가전소 최종 결과]\n' + '\n'.join(results)):
@@ -124,9 +128,70 @@ def publish(run):
         raise ValueError('One or more channels failed or need reconciliation; see persistent state')
 
 
+def tick(run):
+    """Resume today's durable state regardless of which cron event actually arrived."""
+    current = now_korea()
+    if current.hour < 10:
+        return
+    with locked_state(run) as state:
+        approval = state.data['approval'].get('status')
+        needs_prepare = approval in ('unapproved', 'ready_for_approval')
+        needs_prepare &= not any(c['status'] in BLOCKED for c in state.data['channels'].values())
+        needs_prepare &= not state.data['approval'].get('message_id')
+        if needs_prepare:
+            recovery = state.data.setdefault('recovery', {})
+            due = recovery.get('prepare_retry_at')
+            if recovery.get('prepare_attempts', 0) >= MAX_PREP_ATTEMPTS:
+                if not recovery.get('prepare_limit_notice_sent'):
+                    if notify('[' + run + '] 제작 복구를 여섯 차례 시도했지만 완료하지 못했습니다. 인스타그램·페이스북 발행은 보류 중입니다. 실행 기록을 확인해 주세요.'):
+                        recovery['prepare_limit_notice_sent'] = True
+                        state.save()
+                return
+            if due and current < datetime.fromisoformat(due):
+                return
+            # Preserve at least an hour for approval before the local date changes.
+            if current.hour >= 23:
+                if not recovery.get('late_notice_sent'):
+                    if notify('[' + run + '] 오늘 제작을 시작하지 못했습니다. 승인 시간을 확보할 수 없어 발행하지 않았습니다. 실행 기록을 확인해 주세요.'):
+                        recovery['late_notice_sent'] = True
+                        state.save()
+                return
+            recovery['prepare_attempts'] = recovery.get('prepare_attempts', 0) + 1
+            recovery['prepare_retry_at'] = (current + timedelta(minutes=30)).isoformat()
+            state.save()
+    if needs_prepare:
+        prepare(run)
+    if now_korea().strftime('%Y%m%d') != run:
+        return  # Never publish yesterday's content after a long render crosses midnight.
+    poll(run)
+    with locked_state(run) as state:
+        approval = state.data['approval'].get('status')
+        if approval == 'approved' and now_korea().hour >= 11:
+            pending = [c for c in CHANNELS if state.data['channels'].get(c, {}).get('status') not in BLOCKED]
+            recovery = state.data.setdefault('recovery', {})
+            attempts = recovery.get('publish_attempts', 0)
+            due = recovery.get('publish_retry_at')
+            if pending and attempts >= MAX_PUBLISH_ATTEMPTS:
+                if not recovery.get('publish_limit_notice_sent'):
+                    if notify('[' + run + '] 발행 복구 시도 한도에 도달했습니다. 완료된 게시물은 유지합니다.\n' + '\n'.join(channel_result(c, item) for c, item in state.data['channels'].items())):
+                        recovery['publish_limit_notice_sent'] = True
+                        state.save()
+                return
+            if pending and due and now_korea() < datetime.fromisoformat(due):
+                return
+            if pending:
+                recovery['publish_attempts'] = attempts + 1
+                recovery['publish_retry_at'] = (now_korea() + timedelta(minutes=30)).isoformat()
+                state.save()
+        elif approval not in ('ready_for_approval', 'cancelled', 'approval_timeout'):
+            return
+    # publish() also expires unanswered previews and reports cancellation in Korean.
+    publish(run)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('phase', choices=('check', 'prepare', 'approval', 'publish'))
+    parser.add_argument('phase', choices=('check', 'prepare', 'approval', 'publish', 'tick'))
     parser.add_argument('--run')
     args = parser.parse_args()
     run = args.run or now_korea().strftime('%Y%m%d')
@@ -139,12 +204,12 @@ def main():
         if run != now_korea().strftime('%Y%m%d'):
             raise ValueError('Automation accepts today only; do not replay stale approved dates')
         hour = now_korea().hour
-        if args.phase == 'publish' and not 11 <= hour < 12:
-            raise ValueError('Publishing is permitted only between 11:00 and 11:59 Asia/Seoul')
-        if args.phase in ('prepare', 'approval') and hour >= 11:
-            raise ValueError('Preparation/approval closed for today')
+        if args.phase == 'publish' and hour < 11:
+            raise ValueError('Publishing is permitted from 11:00 Asia/Seoul on the same day')
         verify_bot()
-        if args.phase == 'prepare':
+        if args.phase == 'tick':
+            tick(run)
+        elif args.phase == 'prepare':
             prepare(run)
         elif args.phase == 'approval':
             poll(run)
@@ -152,18 +217,20 @@ def main():
             publish(run)
         return 0
     except Exception as exc:
-        message = str(exc) if isinstance(exc, (ValueError, CheckpointError)) else 'Automation failed: ' + type(exc).__name__
+        message = error_text(exc)
         print(message)
         # Controlled errors only; no raw HTTP/SDK/subprocess output or credentials.
-        if args.phase == 'prepare' and run == now_korea().strftime('%Y%m%d'):
+        if args.phase in ('prepare', 'tick') and run == now_korea().strftime('%Y%m%d'):
             try:
                 with locked_state(run) as state:
-                    state.data['preparation'] = {'status': 'failed', 'error_type': type(exc).__name__}
+                    if state.data['approval'].get('status') == 'unapproved':
+                        state.data['preparation'] = {'status': 'failed', 'error_type': type(exc).__name__}
+                    state.data['last_error'] = message
                     state.save()
             except Exception:
                 print('Failure log checkpoint unavailable; preserve recovery artifact')
         if args.phase != 'check':
-            notify('[' + run + ' 가전소] ' + message)
+            notify('[' + run + ' 가전소] ' + message + '\n인스타그램·페이스북 결과는 저장 상태를 기준으로 확인합니다. 승인 없는 발행은 진행하지 않습니다.')
         return 1
 
 
