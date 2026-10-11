@@ -8,8 +8,8 @@
   "metadata": {},
   "preparation": {
     "status": "failed",
-    "error_type": "RuntimeError"
+    "error_type": "ValueError"
   },
-  "updated_at": "2026-10-11T09:22:55.902553+00:00",
-  "last_error": "제미나이 콘텐츠 생성 요청에 실패했습니다. 다음 복구 점검에서 다시 확인합니다."
+  "updated_at": "2026-10-11T09:48:22.852991+00:00",
+  "last_error": "자동화 처리 중 오류가 발생했습니다. 저장소 실행 기록과 저장 상태를 확인해 주세요."
 }
