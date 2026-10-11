@@ -51,6 +51,10 @@
       "attempt_id": "17cb335838504cbfa2193aee172ac481",
       "media_id": "18075487163742468",
       "permalink": "https://www.instagram.com/reel/DeWq5PsjiMt/"
+    },
+    "fb_reel": {
+      "status": "preparing",
+      "account_id": "1372302955967772"
     }
   },
   "metadata": {
@@ -62,7 +66,7 @@
   "preparation": {
     "status": "ready"
   },
-  "updated_at": "2026-10-11T12:35:10.820772+00:00",
+  "updated_at": "2026-10-11T12:35:12.144974+00:00",
   "last_error": "제미나이 서버 오류가 재시도 후에도 계속되어 중단했습니다. 서버 응답 코드: 503. 승인 요청과 발행은 진행하지 않았습니다.",
   "recovery": {
     "prepare_attempts": 1,
