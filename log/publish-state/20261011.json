@@ -8,8 +8,8 @@
   "metadata": {},
   "preparation": {
     "status": "failed",
-    "error_type": "ValueError"
+    "error_type": "RuntimeError"
   },
-  "updated_at": "2026-10-11T08:40:50.548288+00:00",
-  "last_error": "내용의 사실 검증을 통과하지 못했습니다."
+  "updated_at": "2026-10-11T09:22:55.902553+00:00",
+  "last_error": "제미나이 콘텐츠 생성 요청에 실패했습니다. 다음 복구 점검에서 다시 확인합니다."
 }
