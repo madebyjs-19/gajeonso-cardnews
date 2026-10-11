@@ -1,0 +1,49 @@
+{
+  "topic": "LG전자, 무선청소기 폐배터리 수거 ‘배터리턴’ 캠페인 및 새 배터리 할인",
+  "type": "C",
+  "reason": "무선청소기 배터리 교체 주기를 맞이한 소비자에게 실질적인 비용 절감 및 자원순환 참여 기회를 제공하며 최근 발행 주제와 중복되지 않는 실용적 주제임.",
+  "candidates": [
+    "삼성전자, 삼성 아트 스토어에 ‘영국 박물관’ 대표 소장품 30점 공개",
+    "LG전자, 폐배터리 자원순환 캠페인 ‘배터리턴’ 이어간다",
+    "LG전자, 히트펌프 기반 ‘에너지 자립형 주거모델’ 확산 나선다"
+  ],
+  "facts": [
+    {
+      "claim": "LG전자가 10월 1일부터 11월 30일까지 2달간 무선청소기 폐배터리 수거 캠페인 배터리턴을 진행한다.",
+      "source_url": "https://www.lge.co.kr/story/newsroom/236198",
+      "verification": "LG전자 공식 뉴스룸 원문에서 10월 1일부터 11월 30일까지 2달간 수거 캠페인 진행 명시 확인."
+    },
+    {
+      "claim": "기존 사용하던 폐배터리는 제조사와 관계없이 반납 가능하며 서비스센터 방문 또는 LGE.COM에서 비대면 접수할 수 있다.",
+      "source_url": "https://www.lge.co.kr/story/newsroom/236198",
+      "verification": "원문에서 제조사 무관 반납 가능, 전국 LG전자 서비스센터 방문 또는 LGE.COM 접수 명시 확인."
+    },
+    {
+      "claim": "폐배터리 반납 시 새 배터리 구매 할인 혜택이 적용되는 대상 모델은 LG 코드제로 A9, A9S, A7 배터리다.",
+      "source_url": "https://www.lge.co.kr/story/newsroom/236198",
+      "verification": "원문에서 LG 코드제로 A9, A9S, A7 배터리 구매 할인 혜택 제공 명시 확인."
+    }
+  ],
+  "warnings": [
+    "실물 제품 사진 대신 가전소 표준 일러스트(illust:stick_vacuum)를 사용함.",
+    "구체적인 할인 금액 수치는 공식 원문에 기재되지 않아 임의 추정을 배제하고 구매 할인 혜택으로 명시함.",
+    "할인 적용 대상이 코드제로 A9, A9S, A7 정품 배터리로 한정되므로 본체 호환성 확인이 필요함."
+  ],
+  "cover": "orange",
+  "card_types": [
+    "table",
+    "steps",
+    "checklist"
+  ],
+  "visual_qa": {
+    "passed": true,
+    "issues": []
+  },
+  "fact_qa": {
+    "passed": true,
+    "issues": []
+  },
+  "source_method": "official_newsrooms",
+  "ai_model": "gemini-3.8-flash",
+  "checked_at": "2026-10-11T21:30:51.735251+09:00"
+}
