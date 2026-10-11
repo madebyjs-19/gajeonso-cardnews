@@ -100,6 +100,58 @@ class RecoveryTests(unittest.TestCase):
         self.assertEqual(self.prep.call_count, 6)
         self.assertIn('여섯 차례', self.notify.call_args.args[0])
 
+    def test_old_scheduled_phases_use_current_recovery_loop(self):
+        for phase in ('prepare', 'approval', 'publish'):
+            with self.subTest(phase=phase), \
+                 patch.dict(os.environ, {'GITHUB_EVENT_NAME': 'schedule'}), \
+                 patch.object(daily, 'configuration'), patch.object(daily, 'verify_bot'), \
+                 patch.object(daily, 'run_tick') as run_tick, \
+                 patch.object(daily, 'publish') as publish, \
+                 patch('sys.argv', ['daily.py', phase, '--run', self.run]):
+                self.assertEqual(daily.main(), 0)
+                run_tick.assert_called_once_with(self.run)
+                self.prep.assert_not_called()
+                self.poll.assert_not_called()
+                publish.assert_not_called()
+
+    def test_old_prepare_rerun_cannot_bypass_retry_cooldown(self):
+        self.prep.side_effect = RuntimeError('temporary')
+        with patch.dict(os.environ, {'GITHUB_EVENT_NAME': 'schedule'}), \
+             patch.object(daily, 'configuration'), patch.object(daily, 'verify_bot'), \
+             patch('sys.argv', ['daily.py', 'prepare', '--run', self.run]):
+            self.assertEqual(daily.main(), 1)
+            self.assertEqual(daily.main(), 0)
+        self.prep.assert_called_once_with(self.run)
+        self.assertEqual(self.state().data['recovery']['prepare_attempts'], 1)
+        self.posts.assert_not_called()
+
+    def test_manual_phases_and_read_only_check_are_preserved(self):
+        with patch.dict(os.environ, {'GITHUB_EVENT_NAME': 'workflow_dispatch'}), \
+             patch.object(daily, 'configuration'), patch.object(daily, 'verify_bot'), \
+             patch.object(daily, 'run_tick') as run_tick, \
+             patch.object(daily, 'publish') as publish, \
+             patch('sys.argv', ['daily.py', 'publish', '--run', self.run]):
+            self.assertEqual(daily.main(), 0)
+            publish.assert_called_once_with(self.run)
+            run_tick.assert_not_called()
+        with patch.dict(os.environ, {'GITHUB_EVENT_NAME': 'schedule'}), \
+             patch.object(daily, 'check') as check, \
+             patch.object(daily, 'run_tick') as run_tick, \
+             patch('sys.argv', ['daily.py', 'check']):
+            self.assertEqual(daily.main(), 0)
+            check.assert_called_once()
+            run_tick.assert_not_called()
+
+    def test_scheduled_recovery_still_rejects_stale_run(self):
+        with patch.dict(os.environ, {'GITHUB_EVENT_NAME': 'schedule'}), \
+             patch.object(daily, 'configuration'), patch.object(daily, 'verify_bot'), \
+             patch.object(daily, 'run_tick') as run_tick, \
+             patch('sys.argv', ['daily.py', 'prepare', '--run', '20261011']):
+            self.assertEqual(daily.main(), 1)
+            run_tick.assert_not_called()
+        self.prep.assert_not_called()
+        self.posts.assert_not_called()
+
     def test_live_receiver_observes_approval_without_another_cron(self):
         def approve_after_sleep(seconds):
             self.assertEqual(seconds, 20)
