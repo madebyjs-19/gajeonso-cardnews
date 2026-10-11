@@ -50,6 +50,23 @@ class GeminiTests(unittest.TestCase):
                 with self.assertRaises(RuntimeError):
                     ai.response([{'role': 'user', 'content': 'test'}], schema)
 
+    def test_safe_diagnostics_distinguish_errors_without_raw_details(self):
+        from telegram_text import error_text
+        for status, code in [(400, 'request'), (403, 'auth'), (404, 'model'), (503, 'server')]:
+            error = urllib.error.HTTPError(ai.BASE, status, 'private-key', None, None)
+            with self.subTest(status=status), patch.object(ai, '_last_request', None), \
+                 patch.object(ai.urllib.request, 'urlopen', side_effect=error):
+                with self.assertRaises(ai.GeminiFailure) as raised:
+                    ai.response([{'role': 'user', 'content': 'test'}])
+                self.assertEqual(raised.exception.code, code)
+                self.assertNotIn('private-key', str(raised.exception))
+                self.assertIn('발행은 진행하지 않았습니다', error_text(raised.exception))
+        with patch.object(ai, '_last_request', None), \
+             patch.object(ai.urllib.request, 'urlopen', return_value=self.result('partial', 'MAX_TOKENS')):
+            with self.assertRaises(ai.GeminiFailure) as raised:
+                ai.response([{'role': 'user', 'content': 'test'}])
+            self.assertEqual(raised.exception.code, 'truncated')
+
     def test_read_only_model_check_does_not_generate(self):
         model = {'name': 'models/' + ai.MODEL, 'supportedGenerationMethods': ['generateContent']}
         with patch.object(ai.urllib.request, 'urlopen', return_value=io.BytesIO(json.dumps(model).encode())) as opened:
