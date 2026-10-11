@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "run": "20261011",
+  "approval": {
+    "status": "unapproved"
+  },
+  "channels": {},
+  "metadata": {},
+  "preparation": {
+    "status": "failed",
+    "error_type": "ValueError"
+  },
+  "updated_at": "2026-10-11T06:54:35.523942+00:00"
+}
