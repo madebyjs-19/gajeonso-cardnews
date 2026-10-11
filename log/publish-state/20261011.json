@@ -70,10 +70,11 @@
   "preparation": {
     "status": "ready"
   },
-  "updated_at": "2026-10-11T12:35:35.623933+00:00",
+  "updated_at": "2026-10-11T12:35:37.646622+00:00",
   "last_error": "제미나이 서버 오류가 재시도 후에도 계속되어 중단했습니다. 서버 응답 코드: 503. 승인 요청과 발행은 진행하지 않았습니다.",
   "recovery": {
     "prepare_attempts": 1,
     "prepare_retry_at": "2026-10-11T21:58:23.756770+09:00"
-  }
+  },
+  "last_report": "[\"인스타그램 카드: 발행 완료 https://www.instagram.com/p/DeWqvNOFyHR/\", \"페이스북 카드: 발행 완료 https://www.facebook.com/122096996937507663/posts/122099337093507663\", \"인스타그램 릴스: 발행 완료 https://www.instagram.com/reel/DeWq5PsjiMt/\", \"페이스북 릴스: 발행 요청 접수·처리 중 https://www.facebook.com/reel/1426205072812499\"]"
 }
