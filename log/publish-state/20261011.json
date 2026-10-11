@@ -8,8 +8,8 @@
   "metadata": {},
   "preparation": {
     "status": "failed",
-    "error_type": "ValueError"
+    "error_type": "GeminiFailure"
   },
-  "updated_at": "2026-10-11T09:48:22.852991+00:00",
-  "last_error": "자동화 처리 중 오류가 발생했습니다. 저장소 실행 기록과 저장 상태를 확인해 주세요."
+  "updated_at": "2026-10-11T09:58:41.663820+00:00",
+  "last_error": "제미나이 서버에서 일시적인 오류가 발생했습니다. 승인 요청과 발행은 진행하지 않았습니다."
 }
