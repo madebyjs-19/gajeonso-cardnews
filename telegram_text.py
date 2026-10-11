@@ -26,6 +26,23 @@ def channel_result(channel, item):
 
 def error_text(exc):
     # Match controlled local errors only. API bodies, URLs and credentials stay private.
+    from gemini_client import GeminiFailure
+    if isinstance(exc, GeminiFailure):
+        detail = {
+            'auth': '인증 또는 모델 접근 권한이 거부되었습니다.',
+            'request': '요청 형식이나 입력 조건이 거부되었습니다.',
+            'model': '지정된 모델을 찾을 수 없습니다.',
+            'server': '제미나이 서버에서 일시적인 오류가 발생했습니다.',
+            'http': '제미나이 서버가 요청을 처리하지 못했습니다.',
+            'timeout': '제미나이 응답 대기 시간이 초과되었습니다.',
+            'network': '제미나이 서버에 연결하지 못했습니다.',
+            'blocked': '제미나이에서 콘텐츠 생성을 제한했습니다.',
+            'truncated': '생성 결과가 출력 길이 제한으로 잘렸습니다.',
+            'incomplete': '제미나이가 콘텐츠 생성을 끝내지 못했습니다.',
+            'empty': '제미나이 응답에 생성된 콘텐츠가 없습니다.',
+            'schema': '생성 결과가 카드뉴스에 필요한 데이터 형식과 맞지 않습니다.',
+        }.get(exc.code, '제미나이 콘텐츠 생성에 실패했습니다.')
+        return detail + ' 승인 요청과 발행은 진행하지 않았습니다.'
     value = str(exc)
     known = {
         'Visual QA rejected content': '카드 이미지 검수를 통과하지 못했습니다.',
