@@ -12,6 +12,9 @@ import official_sources as sources
 class GeminiTests(unittest.TestCase):
     def setUp(self):
         self.env = patch.dict(os.environ, {'GEMINI_API_KEY': 'private-key', 'OPENAI_API_KEY': 'unused-key'})
+        pause = patch.object(ai.time, 'sleep')
+        pause.start()
+        self.addCleanup(pause.stop)
         self.env.start()
         self.addCleanup(self.env.stop)
         self.last = patch.object(ai, '_last_request', None)
@@ -66,6 +69,34 @@ class GeminiTests(unittest.TestCase):
             with self.assertRaises(ai.GeminiFailure) as raised:
                 ai.response([{'role': 'user', 'content': 'test'}])
             self.assertEqual(raised.exception.code, 'truncated')
+
+    def test_transient_server_failure_retries_identical_request(self):
+        error = urllib.error.HTTPError(ai.BASE, 503, 'private-key', None, None)
+        with patch.object(ai.urllib.request, 'urlopen', side_effect=[error, error, self.result('완료')]) as opened:
+            self.assertEqual(ai.response([{'role': 'user', 'content': 'test'}]), '완료')
+        self.assertEqual(opened.call_count, 3)
+        self.assertTrue(all(call.args[0] is opened.call_args_list[0].args[0] for call in opened.call_args_list))
+
+    def test_transient_retries_stop_at_three_and_keep_status(self):
+        error = urllib.error.HTTPError(ai.BASE, 503, 'private-key', None, None)
+        with patch.object(ai.urllib.request, 'urlopen', side_effect=error) as opened:
+            with self.assertRaises(ai.GeminiFailure) as raised:
+                ai.response([{'role': 'user', 'content': 'test'}])
+        self.assertEqual(opened.call_count, 3)
+        self.assertEqual(raised.exception.http_status, 503)
+        self.assertNotIn('private-key', str(raised.exception))
+
+    def test_auth_error_is_not_retried(self):
+        error = urllib.error.HTTPError(ai.BASE, 403, 'private-key', None, None)
+        with patch.object(ai.urllib.request, 'urlopen', side_effect=error) as opened:
+            with self.assertRaises(ai.GeminiFailure):
+                ai.response([{'role': 'user', 'content': 'test'}])
+        self.assertEqual(opened.call_count, 1)
+
+    def test_timeout_can_recover(self):
+        with patch.object(ai.urllib.request, 'urlopen', side_effect=[TimeoutError(), self.result('완료')]) as opened:
+            self.assertEqual(ai.response([{'role': 'user', 'content': 'test'}]), '완료')
+        self.assertEqual(opened.call_count, 2)
 
     def test_read_only_model_check_does_not_generate(self):
         model = {'name': 'models/' + ai.MODEL, 'supportedGenerationMethods': ['generateContent']}

@@ -32,7 +32,7 @@ def error_text(exc):
             'auth': '인증 또는 모델 접근 권한이 거부되었습니다.',
             'request': '요청 형식이나 입력 조건이 거부되었습니다.',
             'model': '지정된 모델을 찾을 수 없습니다.',
-            'server': '제미나이 서버에서 일시적인 오류가 발생했습니다.',
+            'server': '제미나이 서버 오류가 재시도 후에도 계속되어 중단했습니다.',
             'http': '제미나이 서버가 요청을 처리하지 못했습니다.',
             'timeout': '제미나이 응답 대기 시간이 초과되었습니다.',
             'network': '제미나이 서버에 연결하지 못했습니다.',
@@ -42,6 +42,8 @@ def error_text(exc):
             'empty': '제미나이 응답에 생성된 콘텐츠가 없습니다.',
             'schema': '생성 결과가 카드뉴스에 필요한 데이터 형식과 맞지 않습니다.',
         }.get(exc.code, '제미나이 콘텐츠 생성에 실패했습니다.')
+        if exc.http_status is not None:
+            detail += f' 서버 응답 코드: {exc.http_status}.'
         return detail + ' 승인 요청과 발행은 진행하지 않았습니다.'
     value = str(exc)
     known = {
