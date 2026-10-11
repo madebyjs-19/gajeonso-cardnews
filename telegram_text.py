@@ -45,6 +45,26 @@ def error_text(exc):
         return detail + ' 승인 요청과 발행은 진행하지 않았습니다.'
     value = str(exc)
     known = {
+        'Invalid five-card structure': '생성 원고의 카드 5장 구성이 맞지 않습니다.',
+        'Invalid interior card types': '내용 카드 유형이 중복되거나 지원되지 않습니다.',
+        'Only supported brand illustrations are allowed': '생성 원고의 제품 일러스트 유형이 지원되지 않습니다.',
+        'Cover title too long': '생성된 표지 제목의 줄 수 또는 길이가 기준을 넘었습니다.',
+        'Cover subtitle too long': '생성된 표지 부제가 길이 기준을 넘었습니다.',
+        'Interior title too long': '생성된 내용 카드 제목이 길이 기준을 넘었습니다.',
+        'Too many interior rows': '내용 카드의 항목 수가 기준과 맞지 않습니다.',
+        'Invalid table/step row width': '생성된 표나 절차의 열 구성이 맞지 않습니다.',
+        'Invalid compare columns': '비교 카드의 열 구성이 맞지 않습니다.',
+        'Fact must cite a primary source': '생성 원고에 공식 출처로 확인되지 않은 주소가 있습니다.',
+        'Invalid caption hashtags': '본문 해시태그의 개수나 필수 태그가 기준과 맞지 않습니다.',
+        'Missing brand caption requirements': '본문에 필수 안내 문구가 누락되었습니다.',
+        'Disallowed store branding': '생성 원고에 허용하지 않은 매장 안내가 포함되었습니다.',
+        'Insufficient recent official appliance sources; no generation or publication': '최근 공식 가전 자료가 부족해 제작을 중단했습니다.',
+        'Facts must cite retrieved official articles; invented sources are rejected': '생성 원고가 실제 수집한 공식 기사 외의 출처를 인용해 중단했습니다.',
+        'Official fact source could not be re-read; no approval or publication': '공식 출처 원문을 다시 열어 확인하지 못해 중단했습니다.',
+        'Generation failed: gen_cards.py': '카드 이미지 생성 중 오류가 발생했습니다.',
+        'Generation failed: stamp_logo.py': '표지 로고 합성에 실패했습니다.',
+        'Reel generation failed': '릴스 영상 생성에 실패했습니다.',
+        'Invalid output dimensions': '생성된 카드 이미지 크기가 기준과 맞지 않습니다.',
         'Visual QA rejected content': '카드 이미지 검수를 통과하지 못했습니다.',
         'Fact QA rejected content': '내용의 사실 검증을 통과하지 못했습니다.',
         'Insufficient verified facts or topic candidates': '확인된 자료가 부족해 제작을 중단했습니다.',
@@ -63,6 +83,8 @@ def error_text(exc):
         return known[value]
     if type(exc).__name__ == 'CheckpointError':
         return '저장소에 진행 상태를 저장하지 못해 중단했습니다. 다음 실행에서 최신 상태를 확인합니다.'
+    if value.startswith('Connection checks failed:'):
+        return '외부 서비스 연결 점검에 실패했습니다. 저장소 연결 점검 결과를 확인해 주세요.'
     if value.startswith('Missing GitHub Actions secrets:'):
         return '자동화에 필요한 비밀 설정이 누락되었습니다. 저장소의 실행 설정을 확인해 주세요.'
     return '자동화 처리 중 오류가 발생했습니다. 저장소 실행 기록과 저장 상태를 확인해 주세요.'

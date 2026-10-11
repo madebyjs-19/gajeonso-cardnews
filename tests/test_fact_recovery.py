@@ -45,3 +45,24 @@ class FactRecoveryTests(unittest.TestCase):
 
     def test_three_rejections_stop_without_rendering(self):
         self.exercise([{'passed': False, 'issues': ['적용 모델 확인 필요']}] * 3)
+
+    def test_format_revision_still_requires_fact_review(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / 'automation').mkdir()
+            (root / 'automation/content_prompt.md').write_text('brand')
+            (root / 'log').mkdir()
+            (root / 'log/ig-card-news-log.md').write_text('history')
+            bad = sample_content()
+            bad['deck']['cards'][0]['subtitle'] = '가' * 21
+            good = sample_content()
+            with patch.object(pipeline, 'ROOT', root), \
+                 patch.object(pipeline, 'recent_sources', return_value=([], [])), \
+                 patch.object(pipeline, 'response', side_effect=['research', bad, good]), \
+                 patch.object(pipeline, 'recheck', return_value=[]) as recheck, \
+                 patch.object(pipeline, 'review_facts', return_value={'passed': True, 'issues': []}) as review, \
+                 patch.object(pipeline, 'render_content') as render:
+                pipeline.prepare_content('20261011')
+                recheck.assert_called_once()
+                review.assert_called_once_with(good, [])
+                self.assertEqual(render.call_args.args[1], good)
