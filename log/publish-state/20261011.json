@@ -6,7 +6,10 @@
     "key": "9749b7d7ff8544848f29f7de8b5bb9fa",
     "chat_id": "5687403592",
     "fingerprint": "805496245cf3072115d89435ea34ca959df1621a9b47ce47e47505beb3f7bd3f",
-    "delivery": "sending"
+    "delivery": "sent",
+    "message_id": 111,
+    "sent_at": "2026-10-11T21:31:00.473435+09:00",
+    "expires_at": "2026-10-11T22:31:00.473435+09:00"
   },
   "channels": {},
   "metadata": {
@@ -18,7 +21,7 @@
   "preparation": {
     "status": "ready"
   },
-  "updated_at": "2026-10-11T12:30:54.180268+00:00",
+  "updated_at": "2026-10-11T12:31:00.473464+00:00",
   "last_error": "제미나이 서버 오류가 재시도 후에도 계속되어 중단했습니다. 서버 응답 코드: 503. 승인 요청과 발행은 진행하지 않았습니다.",
   "recovery": {
     "prepare_attempts": 1,
