@@ -14,7 +14,12 @@
     "approved_by": "5687403592",
     "responded_at": "2026-10-11T21:32:39.808064+09:00"
   },
-  "channels": {},
+  "channels": {
+    "ig_card": {
+      "status": "preparing",
+      "account_id": "17841462524734371"
+    }
+  },
   "metadata": {
     "topic": "LG전자, 무선청소기 폐배터리 수거 ‘배터리턴’ 캠페인 및 새 배터리 할인",
     "type": "C",
@@ -24,7 +29,7 @@
   "preparation": {
     "status": "ready"
   },
-  "updated_at": "2026-10-11T12:32:42.760865+00:00",
+  "updated_at": "2026-10-11T12:32:44.294240+00:00",
   "last_error": "제미나이 서버 오류가 재시도 후에도 계속되어 중단했습니다. 서버 응답 코드: 503. 승인 요청과 발행은 진행하지 않았습니다.",
   "recovery": {
     "prepare_attempts": 1,
