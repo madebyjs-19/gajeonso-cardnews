@@ -10,5 +10,6 @@
     "status": "failed",
     "error_type": "ValueError"
   },
-  "updated_at": "2026-10-11T06:54:35.523942+00:00"
+  "updated_at": "2026-10-11T08:40:50.548288+00:00",
+  "last_error": "내용의 사실 검증을 통과하지 못했습니다."
 }
