@@ -214,6 +214,12 @@ def main():
     parser.add_argument('phase', choices=('check', 'prepare', 'approval', 'publish', 'tick'))
     parser.add_argument('--run')
     args = parser.parse_args()
+    # Re-running a failed Actions job retains its original workflow definition.
+    # Older scheduled jobs still pass prepare/approval/publish, so route them
+    # through today's durable recovery loop too. Manual phase controls and the
+    # read-only check remain explicit.
+    if os.environ.get('GITHUB_EVENT_NAME') == 'schedule' and args.phase != 'check':
+        args.phase = 'tick'
     run = args.run or now_korea().strftime('%Y%m%d')
     try:
         validate_run(run)
