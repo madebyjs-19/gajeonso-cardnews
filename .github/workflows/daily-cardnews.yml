@@ -66,5 +66,6 @@ jobs:
           path: |
             log/publish-state/*.json
             log/telegram-offset.json
+            out/*/fact-qa-*.json
           retention-days: 14
           if-no-files-found: ignore
