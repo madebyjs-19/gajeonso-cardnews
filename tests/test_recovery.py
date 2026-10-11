@@ -100,6 +100,31 @@ class RecoveryTests(unittest.TestCase):
         self.assertEqual(self.prep.call_count, 6)
         self.assertIn('여섯 차례', self.notify.call_args.args[0])
 
+    def test_live_receiver_observes_approval_without_another_cron(self):
+        def approve_after_sleep(seconds):
+            self.assertEqual(seconds, 20)
+            self.now += timedelta(seconds=seconds)
+            state = self.state()
+            state.data['approval']['status'] = 'approved'
+            state.save()
+        with patch.object(daily.time, 'sleep', side_effect=approve_after_sleep), \
+             patch.object(daily, 'publish') as publish:
+            daily.run_tick(self.run)
+        self.prep.assert_called_once()
+        # First call only observes pending approval; second sees real saved approval.
+        self.assertEqual(publish.call_count, 2)
+        self.assertEqual(self.state().data['approval']['status'], 'approved')
+
+    def test_live_receiver_expires_and_stops(self):
+        self.ready(self.run)
+        def advance(seconds):
+            self.now += timedelta(minutes=61)
+        with patch.object(daily.time, 'sleep', side_effect=advance) as sleep:
+            daily.run_tick(self.run)
+        sleep.assert_called_once()
+        self.assertEqual(self.state().data['approval']['status'], 'approval_timeout')
+        self.posts.assert_not_called()
+
     def test_partial_delivery_failure_does_not_destroy_ready_state(self):
         self.ready(self.run)
         with patch.object(daily, 'configuration'), patch.object(daily, 'verify_bot'), \

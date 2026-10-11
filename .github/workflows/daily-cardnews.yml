@@ -25,7 +25,7 @@ jobs:
   daily:
     if: github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || vars.GAJEONSO_ENABLED == 'true')
     runs-on: ubuntu-latest
-    timeout-minutes: 50
+    timeout-minutes: 100
     env:
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}

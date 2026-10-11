@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import subprocess
 import sys
+import time
 from zoneinfo import ZoneInfo
 
 from git_checkpoint import CheckpointError
@@ -189,6 +190,25 @@ def tick(run):
     publish(run)
 
 
+def run_tick(run):
+    # Keep the approval receiver alive after preview delivery. A delayed follow-up
+    # cron must not be the sole way to observe a timely human approval.
+    stop = time.monotonic() + 70 * 60
+    while True:
+        tick(run)
+        if now_korea().strftime('%Y%m%d') != run:
+            return
+        with locked_state(run) as state:
+            approval = state.data['approval']
+            expires = approval.get('expires_at')
+            waiting = bool(approval.get('status') == 'ready_for_approval' and expires
+                           and now_korea() < datetime.fromisoformat(expires))
+            waiting |= approval.get('status') == 'approved' and now_korea().hour < 11
+        if not waiting or time.monotonic() >= stop:
+            return
+        time.sleep(20)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('phase', choices=('check', 'prepare', 'approval', 'publish', 'tick'))
@@ -208,7 +228,7 @@ def main():
             raise ValueError('Publishing is permitted from 11:00 Asia/Seoul on the same day')
         verify_bot()
         if args.phase == 'tick':
-            tick(run)
+            run_tick(run)
         elif args.phase == 'prepare':
             prepare(run)
         elif args.phase == 'approval':
