@@ -12,6 +12,7 @@ import uuid
 
 from publish_state import BLOCKED, ROOT, locked_state
 from git_checkpoint import CheckpointError
+from telegram_text import channel_result
 
 G = 'https://graph.facebook.com/v26.0'
 RAW = 'https://raw.githubusercontent.com/madebyjs-19/gajeonso-cardnews/main/cards'
@@ -179,7 +180,7 @@ def main(reel=False):
                 channel = platform + ('_reel' if reel else '_card')
                 item = state.data['channels'].get(channel, {})
                 if item.get('status') in BLOCKED:
-                    results.append(channel + ': skipped (' + item['status'] + ')')
+                    results.append(channel_result(channel, item))
                     failed |= item['status'] in ('unknown', 'publishing')
                     continue
                 if not os.environ.get(token_name) or not os.environ.get(id_name):
@@ -199,7 +200,7 @@ def main(reel=False):
                                               error_type=type(exc).__name__)
                         failed = True
                 item = state.data['channels'][channel]
-                results.append(channel + ': ' + item['status'] + (' ' + item['permalink'] if item.get('permalink') else ''))
+                results.append(channel_result(channel, item))
             msg = '[' + args.run + (' 릴스 결과' if reel else ' 카드 결과') + ']\n' + '\n'.join(results)
             print(msg)
             if os.environ.get('GAJEONSO_SILENT_TELEGRAM') != '1' and not notify(msg):

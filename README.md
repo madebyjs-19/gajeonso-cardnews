@@ -21,7 +21,7 @@ GitHub Actions가 조사·제작 → Telegram 승인 → Instagram/Facebook 발�
 Telegram 봇은 BotFather에서 만들고 해당 봇과 개인 채팅을 시작한다. 다른 자동화가 같은 봇을 조회한다면 그 자동화를 멈추거나 새 봇을 사용한다. 활성 webhook이 있는 봇은 거부한다. 이 코드가 webhook을 삭제하거나 기존 수신기를 교체하지는 않는다. Meta 토큰이 만료되면 갱신하여 같은 Secret 이름으로 교체한다.
 
 3. 저장소 Actions → **Daily gajeonso cardnews** → **Run workflow** → `phase=check`를 실행한다. 이 단계는 Gemini 모델 접근, Telegram 봇, Meta 계정의 연결을 읽기만 하며 콘텐츠 제작·게시를 하지 않는다. 모델 조회 성공은 모든 게시 권한이나 실제 생성 품질을 보장하지 않는다.
-4. 오전 11시 이전에 `phase=prepare`를 수동 실행하여 카드 5장·릴스·캡션이 Telegram에 오는지 확인한다. 검수 후 [발행 승인] 또는 [취소]를 누른다. `phase=approval`을 실행하면 선택이 기록된다. 실제 첫 발행은 오전 11시~11시59분에 `phase=publish`로 확인한다. 승인 없이는 게시하지 않는다.
+4. 당일 오후 11시 이전에 `phase=prepare`를 수동 실행하여 카드 5장·릴스·캡션이 Telegram에 오는지 확인한다. 검수 후 [발행 승인] 또는 [취소]를 누른다. `phase=approval`을 실행하면 선택이 기록된다. 실제 첫 발행은 오전 11시 이후 당일에 `phase=publish`로 확인한다. 승인 없이는 게시하지 않는다.
 5. 시험 확인 후 Actions **Variables** 탭에서 `GAJEONSO_ENABLED`를 `true`로 등록한다. 이제 매일 예약 실행된다. 중지하려면 `false`로 변경한다. 모델은 무료 입력·출력 등급이 제공되는 `gemini-3.8-flash`로 고정한다. 기존 `OPENAI_API_KEY`와 `OPENAI_MODEL`은 사용하지 않는다.
 
 main의 쓰기 권한이 필요하다. 워크플로는 `contents: write`와 checkout 인증으로 상태·콘텐츠를 푸시한다. 조직 정책/브랜치 보호가 자동 커밋을 차단하면 게시도 중단한다. 보호 설정을 무조건 해제하지 말고 승인된 자동화의 쓰기 방식을 별도로 설정한다.
@@ -32,11 +32,13 @@ Claude 전용 설정·지시문과 구형 승인 워크플로는 정리했다. �
 
 | 시간 | 작업 |
 |---|---|
-| 오전 10:00 | 최근 공식 자료 조사, 원고 검증, 기존 생성기로 5장 제작·로고 합성·릴스 생성, 이미지 검수, GitHub 저장, Telegram 승인 요청 |
-| 오전 10:15 / 10:35 / 10:55 | 실제 Telegram 버튼 응답 확인·저장 |
-| 오전 11:00 | 버튼 응답 최종 확인, 승인된 오늘 회차만 카드·릴스 게시, 최종 결과 알림 |
+| 오전 10:07부터 | 공식 자료 조사·검수, 카드·릴스 제작, 텔레그램 승인 요청 |
+| 오전 11:00 | 목표 발행 시간. 실제 승인된 오늘 회차만 게시 |
+| 오전 10:07~오후 11:57, 10분 간격 | 저장 상태 확인 → 미완료 제작 복구 → 실제 승인 확인 → 오전 11시 이후 발행 |
 
-GitHub 예약은 UTC로 설정했다(한국 오전 10시=UTC 01시, 11시=UTC 02시). 예약 실행은 지연되거나 누락될 수 있으므로 정확한 11:00 게시를 보장하지 않는다. 정오 이후 시작된 발행은 중단한다. [GitHub 공식 예약 실행 안내](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule).
+GitHub 예약은 UTC이며 실행 순서·정시 실행을 보장하지 않는다. 어느 예약이 먼저 도착해도 `tick`이 오늘 저장 상태에서 필요한 단계를 이어간다. 정오 이후 지연 실행도 당일 복구한다. 새 제작은 오후 11시 전에만 시작하며, 자정을 넘긴 회차는 게시하지 않는다. 승인 대기는 미리보기 전송 후 60분이며, 승인 확인 작업 자체가 지연되어 시간이 지나면 자동 승인하지 않는다. 만료·취소는 사람의 결정을 우회해 재제작하지 않는다. [GitHub 예약 실행 안내](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule).
+
+제작·미리보기 복구는 30분 이상 간격으로 최대 6회, 승인 후 공개 게시 전 실패는 30분 이상 간격으로 최대 3회 시도한다. 성공·접수·결과 불확실 채널은 다시 게시하지 않는다. 한도 도달, 승인 만료·취소, 채널별 결과와 운영 오류는 한글로 알린다. 저장된 상태 코드는 호환성을 위해 유지한다. 외부 서비스 장애·자료 부족·승인 없음으로 인한 미발행까지 보장할 수는 없다.
 
 삼성 한국 뉴스룸 RSS와 LG 공식 뉴스룸 공개 기사 목록에서 최근 14일 가전 자료를 직접 수집한다. 초기 조사 범위는 이 두 뉴스룸이며 검색 엔진 전체를 탐색하지 않는다. 수집된 기사 URL만 사실 근거로 허용하고, 최종 원고의 출처를 다시 읽어 Gemini가 독립 검수한다. 최종 이미지 5장도 Gemini가 확인한다. 원문 부족·수집 실패·검수 실패 시 해당 회차를 중단한다. 기존 생성기의 브랜드 일러스트를 사용하며 Telegram 사람 승인까지 있어야 발행한다.
 
@@ -74,7 +76,7 @@ Telegram 알림 실패는 게시 실패가 아니다. 승인 대기 미리보기
 
 ### 당일 수동 테스트 발행
 
-**Manual gajeonso test**는 예약이 없는 별도 수동 워크플로다. 사용자가 제공한 행사 정보로 작성·검토한 `automation/manual/YYYYMMDDa.json`을 main에 저장한 뒤 `test_run=YYYYMMDDa`, `phase=prepare`로 실행한다. 원본 생성기로 제작하고 Gemini 시각 검수를 통과한 카드·릴스·본문을 Telegram으로 보낸다. 실제 [발행 승인] 버튼을 누른 후 `phase=publish`를 별도로 수동 실행하면 당일 즉시 발행한다. 매일 오전 11시 예약은 기존 시간 제한을 유지한다.
+**Manual gajeonso test**는 예약이 없는 별도 수동 워크플로다. 사용자가 제공한 행사 정보로 작성·검토한 `automation/manual/YYYYMMDDa.json`을 main에 저장한 뒤 `test_run=YYYYMMDDa`, `phase=prepare`로 실행한다. 원본 생성기로 제작하고 Gemini 시각 검수를 통과한 카드·릴스·본문을 Telegram으로 보낸다. 실제 [발행 승인] 버튼을 누른 후 `phase=publish`를 별도로 수동 실행하면 당일 즉시 발행한다. 매일 자동화는 오전 11시 목표 발행과 당일 지연 복구 정책을 사용한다.
 
 수동 행사 정보는 실제 제공자의 안내로 출처를 기록하며 공식 원문으로 검증했다고 표시하지 않는다. 매장명 예외는 지정 회차에만 적용한다. 소문자 접미사가 있는 당일 회차만 허용하고, 같은 회차의 입력 변경·콘텐츠 지문 불일치·미승인·중복·결과 불확실 게시를 차단한다. 두 워크플로는 같은 concurrency와 영구 체크포인트를 사용한다.
 
@@ -87,7 +89,7 @@ python3.13 publish_state.py status YYYYMMDD
 
 `stamp_logo.py`는 첨부 프롬프트의 합성 방식으로 PNG·JPG를 함께 저장한다. 빈 공간이 없으면 종료 코드 2로 멈춘다. 이미 합성한 결과에 반복 합성하지 말고 생성기 원본 PNG에서 시작한다.
 
-기존 `publish.py RUN ig캡션 fb캡션` / `publish_reel.py RUN ig캡션 fb캡션` 인터페이스는 유지된다. 자동화는 `daily_automation.py check|prepare|approval|publish`를 사용한다. 수동 `publish_state.py prepare/approve/cancel`은 운영자 기록 도구로 남아 있지만 자동 승인을 만드는 데 사용하지 않는다.
+기존 `publish.py RUN ig캡션 fb캡션` / `publish_reel.py RUN ig캡션 fb캡션` 인터페이스는 유지된다. 자동화는 `daily_automation.py check|tick|prepare|approval|publish`를 사용한다. 수동 `publish_state.py prepare/approve/cancel`은 운영자 기록 도구로 남아 있지만 자동 승인을 만드는 데 사용하지 않는다.
 
 ## 검증
 
@@ -97,3 +99,5 @@ python -m unittest discover -s tests -v
 ```
 
 가짜 API 응답과 로컬 Git 원격 저장소로 승인 차단, 콘텐츠 검증, 콜백 인증, 중복 재실행, 응답 유실, 동시 쓰기, 서버 종료 마커, 기존 로그와 로고 합성을 검증한다. 테스트는 실제 소셜 게시·Gemini 생성 요청을 하지 않는다.
+
+승인 요청을 보낸 예약 실행은 같은 실행 안에서 20초 간격으로 승인 응답을 확인한다. 미리보기 전송 후 60분까지 기다리고, 오전 11시 전에 승인되면 11시까지 기다려 발행한다. 대기 루프는 최대 70분이며 워크플로 전체 한도는 100분이다. 실행 종료 시에도 다음 예약이 영구 상태에서 이어받는다.
