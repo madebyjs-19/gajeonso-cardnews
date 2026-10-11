@@ -2,7 +2,7 @@ name: Daily gajeonso cardnews
 
 on:
   schedule:
-    - cron: '7,17,27,37,47,57 1-14 * * *' # 한국 10:07~23:57, 지연·누락 복구
+    - cron: '7,17,27,37,47,57 0-14,21-23 * * *' # 한국 06:07~23:57, 일찍 제작·지연 복구
     - cron: '0 2 * * *'                  # 한국 11:00 목표 발행
   workflow_dispatch:
     inputs:
@@ -25,7 +25,7 @@ jobs:
   daily:
     if: github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || vars.GAJEONSO_ENABLED == 'true')
     runs-on: ubuntu-latest
-    timeout-minutes: 100
+    timeout-minutes: 360 # 아침 승인 수신·11시 대기 + 발행 여유
     env:
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}

@@ -11,6 +11,7 @@ from zoneinfo import ZoneInfo
 import daily_automation as daily
 import publish_state as ps
 import telegram_approval as tg
+from automation_schedule import approval_deadline
 from telegram_text import channel_result, error_text
 
 
@@ -68,6 +69,59 @@ class RecoveryTests(unittest.TestCase):
         with patch.object(daily, 'publish') as publish:
             daily.tick(self.run)
             publish.assert_not_called()
+
+    def test_preparation_starts_at_six_but_not_before(self):
+        self.now = self.now.replace(hour=5, minute=57)
+        daily.tick(self.run)
+        self.prep.assert_not_called()
+        self.now = self.now.replace(hour=6, minute=7)
+        daily.tick(self.run)
+        self.prep.assert_called_once_with(self.run)
+        self.posts.assert_not_called()
+
+    def test_early_approval_stays_alive_and_publishes_at_eleven(self):
+        self.now = self.now.replace(hour=6, minute=10)
+        self.ready(self.run)
+        state = self.state()
+        state.data['approval']['status'] = 'approved'
+        state.data['approval']['expires_at'] = approval_deadline(self.now).isoformat()
+        state.save()
+        elapsed = [0]
+        target = self.now.replace(hour=11)
+        def advance(seconds):
+            self.assertEqual(seconds, 20)
+            delta = min(timedelta(hours=1), target - self.now)
+            self.now += delta
+            elapsed[0] += delta.total_seconds()
+        published_at = []
+        def complete(run):
+            published_at.append(self.now)
+            state = self.state()
+            state.data['channels'] = {c: {'status': 'success'} for c in ps.CHANNELS}
+            state.save()
+        with patch.object(daily.time, 'monotonic', side_effect=lambda: elapsed[0]), \
+             patch.object(daily.time, 'sleep', side_effect=advance), \
+             patch.object(daily, 'publish', side_effect=complete):
+            daily.run_tick(self.run)
+        self.assertEqual(published_at, [target])
+        self.prep.assert_not_called()
+
+    def test_early_pending_preview_remains_approvable_in_late_morning(self):
+        self.now = self.now.replace(hour=6, minute=10)
+        self.ready(self.run)
+        state = self.state()
+        state.data['approval'].update(key='key', chat_id='123',
+                                     expires_at=approval_deadline(self.now).isoformat())
+        state.save()
+        self.now = self.now.replace(hour=9, minute=30)
+        callback = {'id': 'callback', 'from': {'id': 123},
+                    'message': {'chat': {'id': 123}, 'message_id': 42},
+                    'data': 'approve:' + self.run + ':key'}
+        with patch.object(tg, 'datetime', wraps=datetime) as clock:
+            clock.now.return_value = self.now
+            self.assertTrue(tg.apply_callback(callback, state, '123', '123'))
+        self.assertEqual(self.state().data['approval']['status'], 'approved')
+        self.posts.assert_not_called()
 
     def test_unanswered_preview_expires_from_delivery_not_eleven(self):
         self.ready(self.run)
@@ -246,6 +300,8 @@ class KoreanTests(unittest.TestCase):
             stack.enter_context(patch.object(tg, 'locked_state', side_effect=lambda run: ps.locked_state(run, root)))
             stack.enter_context(patch.object(tg, 'verify_bot', return_value=('123', '123')))
             bot = stack.enter_context(patch.object(tg, 'bot', return_value={'message_id': 42}))
+            clock = stack.enter_context(patch.object(tg, 'datetime', wraps=datetime))
+            clock.now.return_value = datetime(2026, 10, 12, 6, 10, tzinfo=ZoneInfo('Asia/Seoul'))
             tg.send_preview(state.run)
             text = '\n'.join(c.kwargs.get('text', '') for c in bot.call_args_list)
             self.assertIn('기준표, 확인 목록, 절차', text)
@@ -253,6 +309,9 @@ class KoreanTests(unittest.TestCase):
             for forbidden in ('source_url', 'verification', 'checklist', 'Instagram', 'navy'):
                 self.assertNotIn(forbidden, text)
             self.assertIn('expires_at', ps.RunState(root, state.run).data['approval'])
+            self.assertIn('승인 기한: 10월 12일 12:00', text)
+            self.assertEqual(ps.RunState(root, state.run).data['approval']['expires_at'],
+                             '2026-10-12T12:00:00+09:00')
 
 
 if __name__ == '__main__':

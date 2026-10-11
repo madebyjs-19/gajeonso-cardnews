@@ -9,6 +9,7 @@ import sys
 import time
 from zoneinfo import ZoneInfo
 
+from automation_schedule import MAX_TICK_MINUTES, PREP_START_HOUR, PUBLISH_HOUR
 from git_checkpoint import CheckpointError
 from publish_state import BLOCKED, CHANNELS, ROOT, fingerprint, locked_state, validate_run
 from telegram_text import channel_result, error_text, status_text
@@ -132,7 +133,7 @@ def publish(run):
 def tick(run):
     """Resume today's durable state regardless of which cron event actually arrived."""
     current = now_korea()
-    if current.hour < 10:
+    if current.hour < PREP_START_HOUR:
         return
     with locked_state(run) as state:
         approval = state.data['approval'].get('status')
@@ -167,7 +168,7 @@ def tick(run):
     poll(run)
     with locked_state(run) as state:
         approval = state.data['approval'].get('status')
-        if approval == 'approved' and now_korea().hour >= 11:
+        if approval == 'approved' and now_korea().hour >= PUBLISH_HOUR:
             pending = [c for c in CHANNELS if state.data['channels'].get(c, {}).get('status') not in BLOCKED]
             recovery = state.data.setdefault('recovery', {})
             attempts = recovery.get('publish_attempts', 0)
@@ -193,7 +194,7 @@ def tick(run):
 def run_tick(run):
     # Keep the approval receiver alive after preview delivery. A delayed follow-up
     # cron must not be the sole way to observe a timely human approval.
-    stop = time.monotonic() + 70 * 60
+    stop = time.monotonic() + MAX_TICK_MINUTES * 60
     while True:
         tick(run)
         if now_korea().strftime('%Y%m%d') != run:
@@ -203,7 +204,7 @@ def run_tick(run):
             expires = approval.get('expires_at')
             waiting = bool(approval.get('status') == 'ready_for_approval' and expires
                            and now_korea() < datetime.fromisoformat(expires))
-            waiting |= approval.get('status') == 'approved' and now_korea().hour < 11
+            waiting |= approval.get('status') == 'approved' and now_korea().hour < PUBLISH_HOUR
         if not waiting or time.monotonic() >= stop:
             return
         time.sleep(20)
@@ -230,7 +231,7 @@ def main():
         if run != now_korea().strftime('%Y%m%d'):
             raise ValueError('Automation accepts today only; do not replay stale approved dates')
         hour = now_korea().hour
-        if args.phase == 'publish' and hour < 11:
+        if args.phase == 'publish' and hour < PUBLISH_HOUR:
             raise ValueError('Publishing is permitted from 11:00 Asia/Seoul on the same day')
         verify_bot()
         if args.phase == 'tick':

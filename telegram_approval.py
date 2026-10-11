@@ -1,5 +1,5 @@
 """A dedicated Telegram bot: preview delivery and authenticated callback polling."""
-from datetime import datetime, timedelta
+from datetime import datetime
 import json
 import os
 from pathlib import Path
@@ -7,6 +7,7 @@ import urllib.request
 import uuid
 from zoneinfo import ZoneInfo
 
+from automation_schedule import approval_deadline
 from git_checkpoint import checkpoint
 from telegram_text import TYPE, COLOR, CARD
 from publish_state import ROOT, atomic_write, locked_state, validate_run
@@ -67,19 +68,27 @@ def send_preview(run):
                 + '출처와 확인 사항:\n' + '\n'.join('내용: ' + f['claim'] + '\n출처: ' + f['source_url'] + '\n확인: ' + f.get('verification', '공식 자료 확인') for f in brief['facts'])
                 + '\n주의: ' + '; '.join(brief['warnings'])
                 + ('\n수동 테스트: 승인 후 별도 수동 실행에서 즉시 발행합니다.'
-                   if state.data.get('manual_test') else '\n승인 대기 시간은 전송 후 60분입니다. 오전 11시 이전 승인은 11시부터, 이후 승인은 당일 다음 복구 점검에서 발행합니다. 예약이 지연되면 처리도 늦어질 수 있습니다.'))
+                   if state.data.get('manual_test') else '\n오전 11시 전에 확인하고 승인해 주세요. 아침 미리보기는 정오까지 승인할 수 있으며, 늦게 전송된 경우에도 검토 시간 60분을 확보합니다. 일찍 승인하면 오전 11시까지 기다렸다가 발행합니다. 예약이 지연되면 처리도 늦어질 수 있습니다.'))
         # Telegram counts UTF-16 code units. Split long text conservatively.
         for heading, content in [('근거', text), ('인스타그램 본문', (directory / 'caption_ig.txt').read_text()),
                                  ('페이스북 본문', (directory / 'caption_fb.txt').read_text())]:
             for offset in range(0, len(content), 1800):
                 bot('sendMessage', chat_id=chat, text=heading + '\n' + content[offset:offset + 1800])
-        message = bot('sendMessage', chat_id=chat, text=run + ' 카드 5장·릴스·캡션을 확인한 후 선택해 주세요.',
+        # Include deadline guidance with the buttons, rather than a generic
+        # one-hour notice that would expire an early-morning daily preview.
+        sent_at = datetime.now(ZoneInfo('Asia/Seoul'))
+        expires_at = approval_deadline(sent_at, bool(state.data.get('manual_test')))
+        message = bot('sendMessage', chat_id=chat, text=run + ' 카드 5장·릴스·캡션을 확인한 후 선택해 주세요.\n'
+                      + expires_at.strftime('승인 기한: %m월 %d일 %H:%M (한국 시간)'),
                       reply_markup={'inline_keyboard': [[
                           {'text': '발행 승인', 'callback_data': f"approve:{run}:{approval['key']}"},
                           {'text': '취소', 'callback_data': f"cancel:{run}:{approval['key']}"}]]})
+        # Start the stored review window after successful delivery. The displayed
+        # minute is conservative if sending crossed a minute boundary.
         sent_at = datetime.now(ZoneInfo('Asia/Seoul'))
+        expires_at = approval_deadline(sent_at, bool(state.data.get('manual_test')))
         approval.update(message_id=message['message_id'], delivery='sent', sent_at=sent_at.isoformat(),
-                        expires_at=(sent_at + timedelta(minutes=60)).isoformat())
+                        expires_at=expires_at.isoformat())
         state.save()
 
 
