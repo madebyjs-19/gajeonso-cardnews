@@ -45,9 +45,10 @@
       "permalink": "https://www.facebook.com/122096996937507663/posts/122100084777507663"
     },
     "ig_reel": {
-      "status": "preparing",
+      "status": "publishing",
       "account_id": "17841462524734371",
-      "container_id": "17982570912084158"
+      "container_id": "17982570912084158",
+      "attempt_id": "72b603cb9499447aabda83d5e4216e88"
     }
   },
   "metadata": {
@@ -62,7 +63,7 @@
     "publish_attempts": 1,
     "publish_retry_at": "2026-10-12T18:49:44.787911+09:00"
   },
-  "updated_at": "2026-10-12T09:21:01.706404+00:00",
+  "updated_at": "2026-10-12T09:21:51.728299+00:00",
   "preparation": {
     "status": "ready",
     "source": "chatgpt_reviewed"
