@@ -27,7 +27,7 @@
     "publish_attempts": 1,
     "publish_retry_at": "2026-10-12T18:49:44.787911+09:00"
   },
-  "updated_at": "2026-10-12T09:19:44.787926+00:00",
+  "updated_at": "2026-10-12T09:19:46.962311+00:00",
   "preparation": {
     "status": "ready",
     "source": "chatgpt_reviewed"
