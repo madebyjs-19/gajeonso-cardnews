@@ -49,7 +49,8 @@
       "account_id": "17841462524734371",
       "container_id": "17982570912084158",
       "attempt_id": "72b603cb9499447aabda83d5e4216e88",
-      "media_id": "18153755461534544"
+      "media_id": "18153755461534544",
+      "permalink": "https://www.instagram.com/reel/DeY5mPRgeBu/"
     }
   },
   "metadata": {
@@ -64,7 +65,7 @@
     "publish_attempts": 1,
     "publish_retry_at": "2026-10-12T18:49:44.787911+09:00"
   },
-  "updated_at": "2026-10-12T09:21:59.967802+00:00",
+  "updated_at": "2026-10-12T09:22:01.538413+00:00",
   "preparation": {
     "status": "ready",
     "source": "chatgpt_reviewed"
