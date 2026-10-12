@@ -31,7 +31,7 @@
       "permalink": "https://www.instagram.com/p/DeY5cvBDIjs/"
     },
     "fb_card": {
-      "status": "preparing",
+      "status": "publishing",
       "account_id": "1372302955967772",
       "photos": [
         "122100084135507663",
@@ -39,7 +39,8 @@
         "122100084453507663",
         "122100084585507663",
         "122100084663507663"
-      ]
+      ],
+      "attempt_id": "1a275daca4244dabb67e364d3cd10a74"
     }
   },
   "metadata": {
@@ -54,7 +55,7 @@
     "publish_attempts": 1,
     "publish_retry_at": "2026-10-12T18:49:44.787911+09:00"
   },
-  "updated_at": "2026-10-12T09:20:48.018606+00:00",
+  "updated_at": "2026-10-12T09:20:49.352494+00:00",
   "preparation": {
     "status": "ready",
     "source": "chatgpt_reviewed"
