@@ -57,7 +57,8 @@
       "account_id": "1372302955967772",
       "video_id": "1431784411701685",
       "attempt_id": "1472fdeade724b6f83ad6975b6f3b928",
-      "media_id": "1431784411701685"
+      "media_id": "1431784411701685",
+      "permalink": "https://www.facebook.com/reel/1431784411701685"
     }
   },
   "metadata": {
@@ -72,7 +73,7 @@
     "publish_attempts": 1,
     "publish_retry_at": "2026-10-12T18:49:44.787911+09:00"
   },
-  "updated_at": "2026-10-12T09:22:25.675101+00:00",
+  "updated_at": "2026-10-12T09:22:27.024538+00:00",
   "preparation": {
     "status": "ready",
     "source": "chatgpt_reviewed"
