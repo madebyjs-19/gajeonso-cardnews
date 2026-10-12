@@ -33,6 +33,11 @@ def sample_content():
 
 
 class ContentTests(unittest.TestCase):
+    def setUp(self):
+        env = patch.dict(os.environ, {'GITHUB_ACTIONS': 'test', 'GAJEONSO_DURABLE_GIT': '0'})
+        env.start()
+        self.addCleanup(env.stop)
+
     def test_valid_plan_and_unsafe_or_arbitrary_file_rejected(self):
         plan = sample_content()
         content.validate_content(plan)

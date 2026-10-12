@@ -1,5 +1,6 @@
 """A correction must pass independent review before anything is rendered."""
 import json
+import os
 from pathlib import Path
 import tempfile
 import unittest
@@ -10,6 +11,11 @@ from test_automation import sample_content
 
 
 class FactRecoveryTests(unittest.TestCase):
+    def setUp(self):
+        env = patch.dict(os.environ, {'GITHUB_ACTIONS': 'test', 'GAJEONSO_DURABLE_GIT': '0'})
+        env.start()
+        self.addCleanup(env.stop)
+
     def exercise(self, verdicts):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

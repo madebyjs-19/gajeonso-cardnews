@@ -33,7 +33,8 @@ class EfficiencyTests(unittest.TestCase):
             path.write_text(value)
         for patcher in [patch.object(ai.time, 'sleep'),
                         patch.object(ai, '_last_request', None),
-                        patch.dict(ai.os.environ, {'GEMINI_API_KEY': 'private-key'})]:
+                        patch.dict(ai.os.environ, {'GEMINI_API_KEY': 'private-key',
+                                                   'GITHUB_ACTIONS': 'test', 'GAJEONSO_DURABLE_GIT': '0'})]:
             patcher.start()
             self.addCleanup(patcher.stop)
 
