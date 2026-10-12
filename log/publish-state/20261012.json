@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "run": "20261012",
+  "approval": {
+    "status": "unapproved"
+  },
+  "channels": {},
+  "metadata": {},
+  "recovery": {
+    "prepare_attempts": 1,
+    "prepare_retry_at": "2026-10-12T09:59:59.501742+09:00"
+  },
+  "updated_at": "2026-10-12T00:29:59.502032+00:00"
+}
