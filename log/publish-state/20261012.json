@@ -14,7 +14,12 @@
     "approved_by": "5687403592",
     "responded_at": "2026-10-12T18:19:41.240354+09:00"
   },
-  "channels": {},
+  "channels": {
+    "ig_card": {
+      "status": "preparing",
+      "account_id": "17841462524734371"
+    }
+  },
   "metadata": {
     "topic": "삼성 아트 스토어, 영국 박물관 30점 공개: 구매 전 확인할 구독과 지원 모델",
     "type": "B",
@@ -27,7 +32,7 @@
     "publish_attempts": 1,
     "publish_retry_at": "2026-10-12T18:49:44.787911+09:00"
   },
-  "updated_at": "2026-10-12T09:19:46.962311+00:00",
+  "updated_at": "2026-10-12T09:19:48.955530+00:00",
   "preparation": {
     "status": "ready",
     "source": "chatgpt_reviewed"
