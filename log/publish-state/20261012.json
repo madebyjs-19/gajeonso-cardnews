@@ -17,7 +17,10 @@
   "channels": {
     "ig_card": {
       "status": "preparing",
-      "account_id": "17841462524734371"
+      "account_id": "17841462524734371",
+      "children": [
+        "17982570750084158"
+      ]
     }
   },
   "metadata": {
@@ -32,7 +35,7 @@
     "publish_attempts": 1,
     "publish_retry_at": "2026-10-12T18:49:44.787911+09:00"
   },
-  "updated_at": "2026-10-12T09:19:48.955530+00:00",
+  "updated_at": "2026-10-12T09:19:54.811187+00:00",
   "preparation": {
     "status": "ready",
     "source": "chatgpt_reviewed"
