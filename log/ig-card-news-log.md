@@ -16,4 +16,4 @@
 20261009b | 온수매트 vs 전기매트 구매 가이드 | B | navy | compare, checklist, steps | IG 발행 성공 · FB 발행 성공 · IG 릴스 성공 · FB 릴스 성공 (Actions)
 20261010a | 하이마트 정왕역점 브랜드위크: 가을 이사·혼수 가전 견적 비교 | C | orange | table, checklist, steps | READY_FOR_APPROVAL · PREP=READY
 20261011 | LG전자, 무선청소기 폐배터리 수거 ‘배터리턴’ 캠페인 및 새 배터리 할인 | C | orange | table, steps, checklist | APPROVED · PREP=READY · IG_CARD=SUCCESS:18087245798292011 · FB_CARD=SUCCESS:1372302955967772_122099337093507663 · IG_REEL=SUCCESS:18075487163742468 · FB_REEL=SUBMITTED:1426205072812499
-20261012 | 삼성 아트 스토어, 영국 박물관 30점 공개: 구매 전 확인할 구독과 지원 모델 | B | ice | table, compare, checklist | APPROVED · PREP=READY · IG_CARD=SUCCESS:17873834784638376 · FB_CARD=SUCCESS:1372302955967772_122100084777507663 · IG_REEL=SUCCESS:18153755461534544 · FB_REEL=PUBLISHING
+20261012 | 삼성 아트 스토어, 영국 박물관 30점 공개: 구매 전 확인할 구독과 지원 모델 | B | ice | table, compare, checklist | APPROVED · PREP=READY · IG_CARD=SUCCESS:17873834784638376 · FB_CARD=SUCCESS:1372302955967772_122100084777507663 · IG_REEL=SUCCESS:18153755461534544 · FB_REEL=SUBMITTED:1431784411701685
