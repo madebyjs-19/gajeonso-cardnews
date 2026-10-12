@@ -10,5 +10,10 @@
     "prepare_attempts": 1,
     "prepare_retry_at": "2026-10-12T09:59:59.501742+09:00"
   },
-  "updated_at": "2026-10-12T00:29:59.502032+00:00"
+  "updated_at": "2026-10-12T00:30:54.651234+00:00",
+  "preparation": {
+    "status": "failed",
+    "error_type": "RuntimeError"
+  },
+  "last_error": "제미나이 무료 사용 한도를 확인할 수 없거나 한도가 소진되었습니다. 다음 복구 점검에서 다시 확인합니다."
 }
