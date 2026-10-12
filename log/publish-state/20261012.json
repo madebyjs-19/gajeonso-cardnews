@@ -2,14 +2,17 @@
   "version": 1,
   "run": "20261012",
   "approval": {
-    "status": "ready_for_approval",
+    "status": "approved",
     "key": "6b2ca12f92954ebbb898f2ce001e3152",
     "chat_id": "5687403592",
     "fingerprint": "a5d76ec1de14e5857df5edc3c730c71aa5185dd6a65da0200d4696b3f89879cb",
     "delivery": "sent",
     "message_id": 125,
     "sent_at": "2026-10-12T18:18:26.091575+09:00",
-    "expires_at": "2026-10-12T19:18:26.091575+09:00"
+    "expires_at": "2026-10-12T19:18:26.091575+09:00",
+    "callback_id": "5980468355181329125",
+    "approved_by": "5687403592",
+    "responded_at": "2026-10-12T18:19:41.240354+09:00"
   },
   "channels": {},
   "metadata": {
@@ -22,7 +25,7 @@
     "prepare_attempts": 1,
     "prepare_retry_at": "2026-10-12T18:48:13.618959+09:00"
   },
-  "updated_at": "2026-10-12T09:18:26.091813+00:00",
+  "updated_at": "2026-10-12T09:19:41.240363+00:00",
   "preparation": {
     "status": "ready",
     "source": "chatgpt_reviewed"
