@@ -705,7 +705,7 @@ def _draw_line(c, x, y, ln, px, color, vs_color):
 
 
 def cover_v2(c, spec, total=5):
-    """1장 표지. 태그 → 제목 2줄(Do Hyeon 128) → 부제 → 제품 영역 카드 → 하단 힌트·페이지 번호. 로고는 stamp_logo.py 가 하단 중앙에 넣는다."""
+    """1장 표지. 태그 → 제목 2줄(Do Hyeon 128) → 부제 → 제품 영역 카드 → 하단 힌트·페이지 번호. 로고는 stamp_logo.py 가 우측 상단 모서리 쪽에 넣는다."""
     p = V2[c.bg]; d = c.d
     if c.bg == "ice":      # 6px 네이비 테두리, 가장자리 안쪽 30px
         d.rectangle((30 * S, 30 * S, (W - 30) * S, (H - 30) * S), outline=NAVY, width=6 * S)

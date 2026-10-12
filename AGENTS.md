@@ -45,3 +45,13 @@
 
 ## AI 요청 효율과 무료 한도
 정상 제작은 조사·원고 통합, 독립 사실 검수, 이미지 검수의 3회다. 성공 응답과 당일 조사 입력을 log/ai-cache에 영구 저장한다. 모델·입력·스키마가 바뀌면 새 검수를 받으며 사실 검수 원문은 다시 읽는다. 검수 거부 결과를 통과로 바꾸거나 승인 보호를 완화하지 않는다. 모든 생성 HTTP 시도는 태평양 날짜 기준 log/ai-budget에 호출 전에 저장하며 재시도·수동 테스트를 포함해 하루 18회에서 중단한다. 이 카운터는 다른 앱 사용량을 알 수 없으며 변경 전 사용량을 소급 계산하지 않는다. 429 응답의 알려진 한도 식별자만 파싱하고 원시 응답·비밀 값은 저장하지 않는다. 하루 제한·불명확 제한은 다음 태평양 날짜까지 대기, 분당 제한은 2분 후 복구한다. 한도 대기 중 복구 횟수는 소모하지 않는다.
+
+
+## 운영 전환: ChatGPT 직접 제작 → 완성 파일 전달 (2026-10-12)
+사용자 지시로 기존 Gemini 전용 제작 대신 ChatGPT가 공식 자료 조사·원고·기존 생성기 렌더·직접 사실/시각 검수를 담당한다. 운영 워커는 GAJEONSO_CONTENT_MODE=prepared로 실행하며 Gemini 없이 완성 파일만 승인/발행한다. 준비된 콘텐츠가 없으면 재생성 루프를 돌지 않고 전달을 기다린다. 이 절은 앞선 Gemini 필수 제작/검수 규칙을 대체하며 실제 Telegram 승인·지문·중복 방지·영구 체크포인트는 유지한다.
+
+생산자는 오늘 YYYYMMDD의 cards/RUN/에 카드 JPG 5장, reel.mp4, caption_ig.txt, caption_fb.txt, content.json, brief.json을 저장한다. content.json은 validate_content 스키마에 맞춰 작성한다. brief는 content의 topic/type/reason/candidates/facts/warnings와 일치하며 cover/card_types, source_method=chatgpt_reviewed, fact_qa/visual_qa passed=true를 포함한다. 원문을 직접 읽고 카드 이미지 5장을 실제로 열어 확인한 후에만 review.json을 작성한다. version=1, run, reviewer=ChatGPT, fact_review=true, visual_review=true, inspected_cards=[1,2,3,4,5], checked_at(한국 ISO시간), notes(실제 확인사항), sha256(위 9개 파일의 이름별 SHA256)이 필수다. AI 실패 결과를 통과로 바꾸거나 실제로 보지 않은 카드의 검수를 주장하지 않는다.
+
+완성 파일과 review.json을 하나의 커밋으로 main에 전달한다. push 트리거는 동일 gajeonso-production 워커를 깨워 승인 요청을 보낸다. 코드는 브랜치/PR로 검증하고 사용자가 정상화를 승인한 이번 운영 전환은 테스트 성공 후 반영한다. 콘텐츠는 이미 승인된 회차를 덮어쓰지 않고, 최신 main 상태와 회차 상태를 다시 확인해 낙관적 잠금으로 전달한다. 예약 생산 작업은 이 저장소 규칙을 읽고 매번 실제 제작·시각 확인·전달까지 수행한다. 실행 실패를 성공으로 보고하지 않는다.
+
+표지 대표 로고는 사용자 지정에 따라 우측 상단 모서리 쪽(오른쪽·위 여백 70px)에 배치한다. 하단 중앙·상단 중앙에 자동 대체하지 않는다. 원본 네이비 선·비율과 어두운 표지의 아이스블루 배지는 유지하고, 겹치면 로고 크기나 원고를 조정해 직접 재검수한다.

@@ -1,6 +1,9 @@
 name: Daily gajeonso cardnews
 
 on:
+  push:
+    branches: [main]
+    paths: ['cards/**/review.json'] # Reviewed delivery wakes the approval worker immediately.
   schedule:
     - cron: '7,17,27,37,47,57 0-14,21-23 * * *' # 한국 06:07~23:57, 일찍 제작·지연 복구
     - cron: '0 2 * * *'                  # 한국 11:00 목표 발행
@@ -23,7 +26,7 @@ permissions:
 
 jobs:
   daily:
-    if: github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || vars.GAJEONSO_ENABLED == 'true')
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || github.event_name == 'push' || vars.GAJEONSO_ENABLED == 'true')
     runs-on: ubuntu-latest
     timeout-minutes: 360 # 아침 승인 수신·11시 대기 + 발행 여유
     env:
@@ -36,6 +39,7 @@ jobs:
       FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
       FB_PAGE_ACCESS_TOKEN: ${{ secrets.FB_PAGE_ACCESS_TOKEN }}
       GAJEONSO_DURABLE_GIT: '1'
+      GAJEONSO_CONTENT_MODE: prepared
       REQUESTED_PHASE: ${{ inputs.phase }}
       TRIGGER_SCHEDULE: ${{ github.event.schedule }}
     steps:

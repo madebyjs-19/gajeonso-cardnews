@@ -2,7 +2,7 @@
 STATUS = {
     'unapproved': '미승인', 'ready_for_approval': '승인 대기', 'approved': '승인 완료',
     'cancelled': '승인 취소', 'approval_timeout': '승인 시간 만료',
-    'preparing': '발행 준비 중', 'failed': '실패', 'skipped': '설정 누락으로 건너뜀',
+    'waiting_for_content': '직접 제작한 카드 전달 대기', 'preparing': '발행 준비 중', 'failed': '실패', 'skipped': '설정 누락으로 건너뜀',
     'success': '발행 완료', 'legacy_success': '이전 발행 완료',
     'submitted': '발행 요청 접수·처리 중', 'publishing': '게시 결과 확인 필요',
     'unknown': '게시 결과 확인 필요',
@@ -57,6 +57,13 @@ def error_text(exc):
         return detail + ' 승인 요청과 발행은 진행하지 않았습니다.'
     value = str(exc)
     known = {
+        'Reviewed content not delivered': '직접 제작·검수한 카드가 아직 전달되지 않았습니다.',
+        'Prepared content review missing or incomplete': '직접 제작 카드의 검수 기록이 없거나 미완료입니다.',
+        'Prepared content file manifest incomplete': '직접 제작 카드의 파일 확인 목록이 누락되었습니다.',
+        'Prepared content changed after review': '직접 검수 후 파일이 바뀌어 승인 요청을 중단했습니다.',
+        'Prepared captions differ from reviewed content': '검수한 원고와 본문 파일이 달라 중단했습니다.',
+        'Prepared brief differs from reviewed content': '검수한 원고와 승인 안내가 달라 중단했습니다.',
+        'Prepared brief review missing or incomplete': '직접 제작 카드의 검수 결과가 누락되었습니다.',
         'Invalid five-card structure': '생성 원고의 카드 5장 구성이 맞지 않습니다.',
         'Invalid interior card types': '내용 카드 유형이 중복되거나 지원되지 않습니다.',
         'Only supported brand illustrations are allowed': '생성 원고의 제품 일러스트 유형이 지원되지 않습니다.',

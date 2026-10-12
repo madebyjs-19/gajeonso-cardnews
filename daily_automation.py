@@ -26,7 +26,8 @@ def now_korea():
 
 
 def configuration():
-    missing = [key for key in REQUIRED if not os.environ.get(key)]
+    required = REQUIRED if os.environ.get('GAJEONSO_CONTENT_MODE') != 'prepared' else REQUIRED[1:]
+    missing = [key for key in required if not os.environ.get(key)]
     if missing:
         raise ValueError('Missing GitHub Actions secrets: ' + ', '.join(missing))
 
@@ -40,7 +41,9 @@ def check():
         bot('getMe')
     checks = [('Telegram', telegram_check),
               ('Instagram', lambda: need(call('GET', '/' + os.environ['IG_USER_ID'], fields='id', access_token=os.environ['IG_ACCESS_TOKEN']), 'id')),
-              ('Gemini', check_model)]
+              ]
+    if os.environ.get('GAJEONSO_CONTENT_MODE') != 'prepared':
+        checks.append(('Gemini', check_model))
     if os.environ.get('FB_PAGE_ID'):
         checks.append(('Facebook', lambda: need(call('GET', '/' + os.environ['FB_PAGE_ID'], fields='id', access_token=os.environ['FB_PAGE_ACCESS_TOKEN']), 'id')))
     failed = []
@@ -77,11 +80,18 @@ def prepare(run):
             # Retry preview delivery using exactly the same already generated content.
             pass
         else:
-            brief = prepare_content(run)
+            from prepared_content import available, load_prepared
+            if available(ROOT, run):
+                brief = load_prepared(ROOT, run)
+            elif os.environ.get('GAJEONSO_CONTENT_MODE') == 'prepared':
+                raise ValueError('Reviewed content not delivered')
+            else:
+                brief = prepare_content(run)
             directory = ROOT / 'cards' / run
             captions = [(directory / f'caption_{p}.txt').read_text(encoding='utf-8') for p in ('ig', 'fb')]
             import uuid
-            state.data['preparation'] = {'status': 'ready'}
+            state.data['preparation'] = {'status': 'ready', 'source': brief.get('source_method', 'official_newsrooms')}
+            state.data.pop('last_error', None)
             state.data['metadata'] = dict(topic=brief['topic'], type=brief['type'], cover=brief['cover'], cards=', '.join(brief['card_types']))
             state.data['approval'] = {'status': 'ready_for_approval', 'key': uuid.uuid4().hex,
                                       'chat_id': os.environ['TELEGRAM_CHAT_ID'],
@@ -142,6 +152,19 @@ def tick(run):
         needs_prepare &= not state.data['approval'].get('message_id')
         if needs_prepare:
             recovery = state.data.setdefault('recovery', {})
+            from prepared_content import available
+            delivered = available(ROOT, run)
+            if os.environ.get('GAJEONSO_CONTENT_MODE') == 'prepared' and not delivered and approval == 'unapproved':
+                state.data['preparation'] = {'status': 'waiting_for_content'}
+                if current.hour >= 10 and not recovery.get('content_wait_notice_sent'):
+                    if notify('[' + run + ' 가전소] 직접 제작·검수한 카드가 아직 전달되지 않았습니다. 전달되면 승인 요청을 보내며, 승인 후 발행합니다.'):
+                        recovery['content_wait_notice_sent'] = True
+                state.save()
+                return
+            if delivered and state.data.get('preparation', {}).get('source') != 'chatgpt_reviewed':
+                recovery['prepare_attempts'] = 0
+                recovery.pop('prepare_retry_at', None)
+                state.data.setdefault('preparation', {})['source'] = 'chatgpt_reviewed'
             due = recovery.get('prepare_retry_at')
             if recovery.get('prepare_attempts', 0) >= MAX_PREP_ATTEMPTS:
                 if not recovery.get('prepare_limit_notice_sent'):
@@ -153,7 +176,7 @@ def tick(run):
                 return
             from ai_efficiency import now_pacific, read, DAILY_REQUEST_BUDGET
             budget = read(ROOT / 'log' / 'ai-budget' / (now_pacific().strftime('%Y%m%d') + '.json'), {'requests': 0})
-            if approval == 'unapproved' and (budget.get('paused') or budget['requests'] >= DAILY_REQUEST_BUDGET):
+            if not delivered and approval == 'unapproved' and (budget.get('paused') or budget['requests'] >= DAILY_REQUEST_BUDGET):
                 return  # A paused quota must not exhaust the six recovery attempts.
             # Preserve at least an hour for approval before the local date changes.
             if current.hour >= 23:
@@ -255,7 +278,7 @@ def main():
             try:
                 with locked_state(run) as state:
                     if state.data['approval'].get('status') == 'unapproved':
-                        state.data['preparation'] = {'status': 'failed', 'error_type': type(exc).__name__}
+                        state.data.setdefault('preparation', {}).update(status='failed', error_type=type(exc).__name__)
                     state.data['last_error'] = message
                     from ai_efficiency import QuotaPause
                     if isinstance(exc, QuotaPause):
