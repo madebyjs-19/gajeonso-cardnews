@@ -25,6 +25,16 @@ def channel_result(channel, item):
 
 
 def error_text(exc):
+    from ai_efficiency import QuotaPause
+    if isinstance(exc, QuotaPause):
+        from datetime import datetime
+        from zoneinfo import ZoneInfo
+        when = datetime.fromisoformat(exc.retry_at).astimezone(ZoneInfo('Asia/Seoul')).strftime('%m월 %d일 %H:%M')
+        reason = {'daily': '제미나이 하루 요청 한도에 도달했습니다.',
+                  'budget': '하루 AI 요청 예산 18회에 도달했습니다.',
+                  'minute': '제미나이 분당 사용 한도에 도달했습니다.',
+                  'unknown': '제미나이 사용 제한(429)이 발생했으나 제한 종류를 확인하지 못했습니다.'}[exc.kind]
+        return reason + ' 완료된 단계는 저장했습니다. ' + when + ' 이후 복구 점검에서 재개합니다. 승인 없는 발행은 진행하지 않습니다.'
     # Match controlled local errors only. API bodies, URLs and credentials stay private.
     from gemini_client import GeminiFailure
     if isinstance(exc, GeminiFailure):

@@ -17,7 +17,7 @@ class FactRecoveryTests(unittest.TestCase):
             (root / 'automation/content_prompt.md').write_text('brand')
             (root / 'log').mkdir()
             (root / 'log/ig-card-news-log.md').write_text('history')
-            replies = ['research', sample_content()] + [sample_content() for _ in verdicts[1:]]
+            replies = [sample_content()] + [sample_content() for _ in verdicts[1:]]
             with patch.object(pipeline, 'ROOT', root), \
                  patch.object(pipeline, 'recent_sources', return_value=([], [])), \
                  patch.object(pipeline, 'response', side_effect=replies) as response, \
@@ -34,7 +34,7 @@ class FactRecoveryTests(unittest.TestCase):
                     render.assert_not_called()
                 self.assertEqual(recheck.call_count, len(verdicts))
                 self.assertEqual(review.call_count, len(verdicts))
-                self.assertEqual(response.call_count, len(verdicts) + 1)
+                self.assertEqual(response.call_count, len(verdicts))
                 feedback = json.loads(response.call_args.args[0][1]['content'])
                 self.assertEqual(feedback['issues'], ['적용 모델 확인 필요'])
                 self.assertEqual(len(list((root / 'out/20261011').glob('fact-qa-*.json'))), len(verdicts))
@@ -58,7 +58,7 @@ class FactRecoveryTests(unittest.TestCase):
             good = sample_content()
             with patch.object(pipeline, 'ROOT', root), \
                  patch.object(pipeline, 'recent_sources', return_value=([], [])), \
-                 patch.object(pipeline, 'response', side_effect=['research', bad, good]), \
+                 patch.object(pipeline, 'response', side_effect=[bad, good]), \
                  patch.object(pipeline, 'recheck', return_value=[]) as recheck, \
                  patch.object(pipeline, 'review_facts', return_value={'passed': True, 'issues': []}) as review, \
                  patch.object(pipeline, 'render_content') as render:

@@ -151,6 +151,10 @@ def tick(run):
                 return
             if due and current < datetime.fromisoformat(due):
                 return
+            from ai_efficiency import now_pacific, read, DAILY_REQUEST_BUDGET
+            budget = read(ROOT / 'log' / 'ai-budget' / (now_pacific().strftime('%Y%m%d') + '.json'), {'requests': 0})
+            if approval == 'unapproved' and (budget.get('paused') or budget['requests'] >= DAILY_REQUEST_BUDGET):
+                return  # A paused quota must not exhaust the six recovery attempts.
             # Preserve at least an hour for approval before the local date changes.
             if current.hour >= 23:
                 if not recovery.get('late_notice_sent'):
@@ -253,6 +257,9 @@ def main():
                     if state.data['approval'].get('status') == 'unapproved':
                         state.data['preparation'] = {'status': 'failed', 'error_type': type(exc).__name__}
                     state.data['last_error'] = message
+                    from ai_efficiency import QuotaPause
+                    if isinstance(exc, QuotaPause):
+                        state.data.setdefault('recovery', {})['prepare_retry_at'] = exc.retry_at
                     state.save()
             except Exception:
                 print('Failure log checkpoint unavailable; preserve recovery artifact')
