@@ -2,19 +2,25 @@
   "version": 1,
   "run": "20261012",
   "approval": {
-    "status": "unapproved"
+    "status": "ready_for_approval",
+    "key": "6b2ca12f92954ebbb898f2ce001e3152",
+    "chat_id": "5687403592",
+    "fingerprint": "a5d76ec1de14e5857df5edc3c730c71aa5185dd6a65da0200d4696b3f89879cb"
   },
   "channels": {},
-  "metadata": {},
+  "metadata": {
+    "topic": "삼성 아트 스토어, 영국 박물관 30점 공개: 구매 전 확인할 구독과 지원 모델",
+    "type": "B",
+    "cover": "ice",
+    "cards": "table, compare, checklist"
+  },
   "recovery": {
     "prepare_attempts": 1,
     "prepare_retry_at": "2026-10-12T18:48:13.618959+09:00"
   },
-  "updated_at": "2026-10-12T09:18:13.792502+00:00",
+  "updated_at": "2026-10-12T09:18:15.509867+00:00",
   "preparation": {
-    "status": "failed",
-    "error_type": "GeminiFailure",
+    "status": "ready",
     "source": "chatgpt_reviewed"
-  },
-  "last_error": "제미나이 서버 오류가 재시도 후에도 계속되어 중단했습니다. 서버 응답 코드: 503. 승인 요청과 발행은 진행하지 않았습니다."
+  }
 }
