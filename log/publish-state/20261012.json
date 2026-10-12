@@ -73,9 +73,10 @@
     "publish_attempts": 1,
     "publish_retry_at": "2026-10-12T18:49:44.787911+09:00"
   },
-  "updated_at": "2026-10-12T09:22:27.024538+00:00",
+  "updated_at": "2026-10-12T09:22:29.043122+00:00",
   "preparation": {
     "status": "ready",
     "source": "chatgpt_reviewed"
-  }
+  },
+  "last_report": "[\"인스타그램 카드: 발행 완료 https://www.instagram.com/p/DeY5cvBDIjs/\", \"페이스북 카드: 발행 완료 https://www.facebook.com/122096996937507663/posts/122100084777507663\", \"인스타그램 릴스: 발행 완료 https://www.instagram.com/reel/DeY5mPRgeBu/\", \"페이스북 릴스: 발행 요청 접수·처리 중 https://www.facebook.com/reel/1431784411701685\"]"
 }
