@@ -7,10 +7,10 @@
   "channels": {},
   "metadata": {},
   "recovery": {
-    "prepare_attempts": 1,
-    "prepare_retry_at": "2026-10-12T09:59:59.501742+09:00"
+    "prepare_attempts": 2,
+    "prepare_retry_at": "2026-10-12T17:38:52.001941+09:00"
   },
-  "updated_at": "2026-10-12T00:30:54.651234+00:00",
+  "updated_at": "2026-10-12T08:08:52.005739+00:00",
   "preparation": {
     "status": "failed",
     "error_type": "RuntimeError"
