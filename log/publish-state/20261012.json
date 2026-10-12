@@ -16,7 +16,7 @@
   },
   "channels": {
     "ig_card": {
-      "status": "publishing",
+      "status": "success",
       "account_id": "17841462524734371",
       "children": [
         "17982570750084158",
@@ -26,7 +26,8 @@
         "17982570822084158"
       ],
       "container_id": "17982570843084158",
-      "attempt_id": "4ca6964524b94f76bcb41a14fdcc3ec3"
+      "attempt_id": "4ca6964524b94f76bcb41a14fdcc3ec3",
+      "media_id": "17873834784638376"
     }
   },
   "metadata": {
@@ -41,7 +42,7 @@
     "publish_attempts": 1,
     "publish_retry_at": "2026-10-12T18:49:44.787911+09:00"
   },
-  "updated_at": "2026-10-12T09:20:22.488380+00:00",
+  "updated_at": "2026-10-12T09:20:28.274064+00:00",
   "preparation": {
     "status": "ready",
     "source": "chatgpt_reviewed"
