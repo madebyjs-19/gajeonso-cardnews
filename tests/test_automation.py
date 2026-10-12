@@ -33,6 +33,11 @@ def sample_content():
 
 
 class ContentTests(unittest.TestCase):
+    def setUp(self):
+        env = patch.dict(os.environ, {'GITHUB_ACTIONS': 'test', 'GAJEONSO_DURABLE_GIT': '0'})
+        env.start()
+        self.addCleanup(env.stop)
+
     def test_valid_plan_and_unsafe_or_arbitrary_file_rejected(self):
         plan = sample_content()
         content.validate_content(plan)
@@ -72,7 +77,7 @@ class ContentTests(unittest.TestCase):
                 if argv[1].endswith('make_reel.py'):
                     (work / 'reel.mp4').write_bytes(b'fake-video')
                 return subprocess.CompletedProcess(argv, 0)
-            replies = ['research', sample_content(), 'independent fact review',
+            replies = [sample_content(),
                        {'passed': True, 'issues': []}, {'passed': True, 'issues': []}]
             with patch.object(content, 'ROOT', root), patch.object(content, 'response', side_effect=replies), \
                  patch.object(content, 'recent_sources', return_value=([{'source_url': 'https://www.samsung.com/sec/'}], [])), \

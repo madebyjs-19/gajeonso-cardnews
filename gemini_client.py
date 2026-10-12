@@ -1,11 +1,15 @@
 """Gemini text/vision requests. Bounded transient retries; no alternate providers."""
 import json
+from copy import deepcopy
 import os
 import random
 import socket
 import time
 import urllib.error
 import urllib.request
+from datetime import datetime, timedelta, timezone
+from ai_efficiency import ACTIVE, QuotaPause
+from git_checkpoint import CheckpointError
 
 MODEL = 'gemini-3.8-flash'
 BASE = 'https://generativelanguage.googleapis.com/v1beta/models/' + MODEL
@@ -30,6 +34,8 @@ def request_json(request, timeout=180):
         if _last_request is not None:
             time.sleep(max(0, 15 - (time.monotonic() - _last_request)))
         _last_request = time.monotonic()
+        if request.data is not None and ACTIVE.get() is not None:
+            ACTIVE.get().reserve()
         try:
             with urllib.request.urlopen(request, timeout=timeout) as stream:
                 return json.load(stream)
@@ -78,12 +84,17 @@ def response(input_items, schema=None):
                 else:
                     raise ValueError()
             contents.append({'role': 'user', 'parts': parts})
-        config = {'maxOutputTokens': 12000, 'thinkingConfig': {'thinkingLevel': 'LOW'}}
+        config = {'maxOutputTokens': 7000 if schema and 'deck' in schema.get('properties', {}) else 2500,
+                  'thinkingConfig': {'thinkingLevel': 'LOW'}}
         if schema:
             config.update(responseMimeType='application/json', responseJsonSchema=schema)
         payload = {'contents': contents, 'generationConfig': config}
         if instructions:
             payload['systemInstruction'] = {'parts': instructions}
+        session = ACTIVE.get()
+        cache_key = session.key({'model': MODEL, 'payload': payload}) if session else None
+        if session and cache_key in session.cache['responses']:
+            return deepcopy(session.cache['responses'][cache_key])
         request = urllib.request.Request(BASE + ':generateContent', json.dumps(payload).encode(),
                                          {'x-goog-api-key': os.environ['GEMINI_API_KEY'], 'Content-Type': 'application/json'})
         result = request_json(request)
@@ -106,13 +117,34 @@ def response(input_items, schema=None):
                 jsonschema.validate(value, schema)
             except (json.JSONDecodeError, jsonschema.ValidationError):
                 raise GeminiFailure('schema') from None
+            if session:
+                session.remember(cache_key, value)
             return value
+        if session:
+            session.remember(cache_key, text)
         return text
-    except GeminiFailure:
+    except (GeminiFailure, QuotaPause, CheckpointError):
         raise
     except urllib.error.HTTPError as exc:
         if exc.code == 429:
-            raise RuntimeError('Gemini free quota unavailable or exhausted; no fallback, approval or publication') from None
+            # Inspect only known quota identifiers; never retain or log raw bodies.
+            try:
+                body = json.loads(exc.read(65536))
+                violations = [v for d in body.get('error', {}).get('details', [])
+                              for v in d.get('violations', [])]
+                ids = ' '.join(str(v.get('quotaId', '')) for v in violations).lower()
+            except Exception:
+                ids = ''
+            if 'perday' in ids:
+                kind = 'daily'
+            elif 'perminute' in ids:
+                retry = (datetime.now(timezone.utc) + timedelta(minutes=2)).isoformat()
+                raise QuotaPause('minute', retry) from None
+            else:
+                kind = 'unknown'
+            if ACTIVE.get():
+                ACTIVE.get().pause(kind)
+            raise QuotaPause(kind) from None
         code = ('auth' if exc.code in (401, 403) else
                 'request' if exc.code == 400 else
                 'model' if exc.code == 404 else
