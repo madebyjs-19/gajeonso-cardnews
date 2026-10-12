@@ -46,7 +46,8 @@
     },
     "ig_reel": {
       "status": "preparing",
-      "account_id": "17841462524734371"
+      "account_id": "17841462524734371",
+      "container_id": "17982570912084158"
     }
   },
   "metadata": {
@@ -61,7 +62,7 @@
     "publish_attempts": 1,
     "publish_retry_at": "2026-10-12T18:49:44.787911+09:00"
   },
-  "updated_at": "2026-10-12T09:20:59.480892+00:00",
+  "updated_at": "2026-10-12T09:21:01.706404+00:00",
   "preparation": {
     "status": "ready",
     "source": "chatgpt_reviewed"
