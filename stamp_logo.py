@@ -1,5 +1,5 @@
 # stamp_logo.py  사용: python3 stamp_logo.py out/YYYYMMDD/card1.png [--force]
-# 1장 표지에 대표 로고(gajeonso_logo.png)를 합성한다.
+# 1장 표지 우측 상단에 대표 로고(gajeonso_logo.png)를 합성한다.
 # - 항상 네이비 라인 로고만 쓴다(흰색 반전 로고 금지: 얼굴이 음화처럼 보임).
 # - 어두운 배경(navy·blue)에서는 아이스블루 둥근 배지 위에 올린다.
 import os
@@ -49,10 +49,9 @@ def stamp(card_path, force=False):
         lw = round(base_logo.width * lh / base_logo.height)
         logo = with_badge(base_logo.resize((lw, lh), Image.LANCZOS), dark)
         w, h = logo.size
-        spots = {"bottom-center": ((W - w) // 2, H - 70 - h),  # 1순위: 하단 중앙
-                 "top-center": ((W - w) // 2, 44)}             # 2순위: 상단 중앙
+        spots = {"top-right": (W - 70 - w, 70)}  # 사용자 지정: 우측 상단, 가장자리 여백 70px
         for name, (x, y) in spots.items():
-            if force and name != "bottom-center":
+            if force and name != "top-right":
                 continue
             if x < 16 or y < 16 or x + w + 16 > W or y + h + 16 > H:
                 continue
@@ -75,6 +74,6 @@ if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="Stamp the original navy logo on a cover")
     parser.add_argument("card_path")
-    parser.add_argument("--force", action="store_true", help="Overwrite bottom area; requires visual QA")
+    parser.add_argument("--force", action="store_true", help="Overwrite top-right area; requires visual QA")
     args = parser.parse_args()
     sys.exit(stamp(args.card_path, force=args.force))

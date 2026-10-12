@@ -1,0 +1,75 @@
+{
+  "topic": "삼성 아트 스토어, 영국 박물관 30점 공개: 구매 전 확인할 구독과 지원 모델",
+  "type": "B",
+  "reason": "최근 삼성 공식 발표를 바탕으로 작품 추가 소식과 구매 전 확인할 조건을 분리해 설명합니다.",
+  "candidates": [
+    "美 진출 10년 ‘LG 시그니처’, 라인업·유통망 확대해 북미 시장 공략 가속",
+    "LG전자, 세계 185개국 청소년들에게 로봇 기술과 혁신 비전 전한다",
+    "삼성전자, 삼성 아트 스토어에 ‘영국 박물관’ 대표 소장품 30점 공개",
+    "LG전자, 히트펌프 기반 ‘에너지 자립형 주거모델’ 확산 나선다",
+    "LG전자, 3분기 영업이익 전년 比 13.5% ↑"
+  ],
+  "facts": [
+    {
+      "claim": "삼성전자는 2026년 10월 7일 영국 박물관 대표 소장품 30점을 삼성 아트 스토어에 선보인다고 발표했습니다.",
+      "source_url": "https://news.samsung.com/kr/%ec%82%bc%ec%84%b1%ec%a0%84%ec%9e%90-%ec%82%bc%ec%84%b1-%ec%95%84%ed%8a%b8-%ec%8a%a4%ed%86%a0%ec%96%b4%ec%97%90-%ec%98%81%ea%b5%ad-%eb%b0%95%eb%ac%bc%ea%b4%80-%eb%8c%80%ed%91%9c-%ec%86%8c",
+      "verification": "공식 뉴스룸 2026/10/07 게시일과 첫 문단을 직접 확인했습니다."
+    },
+    {
+      "claim": "삼성 아트 스토어는 삼성 TV 전용 예술 작품 구독 서비스이며 5,000점이 넘는 작품을 4K 고화질로 제공합니다.",
+      "source_url": "https://news.samsung.com/kr/%ec%82%bc%ec%84%b1%ec%a0%84%ec%9e%90-%ec%82%bc%ec%84%b1-%ec%95%84%ed%8a%b8-%ec%8a%a4%ed%86%a0%ec%96%b4%ec%97%90-%ec%98%81%ea%b5%ad-%eb%b0%95%eb%ac%bc%ea%b4%80-%eb%8c%80%ed%91%9c-%ec%86%8c",
+      "verification": "공식 원문 두 번째 문단 확인. 전체 작품이 무료라는 뜻으로 표현하지 않습니다."
+    },
+    {
+      "claim": "공식 발표는 올해 출시된 OLED(SH95), 더 프레임·더 프레임 프로·마이크로 RGB·네오 QLED 등 아트 TV 라인업을 안내합니다.",
+      "source_url": "https://news.samsung.com/kr/%ec%82%bc%ec%84%b1%ec%a0%84%ec%9e%90-%ec%82%bc%ec%84%b1-%ec%95%84%ed%8a%b8-%ec%8a%a4%ed%86%a0%ec%96%b4%ec%97%90-%ec%98%81%ea%b5%ad-%eb%b0%95%eb%ac%bc%ea%b4%80-%eb%8c%80%ed%91%9c-%ec%86%8c",
+      "verification": "지원 라인업 안내 문단 확인. 모든 연식·모델 지원으로 일반화하지 않습니다."
+    },
+    {
+      "claim": "공식 발표는 이건희 컬렉션의 한국 대표 작품 20점이 무료로 공개되고 있다고 별도로 안내합니다.",
+      "source_url": "https://news.samsung.com/kr/%ec%82%bc%ec%84%b1%ec%a0%84%ec%9e%90-%ec%82%bc%ec%84%b1-%ec%95%84%ed%8a%b8-%ec%8a%a4%ed%86%a0%ec%96%b4%ec%97%90-%ec%98%81%ea%b5%ad-%eb%b0%95%eb%ac%bc%ea%b4%80-%eb%8c%80%ed%91%9c-%ec%86%8c",
+      "verification": "공식 원문 마지막 본문 문단 확인. 영국 박물관 30점 무료 제공으로 표현하지 않습니다."
+    }
+  ],
+  "warnings": [
+    "제품 이미지는 특정 모델 실물이 아닌 브랜드 일러스트입니다.",
+    "구독료·해지 조건·모델별 지원은 이 원문에 없어 수치로 표기하지 않았습니다.",
+    "무료 공개는 이건희 컬렉션 20점에 관한 공식 안내이며 전체 서비스 무료를 뜻하지 않습니다."
+  ],
+  "cover": "ice",
+  "card_types": [
+    "table",
+    "compare",
+    "checklist"
+  ],
+  "source_method": "chatgpt_reviewed",
+  "ai_model": "ChatGPT",
+  "checked_at": "2026-10-12T18:08:53.063144+09:00",
+  "fact_qa": {
+    "passed": true,
+    "reviewer": "ChatGPT",
+    "issues": [],
+    "basis": "Samsung official newsroom 2026-10-07 article reread via browser; model coverage and free collection are qualified"
+  },
+  "visual_qa": {
+    "passed": true,
+    "reviewer": "ChatGPT",
+    "issues": [],
+    "inspected_cards": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "qr_decoded_cards": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "logo_position": "top-right",
+    "logo_margin_px": 70
+  }
+}

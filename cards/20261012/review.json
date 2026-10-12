@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "run": "20261012",
+  "reviewer": "ChatGPT",
+  "fact_review": true,
+  "visual_review": true,
+  "inspected_cards": [
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "checked_at": "2026-10-12T18:08:53.063144+09:00",
+  "notes": [
+    "공식 뉴스룸 원문을 직접 읽고 수치·무료 대상·지원 범위를 확인했습니다.",
+    "카드 JPG 5장을 실제로 열어 로고·번호·가독성·잘림·겹침을 확인했습니다.",
+    "모든 QR을 디코딩해 가전소 상담 주소와 일치함을 확인했습니다.",
+    "릴스 H264/AAC 1080x1920 12.5초 규격을 ffprobe로 확인했습니다.",
+    "사용자 요청으로 표지 로고를 우측 상단(위·오른쪽 70px 여백)으로 이동하고 실제 이미지를 다시 열어 겹침과 잘림이 없음을 확인했습니다. 2~5장은 이전 검수 파일과 바이트가 동일합니다."
+  ],
+  "sha256": {
+    "card1.jpg": "b7b32101dd573b1c4f5ccd36643c04ac8fc0569183f9705eeb8f7e4827355caa",
+    "card2.jpg": "e9d94ce6c2b8d4bf868f725048f927a187513aca097b372dbc629878c6936c5a",
+    "card3.jpg": "d16b5524f0892ba9dc89bb0d4ffb8d522f84bb6d873b4eff5ec717d19854d5ae",
+    "card4.jpg": "5b07e3a53df1df2e20d6f2a79bad93dd9eb8f00756321bf5906fa984a343b577",
+    "card5.jpg": "cd7c10cbb3bb61a48b3a6c74dcbfa6fe335d44a2946c33c60f0ea661d87b2e58",
+    "reel.mp4": "567c186cf875d51dea1dd1deb99f75c0b17000d9e8fdb68d8a32e0768ea911d1",
+    "caption_ig.txt": "dd7bcec3473dff0675787c134950f555396fc6376336f249992f4d82e8a6cb08",
+    "caption_fb.txt": "790f72d4a6ab1b2bfd10cbd13622352dc0804a78c0a610f281752ac081307057",
+    "content.json": "3eaab47ef28c1d7ae7671832551749ed191ba1dff13f9697c46bcd75ad61fe2d",
+    "brief.json": "faa798c66d5ed450652579ac0217061e2aee19b89ede483ba8fb79ba9799b41e"
+  }
+}

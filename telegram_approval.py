@@ -64,6 +64,7 @@ def send_preview(run):
         bot('sendVideo', chat_id=chat, video=raw + '/reel.mp4', caption=run + ' 릴스 미리보기')
         brief = json.loads((directory / 'brief.json').read_text(encoding='utf-8'))
         text = (f"[{run} 승인 요청]\n주제: {brief['topic']}\n유형: {TYPE.get(brief['type'], '정보 안내')} / 표지: {COLOR.get(brief['cover'], '브랜드 색상')}\n"
+                + ('제작·검수: ChatGPT 직접 제작·확인\n' if brief.get('source_method') == 'chatgpt_reviewed' else '')
                 + '카드: ' + ', '.join(CARD.get(c, '정보 안내') for c in brief['card_types']) + '\n제품 이미지: 브랜드 일러스트\n'
                 + '출처와 확인 사항:\n' + '\n'.join('내용: ' + f['claim'] + '\n출처: ' + f['source_url'] + '\n확인: ' + f.get('verification', '공식 자료 확인') for f in brief['facts'])
                 + '\n주의: ' + '; '.join(brief['warnings'])
