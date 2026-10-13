@@ -17,3 +17,4 @@
 20261010a | 하이마트 정왕역점 브랜드위크: 가을 이사·혼수 가전 견적 비교 | C | orange | table, checklist, steps | READY_FOR_APPROVAL · PREP=READY
 20261011 | LG전자, 무선청소기 폐배터리 수거 ‘배터리턴’ 캠페인 및 새 배터리 할인 | C | orange | table, steps, checklist | APPROVED · PREP=READY · IG_CARD=SUCCESS:18087245798292011 · FB_CARD=SUCCESS:1372302955967772_122099337093507663 · IG_REEL=SUCCESS:18075487163742468 · FB_REEL=SUBMITTED:1426205072812499
 20261012 | 삼성 아트 스토어, 영국 박물관 30점 공개: 구매 전 확인할 구독과 지원 모델 | B | ice | table, compare, checklist | APPROVED · PREP=READY · IG_CARD=SUCCESS:17873834784638376 · FB_CARD=SUCCESS:1372302955967772_122100084777507663 · IG_REEL=SUCCESS:18153755461534544 · FB_REEL=SUBMITTED:1431784411701685
+20261012b | 겨울 난방가전 구매 전 전기요금 누진 구간 확인 | B | navy | formula, table, checklist | 승인 취소 (Actions)
