@@ -261,6 +261,11 @@ def b_checklist(spec):
                 for k, ln in enumerate(lines):
                     c.text(186, cur + k * 44, ln, f, t["title"] if c.bg != "white" else NAVY)
             cur += len(lines) * 44 + 30
+        if spec.get("footnote"):
+            cur += 6
+            if not dry: c.text(W / 2, cur, spec["footnote"], font("regular", 24), t["sub"], "ma")
+            cur += 24
+            return cur - y
         return cur - 30 - y
     return build
 
