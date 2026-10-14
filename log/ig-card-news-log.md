@@ -18,3 +18,4 @@
 20261011 | LG전자, 무선청소기 폐배터리 수거 ‘배터리턴’ 캠페인 및 새 배터리 할인 | C | orange | table, steps, checklist | APPROVED · PREP=READY · IG_CARD=SUCCESS:18087245798292011 · FB_CARD=SUCCESS:1372302955967772_122099337093507663 · IG_REEL=SUCCESS:18075487163742468 · FB_REEL=SUBMITTED:1426205072812499
 20261012 | 삼성 아트 스토어, 영국 박물관 30점 공개: 구매 전 확인할 구독과 지원 모델 | B | ice | table, compare, checklist | APPROVED · PREP=READY · IG_CARD=SUCCESS:17873834784638376 · FB_CARD=SUCCESS:1372302955967772_122100084777507663 · IG_REEL=SUCCESS:18153755461534544 · FB_REEL=SUBMITTED:1431784411701685
 20261012b | 겨울 난방가전 구매 전 전기요금 누진 구간 확인 | B | navy | formula, table, checklist | IG 발행 성공 · FB 발행 성공 · IG 릴스 성공 · FB 릴스 성공 (Actions)
+20261014 | LG전자·애플 공동개발 AI홈 기기 7종 공개 | A | navy | product, table, checklist | IG 발행 성공 · FB 발행 성공 · IG 릴스 성공 · FB 릴스 성공 (Actions)
