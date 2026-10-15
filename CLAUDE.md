@@ -14,7 +14,7 @@
 - 본문은 전문적인 수치·기준·절차 중심으로 쓰고, 2~4장 카드에 출처(기관·문서명)를 표기한다. 전체 원문 URL 은 ig.txt·fb.txt·approval.txt 에 싣는다.
 
 ## 릴스 (매 회차 적용)
-- 카드 5장 완성·로고 합성 후 `python3.13 make_reel.py out/YYYYMMDD` 로 하이라이트 릴스(1,2,3,5장, 약 12초)를 만든다. 카드 구성상 다른 장이 핵심이면 `make_reel.py out/YYYYMMDD 1,2,4,5`처럼 장 번호를 지정한다.
+- 카드 5장 완성·로고 합성 후 `python3.13 make_reel.py out/YYYYMMDD` 로 하이라이트 릴스(1,2,3,5장 + 1장 복귀, 약 14.5초, 훅 자막·줌 모션·저장 유도 자막·BGM 자동 포함; deck.json 의 reel_hook·reel_cta 로 문구 지정)를 만든다. 카드 구성상 다른 장이 핵심이면 `make_reel.py out/YYYYMMDD 1,2,4,5`처럼 장 번호를 지정한다.
 - `out/YYYYMMDD/reel.mp4` 를 `cards/YYYYMMDD/reel.mp4` 로 복사해 카드와 함께 커밋·푸시한다. 미리보기 전송·릴스 발행·로그는 아래 [승인·발행] 의 GitHub Actions 가 한다.
 
 ## 승인·발행 (GitHub Actions 가 처리 — 프롬프트 step5·step6·step7 보다 우선)
