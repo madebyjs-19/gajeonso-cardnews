@@ -217,6 +217,10 @@ def b_formula(spec):
             cur += 30
             if not dry: c.text(W / 2, cur, spec["example"], font("regular", 28), t["sub"], "ma")
             cur += 28
+        if spec.get("footnote"):
+            cur += 40
+            if not dry: c.text(W / 2, cur, spec["footnote"], font("regular", 24), t["sub"], "ma")
+            cur += 24
         return cur - y
     return build
 
