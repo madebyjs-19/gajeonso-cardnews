@@ -105,6 +105,15 @@
 6. 릴스: python3.13 make_reel.py out/RUN 으로 하이라이트 릴스(1,2,3,5장 + 1장 복귀, 약 14.5초)를 만든다. 다른 장이 핵심이면 make_reel.py out/RUN 1,2,4,5 처럼 장 번호를 지정한다.
    - 릴스에는 상단 훅 자막(기본: 1장 제목, deck.json 의 "reel_hook" 으로 더 짧고 강한 한 줄로 바꿀 수 있음, 2줄 이내), 장별 줌 모션, 마지막 장의 저장 유도 자막(deck.json "reel_cta", 기본 "저장해두고 필요할 때 꺼내보세요"), 합성 BGM 이 자동으로 들어간다.
    - 훅은 결론·핵심 수치 중심으로 25자 안팎으로 쓴다. 만든 뒤 프레임 한두 장을 열어 자막이 잘리거나 겹치지 않는지 확인한다.
+7. Flow 영상 프롬프트·자막 (사용자가 Google Flow 에서 영상을 만들어 텔레그램으로 보내면 Actions 가 그 영상으로 릴스를 바꿔 발행한다. 보내지 않으면 6번의 기본 릴스로 발행된다.)
+   - cards/RUN/flow_prompt.txt 를 만든다. 형식: 한 편의 영상 설명(영어 장면 묘사 + 한국어 대사). 규칙:
+     · 전체 길이 8초, 절대 10초를 넘지 않는다. 세로 9:16. 3~4컷, 컷당 2~3초의 빠른 전개.
+     · 컨셉: 카드뉴스의 핵심 포인트만(1~2개) 빠른 말투와 속도감 있는 편집으로 보여주고 호기심을 끌어올린다. 첫 1초에 "어? 이게 뭐지?" 싶은 질문·반전·손실 상황으로 시작하고, 마지막 컷은 "카드뉴스에서 이어서 확인" 느낌으로 닫는다.
+     · 대사(선택)는 한국어 45자 이내, 빠른 말투. 수치·기준은 카드와 같은 값만 쓴다.
+     · 한글 오류 방지: 영상 속에 글자·숫자·로고·브랜드명·워터마크를 만들지 않도록 프롬프트에 반드시 적는다(예: "No text, no letters, no numbers, no logos, no watermark, no on-screen captions anywhere in the video"). 모든 한글 자막은 아래 reel_captions.txt 로 Actions 가 폰트로 합성한다.
+     · 제품은 실존 모델을 흉내 내지 않고 일반적인 형태로 묘사한다(모델명·로고·고유 디자인 금지). 사실과 다른 기능을 보여주지 않는다.
+   - cards/RUN/reel_captions.txt 를 만든다. 한 줄에 하나, "시작초-끝초|자막" 형식(예: `0-2.5|이거 모르면/매달 1만원 손해`). 규칙: 2~4개, 0~10초 안, 한 줄 12자 이내, 최대 2줄('/' 로 줄바꿈), 이모지·특수기호 금지(허용: 한글·영문·숫자·. , % ! ? ~ : · ( ) - + / ↓ ↑ → ×), 첫 자막은 0초에 시작하는 호기심 훅, 마지막 자막은 저장·공유 유도, 수치는 카드와 일치.
+   - 반드시 검사한다: python3.13 reel_overlay.py --check cards/RUN/reel_captions.txt 가 CAPTIONS_OK 를 출력해야 한다. 오류가 나면 문구를 고쳐 다시 검사한다(폰트에 없는 글자·너무 긴 줄·허용되지 않는 문자는 모두 오류).
 
 [표지 콘텐츠 규칙: 매 게시물 필수 — "보고 싶어지는 표지"]
 - 표지는 게시물의 핵심 요약이다. 제목 1줄=대상, 2줄=가장 중요한 결론 또는 핵심 수치(예: "누진 400kWh 넘으면 단가 2.5배")로, 넘겨 보기 전에도 핵심 정보 한 가지를 얻게 한다. 막연한 표현("확인하세요", "가이드")만으로 제목을 채우지 않는다.
@@ -266,6 +275,7 @@ if __name__ == "__main__":
        ⑥ "상담문의 · 가전소"
        ⑦ 해시태그 5~7개(#가전소 포함, 주제 특화 태그 우선, 범용 태그 남발 금지), 맨 끝
    - fb.txt : Facebook 캡션. ig.txt 의 ①~⑥(참고자료 링크 포함) + "카카오톡 상담: http://pf.kakao.com/_PHwrX/chat" 한 줄 + 해시태그 3~5개(#가전소 포함), 맨 끝
+   - flow_prompt.txt, reel_captions.txt : step3 의 7번에서 만든 Flow 영상 프롬프트와 자막(Actions 가 텔레그램으로 보내 준다)
    - meta.txt : 한 줄 "RUN | 주제 | 유형(A~D) | 표지색 | 2~4장 카드 유형"
        예: 20261012 | 에어컨 평수 가이드 | B | navy | formula, table, checklist
    - approval.txt : 텔레그램 승인 메시지 본문(3,500자 이내)
@@ -277,7 +287,7 @@ if __name__ == "__main__":
    위 파일 전부를 **한 커밋**으로 묶어 main 에 푸시한다(git pull --rebase origin main 후 git push origin HEAD:main, 네트워크 오류 시 2·4·8·16초 간격 재시도).
    approval.txt 가 main 에 들어가는 순간 GitHub Actions 가 시작되므로, 카드·캡션이 다 준비되기 전에 approval.txt 를 푸시하지 않는다.
 3. 푸시 후 https://raw.githubusercontent.com/madebyjs-19/gajeonso-cardnews/main/cards/RUN/card1.jpg ~ card5.jpg 를 curl 로 확인해 HTTP 200, image/jpeg 인지 검증한다(10초 간격 최대 6회).
-4. 여기서 이 루틴의 작업은 끝난다. 텔레그램 승인 요청·60분 대기·Instagram/Facebook 카드·릴스 발행·결과 로그(log/ig-card-news-log.md, cards/RUN/status.txt)는 Actions 가 처리한다.
+4. 여기서 이 루틴의 작업은 끝난다. 텔레그램 승인 요청·120분 대기·Instagram/Facebook 카드·릴스 발행·결과 로그(log/ig-card-news-log.md, cards/RUN/status.txt)는 Actions 가 처리한다.
    publish.py·publish_reel.py 를 직접 실행하지 않는다. 텔레그램 getUpdates 로 승인을 기다리지 않는다.
 5. main 푸시가 거부되면 claude/cardnews-RUN 브랜치에 푸시하고(Actions 는 실행되지 않음), step5 대로 기록·알린다.
 </step4_push>

@@ -22,9 +22,10 @@
 대신 카드 완성 후 아래 파일을 `cards/YYYYMMDD/` 에 만들어 **한 커밋으로 main 에 푸시**하면 끝이다.
 - `card1~5.jpg`, `reel.mp4`
 - `ig.txt`, `fb.txt` : Instagram·Facebook 캡션 전문
+- `flow_prompt.txt`, `reel_captions.txt` : Google Flow 영상 프롬프트(8초, 10초 이내)와 한글 자막. `python3.13 reel_overlay.py --check cards/YYYYMMDD/reel_captions.txt` 가 CAPTIONS_OK 여야 한다(자세한 규칙은 ROUTINE_PROMPT.md step3 의 7번). 사용자가 Flow 영상을 텔레그램으로 보내면 Actions 가 한글 자막을 합성해 릴스를 교체한다. 승인 대기는 최대 120분.
 - `meta.txt` : 로그 앞부분 한 줄 `YYYYMMDD | 주제 | 유형 | 표지색 | 2~4장 카드 유형`
 - `approval.txt` : 승인 메시지 본문(주제 요약, 표지색·카드 유형과 이유, 수치·출처, 이미지 출처·사용권, 표지 폰트·v2 여부, 미확인 항목). **이 파일이 푸시되면 Actions(`.github/workflows/publish-on-approval.yml`)가 시작되므로 반드시 마지막에, 다른 파일과 같은 커밋으로 올린다.**
-Actions 가 카드·릴스 미리보기와 [발행]/[취소] 버튼을 텔레그램으로 보내고 60분 기다린 뒤, [발행]일 때만 `publish.py`·`publish_reel.py` 를 실행한다. 결과는 `cards/YYYYMMDD/status.txt` 와 `log/ig-card-news-log.md` 에 Actions 가 기록한다. 모델은 결과 로그 줄을 따로 쓰지 않는다.
+Actions 가 카드·릴스 미리보기, Flow 프롬프트와 [발행]/[취소] 버튼을 텔레그램으로 보내고 120분 기다린 뒤, [발행]일 때만 `publish.py`·`publish_reel.py` 를 실행한다. 결과는 `cards/YYYYMMDD/status.txt` 와 `log/ig-card-news-log.md` 에 Actions 가 기록한다. 모델은 결과 로그 줄을 따로 쓰지 않는다.
 - 루틴 환경에 TELEGRAM·IG·FB 환경변수가 없어도 카드 제작과 푸시는 진행한다(토큰은 GitHub Secrets 에 있다). 이전 회차를 다시 승인 요청하려면 Actions 의 workflow_dispatch 에 회차명을 넣어 실행한다.
 - main 푸시가 거부되면 Actions 가 돌지 않으므로, 그 사실을 알림으로 보고한다.
 
