@@ -1,8 +1,8 @@
 # 사용:
 #   python3.13 reel_overlay.py --check out_or_cards/RUN/reel_captions.txt        자막 파일 검사(글자 지원·길이·시간)
-#   python3.13 reel_overlay.py 원본.mp4 결과.mp4 [reel_captions.txt]              영상 정리(1080x1920·최대 10초) + 한글 자막 합성
+#   python3.13 reel_overlay.py 원본.mp4 결과.mp4 [reel_captions.txt] [card1.jpg]  영상 정리(1080x1920·최대 10초) + 앞에 타이틀 카드 + 한글 팝업 자막
 # 한글 깨짐 방지: AI 영상 안에는 글자를 넣지 않고, 자막은 여기서 Do Hyeon 폰트로 직접 그려 얹는다.
-# reel_captions.txt 형식: 한 줄에 하나, "시작초-끝초|자막문구"  예) 0-2.5|이거 모르면 손해
+# reel_captions.txt 형식: 한 줄에 하나, "시작초-끝초|자막문구"  예) 2-4.5|계산식/포기 수×2L÷0.8  (시간은 최종 영상 기준, 앞 1.5초는 타이틀 카드)
 import os, sys, re, subprocess, urllib.request
 from PIL import Image, ImageDraw, ImageFont
 
@@ -12,12 +12,14 @@ FONTS = {
     "DoHyeon-Regular.ttf": "https://raw.githubusercontent.com/google/fonts/main/ofl/dohyeon/DoHyeon-Regular.ttf",
     "Pretendard-Bold.otf": "https://raw.githubusercontent.com/orioncactus/pretendard/main/packages/pretendard/dist/public/static/Pretendard-Bold.otf",
 }
-MAX_SEC = 10.0
+MAX_SEC = 10.0       # 타이틀 카드를 포함한 최종 영상 길이 상한
+TITLE_SEC = 1.5      # 맨 앞 카드뉴스 표지(타이틀 카드) 노출 시간
+MAX_CAPS = 6
 MAX_LINE = 12        # 자막 한 줄 최대 글자 수(공백 제외하지 않음)
 MAX_LINES = 2
 W, H = 1080, 1920
 NAVY, WHITE = (0x1A, 0x2A, 0x4A), (0xF7, 0xF8, 0xFA)
-ALLOWED = re.compile(r"^[0-9A-Za-z가-힣 .,%!?~:·()\-+/↓↑→×~]+$")
+ALLOWED = re.compile(r"^[0-9A-Za-z가-힣 .,%!?~:·()\-+/↓↑→×÷=≈]+$")
 
 
 def ensure_fonts():
@@ -54,8 +56,8 @@ def parse(path):
     return caps
 
 
-def check(path):
-    """문제 목록을 돌려준다(빈 목록이면 통과)."""
+def check(path, title=True):
+    """문제 목록을 돌려준다(빈 목록이면 통과). title=True 면 앞 TITLE_SEC 초는 타이틀 카드 구간이라 자막을 둘 수 없다."""
     ensure_fonts()
     font = load_font("DoHyeon-Regular.ttf", 60)
     errs = []
@@ -65,9 +67,12 @@ def check(path):
         return [str(e)]
     if not caps:
         errs.append("자막이 한 줄도 없습니다")
+    if len(caps) > MAX_CAPS:
+        errs.append(f"자막은 최대 {MAX_CAPS}개입니다(현재 {len(caps)}개)")
+    lo = TITLE_SEC if title else 0
     for s, e, text, n in caps:
-        if not (0 <= s < e <= MAX_SEC):
-            errs.append(f"{n}번째 줄 시간 오류: {s}-{e}초(0~{MAX_SEC:g}초 안이어야 함)")
+        if not (lo <= s < e <= MAX_SEC):
+            errs.append(f"{n}번째 줄 시간 오류: {s}-{e}초({lo:g}~{MAX_SEC:g}초 안이어야 함. 앞 {TITLE_SEC:g}초는 타이틀 카드)")
         lines = text.split("/")
         if len(lines) > MAX_LINES:
             errs.append(f"{n}번째 줄 자막은 최대 {MAX_LINES}줄('/' 로 줄바꿈): {text}")
@@ -108,56 +113,79 @@ def probe(path, entries):
     return out.stdout.strip()
 
 
-def build(src, dst, captions_path=None):
-    """영상을 1080x1920·30fps·최대 10초로 정리하고 자막을 얹는다. 결과 설명 문자열을 돌려준다."""
+def build(src, dst, captions_path=None, title_card=None):
+    """영상을 1080x1920·30fps로 정리하고, 맨 앞에 타이틀 카드(card1)를 TITLE_SEC 초 붙이고, 팝업 자막을 얹는다.
+    최종 길이는 타이틀 카드를 포함해 MAX_SEC 초 이하. 결과 설명 문자열을 돌려준다."""
     ensure_fonts()
+    use_title = bool(title_card and os.path.exists(title_card))
     caps = []
     if captions_path and os.path.exists(captions_path):
-        errs = check(captions_path)
+        errs = check(captions_path, title=use_title)
         if errs:
             raise ValueError("자막 검사 실패:\n- " + "\n- ".join(errs))
         caps = parse(captions_path)
     dur = float(probe(src, "format=duration") or 0)
     has_audio = bool(probe(src, "stream=codec_type -select_streams a"))
+    head = TITLE_SEC if use_title else 0.0
+    clip_len = min(dur or MAX_SEC, MAX_SEC - head)
     tmp = os.path.dirname(os.path.abspath(dst))
     pngs = []
+    norm = (f"scale={W}:{H}:force_original_aspect_ratio=decrease,"
+            f"pad={W}:{H}:(ow-iw)/2:(oh-ih)/2:color=0x1A2A4A,setsar=1,fps=30,format=yuv420p")
     inputs = ["-i", src]
-    filt = [f"[0:v]scale={W}:{H}:force_original_aspect_ratio=decrease,"
-            f"pad={W}:{H}:(ow-iw)/2:(oh-ih)/2:color=0x1A2A4A,setsar=1,fps=30,format=yuv420p[b0]"]
+    filt = [f"[0:v]trim=duration={clip_len:.3f},setpts=PTS-STARTPTS,{norm}[vc]"]
+    idx = 1
+    if has_audio:
+        filt.append(f"[0:a]atrim=duration={clip_len:.3f},asetpts=PTS-STARTPTS,aresample=44100,"
+                    f"aformat=sample_fmts=fltp:channel_layouts=stereo[ac]")
+    else:
+        inputs += ["-f", "lavfi", "-t", f"{clip_len:.3f}", "-i", "anullsrc=r=44100:cl=stereo"]
+        filt.append(f"[{idx}:a]aformat=sample_fmts=fltp:channel_layouts=stereo[ac]")
+        idx += 1
+    if use_title:
+        inputs += ["-loop", "1", "-t", f"{head:.3f}", "-i", title_card]
+        filt.append(f"[{idx}:v]{norm}[vt]")
+        idx += 1
+        inputs += ["-f", "lavfi", "-t", f"{head:.3f}", "-i", "anullsrc=r=44100:cl=stereo"]
+        filt.append(f"[{idx}:a]aformat=sample_fmts=fltp:channel_layouts=stereo[at]")
+        idx += 1
+        filt.append("[vt][at][vc][ac]concat=n=2:v=1:a=1[b0][aout]")
+    else:
+        filt.append("[vc]null[b0]")
+        filt.append("[ac]anull[aout]")
     prev = "b0"
     for i, (s, e, text, _) in enumerate(caps):
         p = os.path.join(tmp, f"_cap{i}.png")
-        bw, bh = caption_png(text, p)
+        caption_png(text, p)
         pngs.append(p)
         inputs += ["-loop", "1", "-i", p]
-        filt.append(f"[{prev}][{i + 1}:v]overlay=(W-w)/2:1330:format=auto:enable='between(t,{s},{e})'[b{i + 1}]")
+        filt.append(f"[{prev}][{idx}:v]overlay=(W-w)/2:1330:format=auto:enable='between(t,{s},{e})'[b{i + 1}]")
+        idx += 1
         prev = f"b{i + 1}"
-    cmd = ["ffmpeg", "-y", *inputs]
-    if has_audio:
-        amap = "0:a:0"
-    else:
-        cmd += ["-f", "lavfi", "-t", str(MAX_SEC), "-i", "anullsrc=r=44100:cl=stereo"]
-        amap = f"{len(caps) + 1}:a"
-    cmd += ["-filter_complex", ";".join(filt), "-map", f"[{prev}]", "-map", amap,
-            "-t", str(min(dur or MAX_SEC, MAX_SEC)), "-c:v", "libx264", "-pix_fmt", "yuv420p", "-r", "30",
-            "-c:a", "aac", "-shortest", "-movflags", "+faststart", dst]
+    total = head + clip_len
+    cmd = ["ffmpeg", "-y", *inputs, "-filter_complex", ";".join(filt), "-map", f"[{prev}]", "-map", "[aout]",
+           "-t", f"{total:.3f}", "-c:v", "libx264", "-pix_fmt", "yuv420p", "-r", "30",
+           "-c:a", "aac", "-movflags", "+faststart", dst]
     r = subprocess.run(cmd, capture_output=True, text=True)
     for p in pngs:
         os.remove(p)
     if r.returncode:
         raise RuntimeError("ffmpeg 실패: " + r.stderr[-600:])
-    note = f"{min(dur, MAX_SEC):.1f}초"
-    if dur > MAX_SEC + 0.05:
-        note += f"(원본 {dur:.1f}초 중 앞 {MAX_SEC:g}초만 사용)"
-    return note + (f", 자막 {len(caps)}개" if caps else ", 자막 없음")
+    note = f"{total:.1f}초"
+    if use_title:
+        note += f"(타이틀 카드 {head:g}초 + 영상 {clip_len:.1f}초)"
+    if dur > clip_len + 0.05:
+        note += f", 원본 {dur:.1f}초 중 앞 {clip_len:.1f}초만 사용"
+    return note + (f", 팝업 자막 {len(caps)}개" if caps else ", 자막 없음")
 
 
 if __name__ == "__main__":
     if len(sys.argv) >= 3 and sys.argv[1] == "--check":
-        errs = check(sys.argv[2])
+        errs = check(sys.argv[2], title="--no-title" not in sys.argv)
         print("\n".join(errs) if errs else "CAPTIONS_OK")
         sys.exit(1 if errs else 0)
     if len(sys.argv) >= 3:
-        print(build(sys.argv[1], sys.argv[2], sys.argv[3] if len(sys.argv) > 3 else None))
+        print(build(sys.argv[1], sys.argv[2], sys.argv[3] if len(sys.argv) > 3 else None,
+                    sys.argv[4] if len(sys.argv) > 4 else None))
         sys.exit(0)
     sys.exit(__doc__)

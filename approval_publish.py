@@ -45,11 +45,21 @@ def request_approval(d, folder):
     say("[Instagram 캡션]\n" + (folder / "ig.txt").read_text(encoding="utf-8"))
     fp, rc = folder / "flow_prompt.txt", folder / "reel_captions.txt"
     if fp.exists():
+        # Flow 에서 쓸 참고 이미지: 타이틀 카드(card1)와 cards/<회차>/flow_ref/ 의 파일을 원본 화질로 보낸다
+        refs = [folder / "card1.jpg"] + sorted((folder / "flow_ref").glob("*"))[:5] if (folder / "flow_ref").exists() \
+            else [folder / "card1.jpg"]
+        for i, f in enumerate(r for r in refs if r.is_file()):
+            cap = "[Flow 참고 이미지] 타이틀 카드(영상 맨 앞 1.5초에 자동으로 붙습니다. Flow에 따로 넣을 필요는 없고, 분위기 참고용)" if i == 0 \
+                else f"[Flow 참고 이미지] {f.name}"
+            tg("sendDocument", {"chat_id": CHAT, "caption": cap}, {"document": f}, timeout=120)
+        fa = folder / "flow_assets.txt"
         text = "[Flow 영상 프롬프트]\n" + fp.read_text(encoding="utf-8").strip()
+        if fa.exists():
+            text += "\n\n[Flow에 넣을 이미지 자료 — 직접 준비해서 Flow에 올려 주세요]\n" + fa.read_text(encoding="utf-8").strip()
         if rc.exists():
-            text += "\n\n[자막(영상에 자동 합성됩니다. 영상에는 글자를 넣지 마세요)]\n" + rc.read_text(encoding="utf-8").strip()
-        text += ("\n\n※ Flow에서 만든 영상(10초 이내, 20MB 이하)을 이 대화방에 보내 주세요. 자막은 제가 한글로 합성합니다."
-                 "\n※ [발행] 버튼을 누르기 전에 보내야 반영됩니다. 대기 시간 최대 120분."
+            text += "\n\n[팝업 자막(핵심 내용, 영상에 자동 합성됩니다. 영상 속에는 글자를 넣지 마세요)]\n" + rc.read_text(encoding="utf-8").strip()
+        text += ("\n\n※ 영상 맨 앞에 카드뉴스 표지(타이틀 카드) 1.5초가 자동으로 붙고, 팝업 자막은 그 뒤에 나옵니다. Flow 영상은 8초 안팎으로 만드세요(전체 10초 이내, 8.5초를 넘으면 뒷부분이 잘립니다)."
+                 "\n※ 만든 영상(20MB 이하)을 이 대화방에 보내 주세요. [발행] 버튼을 누르기 전에 보내야 반영됩니다. 대기 시간 최대 120분."
                  f"\n※ 용량이 커서 텔레그램으로 못 보내면 구글 드라이브 '릴스영상/{d[2:]}' 폴더에 올려 두세요. 텔레그램 영상이 없으면 그 폴더의 가장 최근 영상을 씁니다."
                  "\n※ 둘 다 없으면 기본 릴스로 발행됩니다.")
         say(text)
@@ -95,11 +105,11 @@ def make_flow(d, folder, raw):
     caps = folder / "reel_captions.txt"
     warn = ""
     try:
-        note = reel_overlay.build(str(raw), str(out), str(caps))
+        note = reel_overlay.build(str(raw), str(out), str(caps), str(folder / "card1.jpg"))
     except ValueError as e:  # 자막 검사 실패: 글자가 깨질 수 있으므로 자막 없이 합성
         warn = "\n자막 검사에서 문제가 있어 자막 없이 합성했습니다:\n" + str(e)[:600]
         try:
-            note = reel_overlay.build(str(raw), str(out), None)
+            note = reel_overlay.build(str(raw), str(out), None, str(folder / "card1.jpg"))
         except Exception as e2:
             say(f"[{d}] 영상 변환 실패: {str(e2)[:200]}")
             return None
