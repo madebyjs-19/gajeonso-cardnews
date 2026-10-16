@@ -3,9 +3,9 @@
 
 사용법:
   python3 gen_cards.py deck.json OUTDIR
-deck.json 형식은 DECK_SPEC.md 참고. 결과: OUTDIR/card1~5.png (1080x1350) + card1~5.jpg (Instagram 업로드용)
+deck.json 형식은 DECK_SPEC.md 참고. 결과: OUTDIR/card1~N.png (1080x1350) + card1~N.jpg (Instagram 업로드용). N 은 기본 7장, 최대 9장(예전 5장 덱도 허용)
 deck.json 에 "cover_style": "v2" 를 넣으면 1장(cover·product_cover)이 새 표지 디자인(Do Hyeon 제목, 제품 영역 카드, VS 배지)으로 만들어진다.
-deck.json 에 "design": "lab" 을 넣으면 5장 모두 연구소 리포트 디자인(모눈 배경·FILE 라벨·스펙 시트·도면 일러스트)으로 만들어진다.
+deck.json 에 "design": "lab" 을 넣으면 모든 장이 연구소 리포트 디자인(모눈 배경·FILE 라벨·스펙 시트·도면 일러스트)으로 만들어진다.
   이때 "illust:종류" 는 assets/blueprints/ 의 도면을 쓰고, 1장 오른쪽 위는 stamp_logo.py 용 로고 칸으로 비워 둔다.
 """
 import json, os, sys
@@ -163,11 +163,11 @@ class Card:
     def box_lines(self, top, bottom):
         self.hline(top, 90, W - 90, self.t["line"]); self.hline(bottom, 90, W - 90, self.t["line"])
 
-    def finish(self, n, cover_v2=False):
+    def finish(self, n, cover_v2=False, total=5):
         if cover_v2:  # 새 표지: 테두리·페이지 번호·힌트는 cover_v2()가 그리고, 콘센트 심볼은 쓰지 않는다. QR 상담 배지만 공통
             self.qr_badge()
             return
-        self.frame(); self.symbol(); self.page_no(n); self.qr_badge()
+        self.frame(); self.symbol(); self.page_no(n, total); self.qr_badge()
         if getattr(self, "illust", False):  # 일러스트 사용 시 실제 제품 사진이 아님을 표기
             self.text(70, 1236, "※ 이해를 돕기 위한 일러스트입니다", font("regular", 22), self.t["page"], "lm")
 
@@ -1637,7 +1637,8 @@ def render(deck, outdir):
     ensure_fonts()
     os.makedirs(outdir, exist_ok=True)
     cards = deck["cards"]
-    assert len(cards) == 5, "게시물은 항상 5장"
+    assert 5 <= len(cards) <= 9, f"게시물은 7~9장(예전 덱은 5장)이어야 합니다: 지금 {len(cards)}장"
+    assert cards[-1]["type"] == "cta", "마지막 장은 cta(상담 접수증)여야 합니다"
     cover_color = deck.get("cover_color", "navy")
     cover_style = deck.get("cover_style")
     USE_DISPLAY = (cover_style == "v2")
@@ -1652,7 +1653,7 @@ def render(deck, outdir):
             render_lab_card(c, spec, i, ctx)
             c.save(os.path.join(outdir, f"card{i}"))
             continue
-        bg = spec.get("bg") or (cover_color if i == 1 else ("navy" if i == 5 else "white"))
+        bg = spec.get("bg") or (cover_color if i == 1 else ("navy" if i == len(cards) else "white"))
         # 새 표지: 1장의 cover·product_cover (브랜드 소개용 logo:true 표지는 기존 레이아웃 유지)
         v2 = (i == 1 and cover_style == "v2" and kind in ("cover", "product_cover")
               and not (kind == "cover" and spec.get("logo")) and bg in V2)
@@ -1664,7 +1665,7 @@ def render(deck, outdir):
         else:
             build = BUILDERS[kind](spec)
             layout_center(c, build, center=spec.get("center", 690))
-        c.finish(i, cover_v2=v2)
+        c.finish(i, cover_v2=v2, total=len(cards))
         c.save(os.path.join(outdir, f"card{i}"))
     return outdir
 
