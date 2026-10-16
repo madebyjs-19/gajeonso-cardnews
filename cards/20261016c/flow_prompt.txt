@@ -1,0 +1,9 @@
+[Google Flow 영상 프롬프트 - 시험 회차 2]
+Topic: How many liters of kimchi containers are needed for kimjang (annual kimchi making) of 30 napa cabbages, and whether a 300L-class kimchi refrigerator can hold them.
+Vertical 9:16, 8 seconds total (never exceed 8.5 seconds), fast-paced 4-cut edit, energetic curious tone, warm kitchen lighting. The video starts right at the topic (a title card is attached in front automatically).
+Cut 1 (0-2s): a Korean home cook in a bright kitchen lifts a large napa cabbage, a big pile of 30 salted cabbages visible on the counter behind.
+Cut 2 (2-4s): hands packing red seasoned cabbage kimchi into large plastic kimchi containers, stopping at a marked fill line about 80 percent up.
+Cut 3 (4-6s): a generic 3-door kimchi refrigerator (no brand, no model) opens, containers slide into the middle and bottom compartments, it looks a bit tight.
+Cut 4 (6-8s): the cook closes the door and gives a thumbs-up to the camera.
+Korean voice-over, fast and punchy (about 40 characters total): "김장 30포기, 김치통은 몇 리터?" "포기 수 곱하기 2 나누기 0.8!" "300리터대는 빠듯해요."
+IMPORTANT: No text, no letters, no numbers, no logos, no brand names, no watermark, no on-screen captions anywhere in the video. All Korean information is added afterwards as pop-up captions by the pipeline.
