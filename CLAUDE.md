@@ -23,6 +23,10 @@
 - 모든 릴스에 같은 진행자(흰 가운·둥근 안경·단발의 가전소 연구원)가 나온다. ROUTINE_PROMPT.md step3 7번의 HOST 문단을 그대로 넣고, 기준 이미지는 `assets/reel_host/`(만드는 법 `docs/reel_host.md`).
 - 컨셉은 12가지 목록에서 직전 5회차와 겹치지 않게 고른다. 구성은 정보 설명(최종 2~7.5초, 팝업 자막) → 고정 엔딩(7.5~9.5초): 진행자가 화면 오른쪽 위를 가리키며 "추가 정보와 문의는 가전소에서!", 그 자리에 카드뉴스와 같은 카카오톡 상담 QR 패널을 `reel_overlay.py` 가 합성한다.
 
+## 콘텐츠 계획·주간 리포트
+- 주제는 `plan/content_plan.md` 의 오늘 행이 기본값이다. 리콜·안전, 지원금 시작·마감, 대형 할인 발표 같은 이슈가 있으면 이슈를 우선하고, 밀린 계획 주제는 다른 날로 옮겨 '결과' 칸에 적는다(ROUTINE_PROMPT.md step1 [주제 선정 순서]).
+- 가장 최근 `log/reports/` 리포트로부터 7일이 지난 날은 주간 성과 리포트(`log/reports/RUN.md` + 텔레그램용 `cards/RUN/weekly_report.txt`)를 쓰고, 계획이 7일 이하로 남았으면 다음 달 계획을 이어 쓴다(step3_5).
+
 ## 승인·발행 (GitHub Actions 가 처리 — 프롬프트 step5·step6·step7 보다 우선)
 모델 세션은 Instagram·Facebook 발행 명령(`publish.py`, `publish_reel.py`)을 실행하지 않는다(자동 모드에서 외부 게시로 차단된다). 텔레그램 승인 요청·응답 대기도 하지 않는다.
 대신 카드 완성 후 아래 파일을 `cards/YYYYMMDD/` 에 만들어 **한 커밋으로 main 에 푸시**하면 끝이다.

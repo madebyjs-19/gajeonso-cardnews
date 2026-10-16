@@ -36,6 +36,9 @@ def say(text):
 
 
 def request_approval(d, folder):
+    wr = folder / "weekly_report.txt"  # 주간 성과 리포트 날이면 맨 앞에 보낸다
+    if wr.exists():
+        say(wr.read_text(encoding="utf-8").strip())
     media = [{"type": "photo", "media": f"attach://c{i}"} for i in range(1, 6)]
     tg("sendMediaGroup", {"chat_id": CHAT, "media": json.dumps(media)},
        {f"c{i}": folder / f"card{i}.jpg" for i in range(1, 6)}, timeout=180)
