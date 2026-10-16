@@ -107,19 +107,50 @@
    만든 card1~5 를 직접 열어 [표지 디자인 규칙]대로 그려졌는지(모눈 배경, 왼쪽 위 FILE 라벨, 오른쪽 위 빈 로고 칸, 도면 또는 제품 컷) 확인한다. 모눈 배경이 없는 예전 방식 카드가 나오면 직접 새로 그리지 말고 그대로 진행하되, approval.txt 에 "연구소 디자인 미적용(생성기 업데이트 필요)"이라고 명시한다.
 5. 생성이 끝나면 곧바로 [대표 로고] 규칙대로 card1 에 로고를 넣고 확인한다. 이 단계가 끝나기 전에는 step4 로 가지 않는다.
 6. 기본 슬라이드 릴스(make_reel.py)는 더 이상 만들지도 올리지도 않는다. 릴스는 사용자가 보낸 Flow 영상이 있을 때만 Actions 가 발행하고, 영상이 없으면 카드뉴스(캐러셀)만 발행된다. reel.mp4 를 만들거나 푸시하지 않는다.
-7. Flow 영상 프롬프트·팝업 자막·이미지 자료 (사용자가 Google Flow 에서 영상을 만들어 텔레그램으로 보내면 Actions 가 그 영상으로 릴스를 바꿔 발행한다. 보내지 않으면 6번의 기본 릴스로 발행된다.)
-   영상 구성: [맨 앞 2초 카드뉴스 표지(card1) — Actions 가 자동으로 붙이고 본 영상으로 자연스럽게 전환(0.5초 크로스페이드)] + [Flow 본 영상 정확히 8초] + [그 위에 핵심 내용 팝업 자막]. 전체 약 9.5초(10초 이내). 본 영상은 표지 때문에 잘리지 않는다. 시청자가 영상만 봐도 "무엇에 대한 이야기인지, 핵심 수치·기준이 무엇인지" 알 수 있어야 한다. 본 영상에 내레이션이 있으면 BGM 이 없어도 소리가 그대로 들린다(BGM 은 사용자가 텔레그램으로 지정).
-   - cards/RUN/flow_prompt.txt: 한 편의 영상 설명(영어 장면 묘사 + 한국어 대사). **프롬프트 본문만** 쓴다(제목·머리글·설명 줄을 넣지 않는다. 텔레그램에서 이 파일 내용이 그대로 복사용 메시지로 전송된다). 규칙:
-     · Flow 영상 길이는 정확히 8초. 세로 9:16. 3~4컷, 컷당 2~3초의 빠른 전개. 맨 앞 표지가 따로 붙으므로 첫 컷부터 바로 본론(주제를 보여주는 장면)으로 시작한다.
-     · 주제를 알아볼 수 있게 구체적으로 쓴다. 프롬프트 첫 줄에 "Topic: ..."(무엇에 대한 영상인지 한 줄)을 쓰고, 컷마다 주제와 직접 관련된 소품·장소·행동(예: 김치냉장고 용량 → 배추·김치통·냉장고 안에 통을 넣는 장면)을 구체적으로 묘사한다. 막연한 분위기 영상(웃는 사람만 나오는 컷 등)은 금지.
-     · 컨셉: 핵심 포인트만 빠른 말투와 속도감 있는 편집으로, 호기심을 끌어올린다. 대사(선택)는 한국어 45자 이내, 수치·기준은 카드와 같은 값만.
-     · 한글 오류 방지: 영상 속에 글자·숫자·로고·브랜드명·워터마크를 만들지 않도록 프롬프트에 반드시 적는다(예: "No text, no letters, no numbers, no logos, no watermark, no on-screen captions anywhere in the video"). 모든 한글 정보는 팝업 자막으로 Actions 가 폰트로 합성한다.
+7. Flow 영상 프롬프트·팝업 자막·이미지 자료 (사용자가 Google Flow 에서 영상을 만들어 텔레그램으로 보내면 Actions 가 그 영상으로 릴스를 발행한다. 보내지 않으면 릴스 없이 카드뉴스만 발행된다.)
+   영상 구성: [맨 앞 2초 카드뉴스 표지(card1) — Actions 가 자동으로 붙이고 0.5초 크로스페이드] + [Flow 본 영상 정확히 8초] + [핵심 내용 팝업 자막] + [마지막 2초 상담 QR 패널 — Actions 가 자동 합성]. 전체 약 9.5초.
+   최종 시간표: 0~2초 표지 → 2~7.5초 정보 설명(본 영상 0~6초, 팝업 자막 구간) → 7.5~9.5초 고정 엔딩(본 영상 6~8초, 진행자가 화면 오른쪽 위를 가리키며 "추가 정보와 문의는 가전소에서!", 그 자리에 카드뉴스와 같은 카카오톡 상담 QR 패널이 뜬다).
+   시청자가 영상만 봐도 "무엇에 대한 이야기인지, 핵심 수치·기준이 무엇인지" 알고, 마지막에 "더 궁금하면 가전소 QR" 로 이어져야 한다.
+
+   [고정 진행자] 모든 릴스에 같은 인물이 나온다. 아래 HOST 문단을 매번 **글자 하나 바꾸지 않고** 프롬프트에 넣는다.
+   assets/reel_host/ 에 기준 이미지가 있으면 Actions 가 텔레그램으로 같이 보내 주고, 사용자는 그 이미지를 Flow '재료(Ingredients)'로 넣는다(만드는 법: docs/reel_host.md).
+   HOST: The same host appears in every Gajeonso video and must match the attached host reference image exactly: a Korean woman in her early 30s, chin-length straight black bob with blunt bangs, round thin black-rimmed glasses, warm bright smile, natural makeup. She wears a crisp white lab coat over a navy crew-neck top, a small orange pen clipped to the chest pocket, and a plain blank badge on a navy lanyard. Slim, medium height. Quick, witty, expressive gestures; she speaks Korean fast, clearly and cheerfully, with accurate lip-sync. Concept props (hat, headset, magnifying glass, etc.) may be added on top, but her face, hair, glasses and lab coat never change.
+
+   [컨셉 — 매 회차 다르게, 창의적으로] 아래 12가지 중 하나를 고른다.
+   - 직전 5회차의 cards/*/flow_prompt.txt 두 번째 줄 "Concept: ..." 을 읽고, 그 5개와 겹치지 않는 것 중 이번 주제에 가장 잘 맞는 것을 고른다(같은 컨셉 연속 금지). 장소·조명·카메라 움직임도 직전 회차와 다르게 한다.
+   - 컨셉은 "주제 전달 방식"이다. 컷마다 주제와 직접 관련된 소품·장소·행동이 화면에 보여야 하며, 웃는 사람만 나오는 막연한 분위기 컷은 금지.
+   - 고른 컨셉을 approval.txt 에 "릴스 컨셉: 이름(고른 이유 한 줄)" 으로 적는다.
+     ① Lab Test 실험실 검증 — 용량·성능·효율 주제. 하얀 실험실, 비커·계량컵·저울·모래시계로 직접 재고 비교하는 미니 실험.
+     ② Nature Documentary 자연 다큐 패러디 — 관리법·사용 습관. 진행자가 화분 뒤에 숨어 속삭이며 '서식지 속 가전'을 관찰, 접사·망원 샷.
+     ③ Detective 탐정 수사 — 숨은 비용·전기요금·고장 원인. 탐정 모자와 돋보기, 어두운 조명 속 단서 추적, 마지막에 범인(원인) 지목.
+     ④ Sports Broadcast 스포츠 중계 — 두 제품·두 방식 비교. 헤드셋 마이크를 쓴 진행자가 열띤 중계, 두 가전의 '경기'와 슬로모션 리플레이.
+     ⑤ O/X Quiz Show 퀴즈쇼 — 흔한 오해 바로잡기. 화려한 조명의 스튜디오, 진행자가 팔로 크게 O·X 를 만들며 정답 공개(화면·전광판 금지).
+     ⑥ Magic Show 마술쇼 — 의외의 사실·숨은 기능. 천을 휙 걷어내거나 손가락을 튕기면 정답 장면이 나타나는 마술.
+     ⑦ Shrunk Tour 미니어처 탐험 — 내부 구조·작동 원리. 작아진 진행자가 드럼 안·선반 사이·필터 옆을 걸으며 안내.
+     ⑧ Time Jump 시간 점프 — 장기 비용·수명·계절 준비. 같은 자리에서 계절·세월이 빠르게 바뀌는 타임랩스 속 진행자.
+     ⑨ Twin Debate 분신 토론 — 선택 고민(A냐 B냐). 같은 진행자 두 명(한 명은 캡 모자)이 마주 보고 티격태격하다 결론.
+     ⑩ Appliance POV 가전 시점 — 사용법·설치·배치. 냉장고 안·세탁기 안·로봇청소기 높이에서 바라본 시점, 진행자가 문을 열고 들여다봄.
+     ⑪ Cooking Show 요리쇼 — 주방가전·김장·식재료 보관. 셰프 모자를 얹은 진행자의 빠른 요리 프로그램 진행.
+     ⑫ Movie Trailer 영화 예고편 — 제도 변경·시즌 이슈·지원금. 웅장한 슬로모션, 역광과 렌즈 플레어, 진지한 척하는 예고편 톤.
+
+   - cards/RUN/flow_prompt.txt: 한 편의 영상 설명(영어 장면 묘사 + 한국어 대사). **프롬프트 본문만** 쓴다(제목·머리글·설명 줄을 넣지 않는다. 텔레그램에서 이 파일 내용이 그대로 복사용 메시지로 전송된다). 아래 순서를 지킨다.
+     1줄 Topic: 무엇에 대한 영상인지 한 줄(영어)
+     2줄 Concept: 컨셉 영어 이름 — 이번 회차에 맞춘 한 줄 설명
+     3줄 Vertical 9:16, exactly 8 seconds, 4 cuts. 컨셉에 맞는 장소·조명·카메라 스타일. The video starts right at the topic (a 2-second title card is attached in front automatically).
+     4줄 HOST: 위 HOST 문단 그대로
+     Cut 1 (0-2s): 첫 1초 안에 주제가 보이는 강한 후킹 장면(컨셉 세계로 바로 시작)
+     Cut 2 (2-4s), Cut 3 (4-6s): 카드뉴스의 핵심 수치·기준을 소품·행동으로 보여 준다
+     FINAL SHOT (6-8s): 아래 문단 그대로(장소·소품은 이번 컨셉 세계를 유지)
+       FINAL SHOT (6-8s, always the same composition): the host stands on the LEFT side of the frame, waist-up, filling the left 45% of the frame, facing the camera, still inside this video's world. The upper-right area of the frame (right half, from about 25% to 60% of the frame height) is a plain, uncluttered, evenly lit background with nothing in it. The host points clearly toward that empty upper-right area (the viewer's right), then looks back at the camera with a confident smile and says the closing line. Do NOT draw any QR code, sign, board, screen or object in that area; it must stay empty because a real QR panel is added afterwards.
+     Korean dialogue (spoken by the host, lip-synced): 0~6초 대사 1~3마디(합계 35자 이내, 수치·기준은 카드와 같은 값만) + 6~8초 마무리 대사는 항상 "추가 정보와 문의는 가전소에서!"
+     IMPORTANT: No text, no letters, no numbers, no logos, no brand names, no watermark, no QR code, no on-screen captions anywhere in the video. All Korean captions and the QR panel are added afterwards by the pipeline.
      · 제품은 실존 모델을 흉내 내지 않고 일반적인 형태로 묘사한다(모델명·로고·고유 디자인 금지). 사실과 다른 기능을 보여주지 않는다.
-   - cards/RUN/reel_captions.txt: 핵심 내용 팝업 자막(정보성 강화). 한 줄에 하나, "시작초-끝초|자막" 형식. 시간은 최종 영상 기준이며 앞 2초는 타이틀 카드라 자막을 둘 수 없다(시작은 2초 이상, 끝은 9.5초 이하).
-     · 3~6개. 카드뉴스의 핵심 수치·기준·결론을 순서대로 한 팝업에 한 가지씩(예: `2-4|김장 30포기 =/김치통 75L`, `4-6|계산식/포기 수×2L÷0.8`, `6-8|3도어 300L대/22~23포기`). 마지막 팝업은 저장·공유 유도.
+   - cards/RUN/reel_captions.txt: 핵심 내용 팝업 자막(정보성 강화). 한 줄에 하나, "시작초-끝초|자막" 형식. 시간은 최종 영상 기준으로 **2초~7.5초 안**에 둔다(앞 2초는 표지, 7.5초 이후는 상담 QR 엔딩이라 자막을 둘 수 없다).
+     · 2~4개. 카드뉴스의 핵심 수치·기준·결론을 순서대로 한 팝업에 한 가지씩(예: `2.5-4|김장 30포기 =/김치통 75L`, `4-5.8|계산식/포기 수×2L÷0.8`, `5.8-7.5|3도어 300L대/22~23포기`). 저장·공유 유도 자막은 넣지 않는다(마지막은 QR 엔딩).
      · 한 줄 12자 이내, 최대 2줄('/' 로 줄바꿈), 이모지 금지(허용: 한글·영문·숫자·. , % ! ? ~ : · ( ) - + / ↓ ↑ → × ÷ = ≈). 수치는 카드와 일치하고 출처가 확인된 값만 쓴다.
-   - cards/RUN/flow_assets.txt(선택): 사용자가 Flow 에 직접 넣으면 좋은 이미지 자료 목록. 한 줄에 하나, "파일명 또는 URL | 용도"(예: `https://... | 김치냉장고 일반 외형 참고`). 필요 없으면 만들지 않는다. 저장소에 올릴 수 있는 이미지(사용권 문제 없는 것)는 cards/RUN/flow_ref/ 에 넣으면 Actions 가 텔레그램으로 같이 보내 준다. 표지(card1)는 항상 자동으로 전송된다.
+   - cards/RUN/flow_assets.txt(선택): 사용자가 Flow 에 직접 넣으면 좋은 이미지 자료 목록. 한 줄에 하나, "파일명 또는 URL | 용도"(예: `https://... | 김치냉장고 일반 외형 참고`). 필요 없으면 만들지 않는다. 저장소에 올릴 수 있는 이미지(사용권 문제 없는 것)는 cards/RUN/flow_ref/ 에 넣으면 Actions 가 텔레그램으로 같이 보내 준다. 표지(card1)와 고정 진행자 이미지는 항상 자동으로 전송된다.
    - 반드시 검사한다: python3.13 reel_overlay.py --check cards/RUN/reel_captions.txt 가 CAPTIONS_OK 를 출력해야 한다. 오류가 나면 문구를 고쳐 다시 검사한다(폰트에 없는 글자·너무 긴 줄·허용되지 않는 문자·시간 오류는 모두 오류).
+   - flow_prompt.txt 를 다시 읽고 확인한다: 1·2줄 Topic·Concept, HOST·FINAL SHOT 문단이 위와 글자까지 같은지, 마무리 대사가 "추가 정보와 문의는 가전소에서!" 인지, 컨셉이 직전 5회차와 겹치지 않는지.
 
 [표지 콘텐츠 규칙: 매 게시물 필수 — "보고 싶어지는 표지"]
 - 표지는 게시물의 핵심 요약이다. 제목 1줄=대상, 2줄=가장 중요한 결론 또는 핵심 수치(예: "누진 400kWh 넘으면 단가 2.5배")로, 넘겨 보기 전에도 핵심 정보 한 가지를 얻게 한다. 막연한 표현("확인하세요", "가이드")만으로 제목을 채우지 않는다.

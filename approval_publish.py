@@ -10,6 +10,7 @@ API = f"https://api.telegram.org/bot{E['TELEGRAM_BOT_TOKEN']}/"
 CHAT = str(E["TELEGRAM_CHAT_ID"])
 WAIT = 7200  # 승인 대기 최대 120분(Flow 영상 제작 시간 포함)
 LOG = pathlib.Path("log/ig-card-news-log.md")
+HOST_DIR = pathlib.Path("assets/reel_host")  # 릴스 고정 진행자 기준 이미지(docs/reel_host.md 참고)
 REPO_RAW = "https://raw.githubusercontent.com/madebyjs-19/gajeonso-cardnews/main/cards"
 MAX_DL = 20 * 1024 * 1024  # 텔레그램 봇이 내려받을 수 있는 최대 크기
 MAX_DRIVE = 500 * 1024 * 1024
@@ -43,6 +44,11 @@ def request_approval(d, folder):
     say("[Instagram 캡션]\n" + (folder / "ig.txt").read_text(encoding="utf-8"))
     fp, rc = folder / "flow_prompt.txt", folder / "reel_captions.txt"
     if fp.exists():
+        # 고정 진행자 기준 이미지(assets/reel_host/): 매 회차 같은 인물이 나오도록 Flow 의 재료(Ingredients)로 넣는다
+        for f in sorted(HOST_DIR.glob("*"))[:3] if HOST_DIR.exists() else []:
+            if f.is_file() and f.suffix.lower() in (".png", ".jpg", ".jpeg", ".webp"):
+                tg("sendDocument", {"chat_id": CHAT, "caption": f"[Flow 고정 진행자] {f.name} — Flow '재료(Ingredients)'에 꼭 넣어 주세요. 매 회차 같은 인물이 나오게 합니다."},
+                   {"document": f}, timeout=120)
         # Flow 에서 쓸 참고 이미지: 타이틀 카드(card1)와 cards/<회차>/flow_ref/ 의 파일을 원본 화질로 보낸다
         refs = [folder / "card1.jpg"] + sorted((folder / "flow_ref").glob("*"))[:5] if (folder / "flow_ref").exists() \
             else [folder / "card1.jpg"]
@@ -60,9 +66,10 @@ def request_approval(d, folder):
         if fa.exists():
             say("[Flow에 넣을 이미지 자료] 직접 준비해서 Flow에 올려 주세요.\n" + fa.read_text(encoding="utf-8").strip())
         if rc.exists():
-            say("[팝업 자막 목록] 핵심 내용이 영상에 자동 합성됩니다(맨 앞 2초는 표지). 영상 속에는 글자를 넣지 마세요.\n" + rc.read_text(encoding="utf-8").strip())
+            say("[팝업 자막 목록] 핵심 내용이 영상에 자동 합성됩니다(맨 앞 2초는 표지, 마지막 2초는 상담 QR). 영상 속에는 글자를 넣지 마세요.\n" + rc.read_text(encoding="utf-8").strip())
         say("[영상 보내는 방법]"
             "\n1) 영상 맨 앞에 카드뉴스 표지(타이틀 카드) 2초가 자연스러운 전환과 함께 자동으로 붙고, 팝업 자막은 그 뒤에 나옵니다. 본 영상은 정확히 8초로 만드세요(총 약 9.5초)."
+            "\n   마지막 2초는 진행자가 화면 오른쪽 위를 가리키는 장면이고, 그 자리에 카드뉴스와 같은 상담 QR이 자동으로 얹힙니다(Flow에서 QR을 그리지 마세요)."
             "\n   8.3초까지는 잘라내지 않고 속도만 맞추며, 그보다 길면 뒷부분이 잘립니다."
             "\n2) 만든 영상(20MB 이하)을 이 대화방에 보내 주세요. [발행] 버튼을 누르기 전에 보내야 반영됩니다. 대기 시간 최대 120분."
             f"\n   용량이 커서 못 보내면 구글 드라이브 '릴스영상/{d[2:]}' 폴더에 올려 두세요. 텔레그램 영상이 없으면 그 폴더의 가장 최근 영상을 씁니다."
