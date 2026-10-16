@@ -20,3 +20,4 @@
 20261012b | 겨울 난방가전 구매 전 전기요금 누진 구간 확인 | B | navy | formula, table, checklist | IG 발행 성공 · FB 발행 성공 · IG 릴스 성공 · FB 릴스 성공 (Actions)
 20261014 | LG전자·애플 공동개발 AI홈 기기 7종 공개 | A | navy | product, table, checklist | IG 발행 성공 · FB 발행 성공 · IG 릴스 성공 · FB 릴스 성공 (Actions)
 20261015 | 삼성전자 'AI 구독' 개편: 방문케어 라이트·신혼/이지케어 패스·선납 확대 | D | white | formula, table, checklist | IG 발행 성공 · FB 발행 성공 · IG 릴스 성공 · FB 릴스 성공 (Actions)
+20261016 | 김장철 김치냉장고 용량: 포기 수로 계산 | B | ice | formula, compare, checklist | IG 발행 성공 · FB 발행 성공 · IG 릴스 성공 · FB 릴스 성공 (Actions)
