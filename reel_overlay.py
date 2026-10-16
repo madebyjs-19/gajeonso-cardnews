@@ -1,8 +1,9 @@
 # 사용:
 #   python3.13 reel_overlay.py --check out_or_cards/RUN/reel_captions.txt        자막 파일 검사(글자 지원·길이·시간)
-#   python3.13 reel_overlay.py 원본.mp4 결과.mp4 [reel_captions.txt] [card1.jpg]  영상 정리(1080x1920·최대 10초) + 앞에 타이틀 카드 + 한글 팝업 자막
+#   python3.13 reel_overlay.py 원본.mp4 결과.mp4 [reel_captions.txt] [card1.jpg] [bgm.mp3]
+#       영상 정리(1080x1920) + 앞에 타이틀 카드 2초(자연스러운 전환) + 한글 팝업 자막 + (있으면) BGM
 # 한글 깨짐 방지: AI 영상 안에는 글자를 넣지 않고, 자막은 여기서 Do Hyeon 폰트로 직접 그려 얹는다.
-# reel_captions.txt 형식: 한 줄에 하나, "시작초-끝초|자막문구"  예) 2-4.5|계산식/포기 수×2L÷0.8  (시간은 최종 영상 기준, 앞 1.5초는 타이틀 카드)
+# reel_captions.txt 형식: 한 줄에 하나, "시작초-끝초|자막문구"  예) 2.5-4.5|계산식/포기 수×2L÷0.8  (시간은 최종 영상 기준, 앞 2초는 타이틀 카드)
 import os, sys, re, subprocess, urllib.request
 from PIL import Image, ImageDraw, ImageFont
 
@@ -12,8 +13,12 @@ FONTS = {
     "DoHyeon-Regular.ttf": "https://raw.githubusercontent.com/google/fonts/main/ofl/dohyeon/DoHyeon-Regular.ttf",
     "Pretendard-Bold.otf": "https://raw.githubusercontent.com/orioncactus/pretendard/main/packages/pretendard/dist/public/static/Pretendard-Bold.otf",
 }
-MAX_SEC = 10.0       # 타이틀 카드를 포함한 최종 영상 길이 상한
-TITLE_SEC = 1.5      # 맨 앞 카드뉴스 표지(타이틀 카드) 노출 시간
+MAX_SEC = 10.0       # 최종 영상 길이 상한
+TITLE_SEC = 2.0      # 맨 앞 카드뉴스 표지(타이틀 카드) 노출 시간(전환 구간 포함)
+CLIP_SEC = 8.0       # 본 영상(Flow) 길이. 이 길이를 넘는 영상만 줄인다(앞부분을 자르지 않고 약간 빠르게)
+CLIP_TOL = 0.3       # 본 영상이 8초를 이만큼까지 넘으면 잘라내지 않고 속도를 맞춘다
+FADE_SEC = 0.5       # 타이틀 카드 → 본 영상 전환(크로스페이드) 길이
+NARRATION_DB = -45.0 # 본 영상 평균 음량이 이보다 크면 내레이션이 있는 것으로 본다
 MAX_CAPS = 6
 MAX_LINE = 12        # 자막 한 줄 최대 글자 수(공백 제외하지 않음)
 MAX_LINES = 2
@@ -70,9 +75,10 @@ def check(path, title=True):
     if len(caps) > MAX_CAPS:
         errs.append(f"자막은 최대 {MAX_CAPS}개입니다(현재 {len(caps)}개)")
     lo = TITLE_SEC if title else 0
+    hi = (TITLE_SEC + CLIP_SEC - FADE_SEC) if title else MAX_SEC
     for s, e, text, n in caps:
-        if not (lo <= s < e <= MAX_SEC):
-            errs.append(f"{n}번째 줄 시간 오류: {s}-{e}초({lo:g}~{MAX_SEC:g}초 안이어야 함. 앞 {TITLE_SEC:g}초는 타이틀 카드)")
+        if not (lo <= s < e <= hi):
+            errs.append(f"{n}번째 줄 시간 오류: {s}-{e}초({lo:g}~{hi:g}초 안이어야 함. 앞 {TITLE_SEC:g}초는 타이틀 카드)")
         lines = text.split("/")
         if len(lines) > MAX_LINES:
             errs.append(f"{n}번째 줄 자막은 최대 {MAX_LINES}줄('/' 로 줄바꿈): {text}")
@@ -107,15 +113,26 @@ def caption_png(text, path):
     return bw, bh
 
 
-def probe(path, entries):
-    out = subprocess.run(["ffprobe", "-v", "error", "-show_entries", entries, "-of", "csv=p=0", path],
+def probe(path, entries, *extra):
+    out = subprocess.run(["ffprobe", "-v", "error", *extra, "-show_entries", entries, "-of", "csv=p=0", path],
                          capture_output=True, text=True)
     return out.stdout.strip()
 
 
-def build(src, dst, captions_path=None, title_card=None):
-    """영상을 1080x1920·30fps로 정리하고, 맨 앞에 타이틀 카드(card1)를 TITLE_SEC 초 붙이고, 팝업 자막을 얹는다.
-    최종 길이는 타이틀 카드를 포함해 MAX_SEC 초 이하. 결과 설명 문자열을 돌려준다."""
+def mean_volume(src):
+    """영상 오디오의 평균 음량(dB). 오디오가 없거나 측정 실패면 None."""
+    r = subprocess.run(["ffmpeg", "-hide_banner", "-nostats", "-i", src, "-vn", "-af", "volumedetect", "-f", "null", "-"],
+                       capture_output=True, text=True)
+    m = re.search(r"mean_volume:\s*(-?[0-9.]+|-inf) dB", r.stderr)
+    if not m or m.group(1) == "-inf":
+        return None
+    return float(m.group(1))
+
+
+def build(src, dst, captions_path=None, title_card=None, bgm=None):
+    """영상을 1080x1920·30fps로 정리하고, 맨 앞에 타이틀 카드(card1)를 TITLE_SEC 초 붙여(크로스페이드 전환)
+    팝업 자막을 얹는다. 본 영상은 CLIP_SEC(8초) 기준으로 앞부분을 자르지 않는다.
+    오디오: 본 영상에 내레이션이 있으면 항상 들리게 유지하고, bgm 이 있으면 그 아래에 깐다. 결과 설명 문자열을 돌려준다."""
     ensure_fonts()
     use_title = bool(title_card and os.path.exists(title_card))
     caps = []
@@ -124,35 +141,56 @@ def build(src, dst, captions_path=None, title_card=None):
         if errs:
             raise ValueError("자막 검사 실패:\n- " + "\n- ".join(errs))
         caps = parse(captions_path)
-    dur = float(probe(src, "format=duration") or 0)
-    has_audio = bool(probe(src, "stream=codec_type -select_streams a"))
+    dur = float(probe(src, "format=duration") or 0) or CLIP_SEC
+    has_audio = bool(probe(src, "stream=codec_type", "-select_streams", "a"))
+    mv = mean_volume(src) if has_audio else None
+    narration = mv is not None and mv > NARRATION_DB
+    # 본 영상 길이: 8초 이하는 그대로, 8.3초까지는 잘라내지 않고 속도만 맞추고, 그보다 길면 8초까지만 사용
+    cut = dur > CLIP_SEC + CLIP_TOL
+    speed = dur / CLIP_SEC if (CLIP_SEC < dur <= CLIP_SEC + CLIP_TOL) else 1.0
+    clip_len = CLIP_SEC if (cut or speed != 1.0) else dur
     head = TITLE_SEC if use_title else 0.0
-    clip_len = min(dur or MAX_SEC, MAX_SEC - head)
+    total = clip_len + (head - FADE_SEC if use_title else 0.0)
+    clip_start = head - FADE_SEC if use_title else 0.0     # 최종 영상에서 본 영상이 시작되는 시각
     tmp = os.path.dirname(os.path.abspath(dst))
     pngs = []
     norm = (f"scale={W}:{H}:force_original_aspect_ratio=decrease,"
             f"pad={W}:{H}:(ow-iw)/2:(oh-ih)/2:color=0x1A2A4A,setsar=1,fps=30,format=yuv420p")
+    vfit = f"trim=duration={clip_len * speed:.3f},setpts=(PTS-STARTPTS)/{speed:.5f},"
     inputs = ["-i", src]
-    filt = [f"[0:v]trim=duration={clip_len:.3f},setpts=PTS-STARTPTS,{norm}[vc]"]
+    filt = [f"[0:v]{vfit}{norm}[vc]"]
     idx = 1
-    if has_audio:
-        filt.append(f"[0:a]atrim=duration={clip_len:.3f},asetpts=PTS-STARTPTS,aresample=44100,"
-                    f"aformat=sample_fmts=fltp:channel_layouts=stereo[ac]")
-    else:
-        inputs += ["-f", "lavfi", "-t", f"{clip_len:.3f}", "-i", "anullsrc=r=44100:cl=stereo"]
-        filt.append(f"[{idx}:a]aformat=sample_fmts=fltp:channel_layouts=stereo[ac]")
-        idx += 1
     if use_title:
         inputs += ["-loop", "1", "-t", f"{head:.3f}", "-i", title_card]
         filt.append(f"[{idx}:v]{norm}[vt]")
         idx += 1
-        inputs += ["-f", "lavfi", "-t", f"{head:.3f}", "-i", "anullsrc=r=44100:cl=stereo"]
-        filt.append(f"[{idx}:a]aformat=sample_fmts=fltp:channel_layouts=stereo[at]")
-        idx += 1
-        filt.append("[vt][at][vc][ac]concat=n=2:v=1:a=1[b0][aout]")
+        filt.append(f"[vt][vc]xfade=transition=fade:duration={FADE_SEC}:offset={head - FADE_SEC:.3f},format=yuv420p[b0]")
     else:
         filt.append("[vc]null[b0]")
-        filt.append("[ac]anull[aout]")
+    # --- 오디오 ---
+    fmt = "aformat=sample_fmts=fltp:channel_layouts=stereo"
+    parts = []
+    if narration:
+        atempo = f",atempo={speed:.5f}" if speed != 1.0 else ""
+        delay = int(round(clip_start * 1000))
+        filt.append(f"[0:a]atrim=duration={clip_len * speed:.3f},asetpts=PTS-STARTPTS,aresample=44100,{fmt}{atempo},"
+                    f"loudnorm=I=-16:TP=-1.5:LRA=11,aresample=44100,{fmt},adelay={delay}|{delay}[an]")
+        parts.append("[an]")
+    if bgm:
+        inputs += ["-stream_loop", "-1", "-i", bgm]
+        vol = 0.18 if narration else 0.7          # 내레이션이 있으면 BGM 은 작게 깔고, 없으면 크게
+        filt.append(f"[{idx}:a]aresample=44100,{fmt},atrim=duration={total:.3f},asetpts=PTS-STARTPTS,volume={vol},"
+                    f"afade=t=in:d=0.4,afade=t=out:st={max(total - 0.8, 0):.3f}:d=0.8[ab]")
+        idx += 1
+        parts.append("[ab]")
+    if len(parts) == 2:
+        filt.append(f"{parts[0]}{parts[1]}amix=inputs=2:duration=longest:normalize=0,alimiter=limit=0.95,apad[aout]")
+    elif len(parts) == 1:
+        filt.append(f"{parts[0]}apad[aout]")
+    else:
+        inputs += ["-f", "lavfi", "-t", f"{total:.3f}", "-i", "anullsrc=r=44100:cl=stereo"]
+        filt.append(f"[{idx}:a]{fmt}[aout]")
+        idx += 1
     prev = "b0"
     for i, (s, e, text, _) in enumerate(caps):
         p = os.path.join(tmp, f"_cap{i}.png")
@@ -162,10 +200,9 @@ def build(src, dst, captions_path=None, title_card=None):
         filt.append(f"[{prev}][{idx}:v]overlay=(W-w)/2:1330:format=auto:enable='between(t,{s},{e})'[b{i + 1}]")
         idx += 1
         prev = f"b{i + 1}"
-    total = head + clip_len
     cmd = ["ffmpeg", "-y", *inputs, "-filter_complex", ";".join(filt), "-map", f"[{prev}]", "-map", "[aout]",
            "-t", f"{total:.3f}", "-c:v", "libx264", "-pix_fmt", "yuv420p", "-r", "30",
-           "-c:a", "aac", "-movflags", "+faststart", dst]
+           "-c:a", "aac", "-b:a", "160k", "-movflags", "+faststart", dst]
     r = subprocess.run(cmd, capture_output=True, text=True)
     for p in pngs:
         os.remove(p)
@@ -173,9 +210,14 @@ def build(src, dst, captions_path=None, title_card=None):
         raise RuntimeError("ffmpeg 실패: " + r.stderr[-600:])
     note = f"{total:.1f}초"
     if use_title:
-        note += f"(타이틀 카드 {head:g}초 + 영상 {clip_len:.1f}초)"
-    if dur > clip_len + 0.05:
-        note += f", 원본 {dur:.1f}초 중 앞 {clip_len:.1f}초만 사용"
+        note += f"(타이틀 카드 {head:g}초 + 본 영상 {clip_len:.1f}초, 전환 {FADE_SEC:g}초)"
+    if speed != 1.0:
+        note += f", 원본 {dur:.1f}초를 8초로 맞춤(잘라내지 않음)"
+    if cut:
+        note += f", ⚠ 원본 {dur:.1f}초 중 뒷부분 {dur - CLIP_SEC:.1f}초가 잘렸습니다(8초 영상으로 다시 만들어 주세요)"
+    note += ", 내레이션 유지" if narration else (", 본 영상 소리 없음" if not has_audio or mv is None else ", 본 영상 소리 매우 작음")
+    if bgm:
+        note += ", BGM 삽입"
     return note + (f", 팝업 자막 {len(caps)}개" if caps else ", 자막 없음")
 
 
@@ -185,7 +227,7 @@ if __name__ == "__main__":
         print("\n".join(errs) if errs else "CAPTIONS_OK")
         sys.exit(1 if errs else 0)
     if len(sys.argv) >= 3:
-        print(build(sys.argv[1], sys.argv[2], sys.argv[3] if len(sys.argv) > 3 else None,
-                    sys.argv[4] if len(sys.argv) > 4 else None))
+        a = sys.argv
+        print(build(a[1], a[2], a[3] if len(a) > 3 else None, a[4] if len(a) > 4 else None, a[5] if len(a) > 5 else None))
         sys.exit(0)
     sys.exit(__doc__)

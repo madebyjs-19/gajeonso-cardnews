@@ -38,8 +38,6 @@ def request_approval(d, folder):
     media = [{"type": "photo", "media": f"attach://c{i}"} for i in range(1, 6)]
     tg("sendMediaGroup", {"chat_id": CHAT, "media": json.dumps(media)},
        {f"c{i}": folder / f"card{i}.jpg" for i in range(1, 6)}, timeout=180)
-    if (folder / "reel.mp4").exists():
-        tg("sendVideo", {"chat_id": CHAT, "caption": "릴스 미리보기"}, {"video": folder / "reel.mp4"}, timeout=180)
     note = folder / "approval.txt"
     say(note.read_text(encoding="utf-8") if note.exists() else f"[가전소 카드뉴스 승인 요청 {d}]")
     say("[Instagram 캡션]\n" + (folder / "ig.txt").read_text(encoding="utf-8"))
@@ -49,7 +47,7 @@ def request_approval(d, folder):
         refs = [folder / "card1.jpg"] + sorted((folder / "flow_ref").glob("*"))[:5] if (folder / "flow_ref").exists() \
             else [folder / "card1.jpg"]
         for i, f in enumerate(r for r in refs if r.is_file()):
-            cap = "[Flow 참고 이미지] 타이틀 카드(영상 맨 앞 1.5초에 자동으로 붙습니다. Flow에 따로 넣을 필요는 없고, 분위기 참고용)" if i == 0 \
+            cap = "[Flow 참고 이미지] 타이틀 카드(영상 맨 앞 2초에 자동으로 붙습니다. Flow에 따로 넣을 필요는 없고, 분위기 참고용)" if i == 0 \
                 else f"[Flow 참고 이미지] {f.name}"
             tg("sendDocument", {"chat_id": CHAT, "caption": cap}, {"document": f}, timeout=120)
         fa = folder / "flow_assets.txt"
@@ -62,12 +60,19 @@ def request_approval(d, folder):
         if fa.exists():
             say("[Flow에 넣을 이미지 자료] 직접 준비해서 Flow에 올려 주세요.\n" + fa.read_text(encoding="utf-8").strip())
         if rc.exists():
-            say("[팝업 자막 목록] 핵심 내용이 영상에 자동 합성됩니다(맨 앞 1.5초는 표지). 영상 속에는 글자를 넣지 마세요.\n" + rc.read_text(encoding="utf-8").strip())
+            say("[팝업 자막 목록] 핵심 내용이 영상에 자동 합성됩니다(맨 앞 2초는 표지). 영상 속에는 글자를 넣지 마세요.\n" + rc.read_text(encoding="utf-8").strip())
         say("[영상 보내는 방법]"
-            "\n1) 영상 맨 앞에 카드뉴스 표지(타이틀 카드) 1.5초가 자동으로 붙고, 팝업 자막은 그 뒤에 나옵니다. Flow 영상은 8초 안팎으로 만드세요(전체 10초 이내, 8.5초를 넘으면 뒷부분이 잘립니다)."
+            "\n1) 영상 맨 앞에 카드뉴스 표지(타이틀 카드) 2초가 자연스러운 전환과 함께 자동으로 붙고, 팝업 자막은 그 뒤에 나옵니다. 본 영상은 정확히 8초로 만드세요(총 약 9.5초)."
+            "\n   8.3초까지는 잘라내지 않고 속도만 맞추며, 그보다 길면 뒷부분이 잘립니다."
             "\n2) 만든 영상(20MB 이하)을 이 대화방에 보내 주세요. [발행] 버튼을 누르기 전에 보내야 반영됩니다. 대기 시간 최대 120분."
-            f"\n3) 용량이 커서 텔레그램으로 못 보내면 구글 드라이브 '릴스영상/{d[2:]}' 폴더에 올려 두세요. 텔레그램 영상이 없으면 그 폴더의 가장 최근 영상을 씁니다."
-            "\n4) 둘 다 없으면 기본 릴스로 발행됩니다.")
+            f"\n   용량이 커서 못 보내면 구글 드라이브 '릴스영상/{d[2:]}' 폴더에 올려 두세요. 텔레그램 영상이 없으면 그 폴더의 가장 최근 영상을 씁니다."
+            "\n3) 내레이션이 있는 영상은 BGM이 없어도 소리가 그대로 들립니다."
+            "\n4) BGM이 필요하면 영상을 보낼 때 캡션에(또는 따로 메시지로) 이렇게 적어 주세요."
+            "\n   BGM: 제목  → 드라이브 '릴스영상/BGM' 폴더에서 파일 이름에 그 제목이 들어간 음원"
+            "\n   BGM: https://…/음원.mp3  → 음원 파일 직링크"
+            "\n   또는 음원 파일(mp3 등)을 이 대화방에 함께 보내 주세요."
+            "\n   ※ 인스타그램 음악 라이브러리의 곡 제목, 유튜브·스트리밍 링크는 사용할 수 없습니다(저작권·이용약관, 자동 발행에서는 인스타 음악 선택 불가)."
+            "\n5) 영상을 보내지 않으면 릴스는 올리지 않고 카드뉴스만 발행됩니다.")
     kb = {"inline_keyboard": [[{"text": "✅ 발행 (Instagram + Facebook)", "callback_data": f"approve_{d}"},
                                {"text": "❌ 취소", "callback_data": f"cancel_{d}"}]]}
     r = tg("sendMessage", {"chat_id": CHAT, "reply_markup": json.dumps(kb),
@@ -75,57 +80,179 @@ def request_approval(d, folder):
     return bool(r.get("ok"))
 
 
-def receive_video(d, folder, msg):
-    """등록된 채팅에서 온 영상을 받아 정리하고 자막을 합성한다(발행 전까지 커밋하지 않는다)."""
+BLOCKED_HOSTS = ("youtube.", "youtu.be", "instagram.", "spotify.", "tiktok.", "soundcloud.", "melon.", "genie.", "bugs.",
+                 "apple.com", "naver.", "vibe.", "facebook.", "fb.watch", "music.")
+AUDIO_EXT = (".mp3", ".m4a", ".wav", ".aac", ".ogg")
+MAX_BGM = 30 * 1024 * 1024
+STATE = {}  # 회차 -> {"raw": 받은 본 영상 경로, "bgm": 쓸 BGM 경로}
+
+
+def st(d):
+    return STATE.setdefault(d, {"raw": None, "bgm": None})
+
+
+def tmpdir():
+    return pathlib.Path(tempfile.gettempdir())  # 저장소 밖에 둬서 결과 커밋에 섞이지 않게 한다
+
+
+def tg_download(d, f, dest, what):
+    """텔레그램 파일(f)을 dest 로 내려받는다. 실패하면 사유를 알리고 False."""
+    if f.get("file_size", 0) > MAX_DL:
+        extra = (f" 구글 드라이브 '릴스영상/{d[2:]}' 폴더에 올려 두시면 [발행] 시 그 영상을 씁니다." if what == "영상"
+                 else " 드라이브 '릴스영상/BGM' 폴더에 넣고 제목을 알려 주세요.")
+        say(f"[{d}] {what}이(가) 20MB를 넘어 텔레그램으로는 받을 수 없습니다.{extra}")
+        return False
+    path = (tg("getFile", {"file_id": f["file_id"]}).get("result") or {}).get("file_path")
+    if not path:
+        say(f"[{d}] {what}을(를) 내려받지 못했습니다(파일이 너무 크거나 만료됨). 다시 보내 주세요.")
+        return False
+    dl = subprocess.run(["curl", "-sS", "-f", "-m", "300", "-o", str(dest),
+                         f"https://api.telegram.org/file/bot{E['TELEGRAM_BOT_TOKEN']}/{path}"], capture_output=True, text=True)
+    if dl.returncode != 0 or not dest.exists():
+        say(f"[{d}] {what} 다운로드 실패. 다시 보내 주세요.")
+        return False
+    return True
+
+
+def parse_bgm(text):
+    m = re.search(r"(?im)^\s*(?:bgm|비지엠|배경\s*음악)\s*[:：=\-]?\s*(.+?)\s*$", text or "")
+    return m.group(1).strip() if m else None
+
+
+def fetch_bgm_url(d, url):
+    import urllib.parse, urllib.request
+    u = urllib.parse.urlparse(url)
+    host = (u.hostname or "").lower()
+    if u.scheme != "https" or not host or host == "localhost" or re.fullmatch(r"[0-9.]+", host) or host.endswith(".local"):
+        say(f"[{d}] BGM 링크는 https 로 시작하는 공개 주소만 가능합니다.")
+        return None
+    if any(b in host for b in BLOCKED_HOSTS):
+        say(f"[{d}] 유튜브·인스타그램·스트리밍 서비스 링크에서는 저작권·이용약관 문제로 음원을 가져오지 않습니다. "
+            "직접 보유한 음원 파일(mp3 등)을 이 대화방에 보내거나, 드라이브 '릴스영상/BGM' 폴더에 넣고 제목을 알려 주세요.")
+        return None
+    if not u.path.lower().endswith(AUDIO_EXT):
+        say(f"[{d}] BGM 링크는 음원 파일 직링크({', '.join(AUDIO_EXT)})만 가능합니다.")
+        return None
+    dest = tmpdir() / f"{d}_bgm{pathlib.Path(u.path).suffix.lower()}"
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=60) as r, dest.open("wb") as f:
+            n = 0
+            while True:
+                chunk = r.read(1 << 20)
+                if not chunk:
+                    break
+                n += len(chunk)
+                if n > MAX_BGM:
+                    raise ValueError("30MB 초과")
+                f.write(chunk)
+    except Exception as e:
+        say(f"[{d}] BGM 링크 다운로드 실패: {str(e)[:100]}")
+        return None
+    return dest
+
+
+def drive_find_bgm(d, title):
+    """드라이브 '릴스영상/BGM' 폴더에서 파일 이름에 title 이 들어간 음원을 찾아 내려받는다."""
+    try:
+        sess = drive_session()
+        if sess is None:
+            say(f"[{d}] BGM 제목으로 찾으려면 드라이브 접근 설정(GOOGLE_SERVICE_ACCOUNT_JSON)이 필요합니다. 음원 파일을 이 대화방에 직접 보내 주세요.")
+            return None
+        sub = drive_list(sess, f"'{DRIVE_ROOT}' in parents and name = 'BGM' and "
+                               "mimeType = 'application/vnd.google-apps.folder' and trashed = false")
+        if not sub:
+            say(f"[{d}] 드라이브 '릴스영상' 안에 'BGM' 폴더가 없습니다. 만들고 음원을 넣어 주세요.")
+            return None
+        files = drive_list(sess, f"'{sub[0]['id']}' in parents and trashed = false")
+        files = [f for f in files if f["name"].lower().endswith(AUDIO_EXT)]
+        hit = [f for f in files if title.lower() in f["name"].lower()]
+        if not hit:
+            names = ", ".join(f["name"] for f in files[:10]) or "(비어 있음)"
+            say(f"[{d}] BGM 폴더에서 '{title}'이(가) 들어간 음원을 찾지 못했습니다. 폴더에 있는 파일: {names}")
+            return None
+        f = hit[0]
+        if int(f.get("size", 0)) > MAX_BGM:
+            say(f"[{d}] BGM '{f['name']}'이(가) 30MB를 넘습니다.")
+            return None
+        dest = tmpdir() / f"{d}_bgm{pathlib.Path(f['name']).suffix.lower()}"
+        with sess.get(f"https://www.googleapis.com/drive/v3/files/{f['id']}",
+                      params={"alt": "media", "supportsAllDrives": "true"}, stream=True, timeout=300) as r:
+            r.raise_for_status()
+            with dest.open("wb") as out:
+                for chunk in r.iter_content(1 << 20):
+                    out.write(chunk)
+        return dest
+    except Exception as e:
+        say(f"[{d}] BGM 찾기 실패: {type(e).__name__} {str(e)[:120]}")
+        return None
+
+
+def receive_message(d, folder, msg):
+    """등록된 채팅에서 온 본 영상·BGM(음원 파일, 'BGM: 제목' 또는 음원 직링크)을 받아 반영한다."""
     if str(msg.get("chat", {}).get("id")) != CHAT:
         return
-    v = msg.get("video") or (msg.get("document") if str(msg.get("document", {}).get("mime_type", "")).startswith("video/") else None)
-    if not v:
+    doc = msg.get("document") or {}
+    mime = str(doc.get("mime_type", ""))
+    video = msg.get("video") or (doc if mime.startswith("video/") else None)
+    audio = msg.get("audio") or (doc if (mime.startswith("audio/") or str(doc.get("file_name", "")).lower().endswith(AUDIO_EXT)) else None)
+    spec = parse_bgm(msg.get("caption") or msg.get("text") or "")
+    if not (video or audio or spec):
         return
-    if v.get("file_size", 0) > MAX_DL:
-        say(f"[{d}] 영상이 20MB를 넘어 텔레그램으로는 받을 수 없습니다. 구글 드라이브 '릴스영상/{d[2:]}' 폴더에 올려 두시면 [발행] 시 그 영상을 씁니다.")
+    s_ = st(d)
+    changed = False
+    if video:
+        raw = tmpdir() / f"{d}_flow_raw.mp4"
+        if tg_download(d, video, raw, "영상"):
+            s_["raw"], changed = raw, True
+    if audio:
+        dest = tmpdir() / f"{d}_bgm{pathlib.Path(audio.get('file_name') or 'x.mp3').suffix.lower() or '.mp3'}"
+        if tg_download(d, audio, dest, "음원 파일"):
+            s_["bgm"], changed = dest, True
+    if spec:
+        b = fetch_bgm_url(d, spec) if re.match(r"https?://", spec) else drive_find_bgm(d, spec)
+        if b:
+            s_["bgm"], changed = b, True
+    if changed:
+        rebuild(d, folder)
+
+
+def rebuild(d, folder):
+    s_ = st(d)
+    if not s_["raw"]:
+        say(f"[{d}] BGM을 받았습니다. 본 영상을 보내 주시면 함께 합성합니다.")
         return
-    info = tg("getFile", {"file_id": v["file_id"]})
-    path = (info.get("result") or {}).get("file_path")
-    if not path:
-        say(f"[{d}] 영상을 내려받지 못했습니다(파일이 너무 크거나 만료됨). 다시 보내 주세요.")
-        return
-    tmp = pathlib.Path(tempfile.gettempdir())  # 저장소 밖에 둬서 결과 커밋에 섞이지 않게 한다
-    raw = tmp / f"{d}_flow_raw.mp4"
-    dl = subprocess.run(["curl", "-sS", "-f", "-m", "300", "-o", str(raw), f"https://api.telegram.org/file/bot{E['TELEGRAM_BOT_TOKEN']}/{path}"],
-                        capture_output=True, text=True)
-    if dl.returncode != 0 or not raw.exists():
-        say(f"[{d}] 영상 다운로드 실패. 다시 보내 주세요.")
-        return
-    res = make_flow(d, folder, raw)
+    res = make_flow(d, folder, s_["raw"], s_["bgm"])
     if res:
         note, warn, out = res
-        tg("sendVideo", {"chat_id": CHAT, "caption": f"[{d}] Flow 영상 반영본 미리보기 ({note}). 이대로면 [발행]을 누르세요. 다시 보내시면 최신 영상으로 교체됩니다.{warn}"[:1000]},
+        tg("sendVideo", {"chat_id": CHAT, "caption": f"[{d}] Flow 영상 반영본 미리보기 ({note}). 이대로면 [발행]을 누르세요. "
+                         f"영상이나 BGM('BGM: 제목' 또는 음원 파일)을 다시 보내시면 교체됩니다.{warn}"[:1000]},
            {"video": out}, timeout=180)
 
 
-def make_flow(d, folder, raw):
-    """원본 영상을 정리·자막 합성해 FLOW[d] 에 등록한다. 성공하면 (설명, 경고, 경로), 실패하면 None."""
+def make_flow(d, folder, raw, bgm=None):
+    """원본 영상을 정리·자막·BGM 합성해 FLOW[d] 에 등록한다. 성공하면 (설명, 경고, 경로), 실패하면 None."""
     missing = [t for t in ("ffmpeg", "ffprobe") if not shutil.which(t)]
     if missing:
-        say(f"[{d}] 영상 변환 도구({', '.join(missing)})가 설치되어 있지 않아 영상을 반영할 수 없습니다. 기본 릴스로 발행됩니다.")
+        say(f"[{d}] 영상 변환 도구({', '.join(missing)})가 설치되어 있지 않아 영상을 반영할 수 없습니다. 릴스 없이 카드뉴스만 발행됩니다.")
         return None
-    out = pathlib.Path(tempfile.gettempdir()) / f"{d}_flow_reel.mp4"
+    out = tmpdir() / f"{d}_flow_reel.mp4"
     caps = folder / "reel_captions.txt"
+    card = str(folder / "card1.jpg")
+    bgm = str(bgm) if bgm else None
     warn = ""
     try:
-        note = reel_overlay.build(str(raw), str(out), str(caps), str(folder / "card1.jpg"))
+        note = reel_overlay.build(str(raw), str(out), str(caps), card, bgm)
     except ValueError as e:  # 자막 검사 실패: 글자가 깨질 수 있으므로 자막 없이 합성
         warn = "\n자막 검사에서 문제가 있어 자막 없이 합성했습니다:\n" + str(e)[:600]
         try:
-            note = reel_overlay.build(str(raw), str(out), None, str(folder / "card1.jpg"))
+            note = reel_overlay.build(str(raw), str(out), None, card, bgm)
         except Exception as e2:
             say(f"[{d}] 영상 변환 실패: {str(e2)[:200]}")
             return None
     except Exception as e:
         say(f"[{d}] 영상 변환 실패: {str(e)[:200]}")
         return None
-    pathlib.Path(raw).unlink(missing_ok=True)
     FLOW[d] = out
     return note, warn, out
 
@@ -156,7 +283,7 @@ def drive_fallback(d, folder):
     try:
         sess = drive_session()
         if sess is None:
-            say(f"[{d}] 텔레그램 영상이 없고 드라이브 접근 설정(GOOGLE_SERVICE_ACCOUNT_JSON)도 없어 기본 릴스로 발행합니다.")
+            say(f"[{d}] 텔레그램 영상이 없고 드라이브 접근 설정(GOOGLE_SERVICE_ACCOUNT_JSON)도 없어 릴스 없이 카드뉴스만 발행합니다.")
             return
         sub = []
         for n in names:
@@ -165,15 +292,15 @@ def drive_fallback(d, folder):
             if sub:
                 break
         if not sub:
-            say(f"[{d}] 드라이브에 '{names[0]}' 폴더가 없어 기본 릴스로 발행합니다.")
+            say(f"[{d}] 드라이브에 '{names[0]}' 폴더가 없어 릴스 없이 카드뉴스만 발행합니다.")
             return
         vids = drive_list(sess, f"'{sub[0]['id']}' in parents and mimeType contains 'video/' and trashed = false")
         if not vids:
-            say(f"[{d}] 드라이브 '{names[0]}' 폴더에 영상이 없어 기본 릴스로 발행합니다.")
+            say(f"[{d}] 드라이브 '{names[0]}' 폴더에 영상이 없어 릴스 없이 카드뉴스만 발행합니다.")
             return
         v = vids[0]  # 가장 최근에 수정된 영상
         if int(v.get("size", 0)) > MAX_DRIVE:
-            say(f"[{d}] 드라이브 영상 '{v['name']}'이 500MB를 넘어 기본 릴스로 발행합니다.")
+            say(f"[{d}] 드라이브 영상 '{v['name']}'이 500MB를 넘어 릴스 없이 카드뉴스만 발행합니다.")
             return
         raw = pathlib.Path(tempfile.gettempdir()) / f"{d}_flow_raw.mp4"
         with sess.get(f"https://www.googleapis.com/drive/v3/files/{v['id']}",
@@ -182,11 +309,12 @@ def drive_fallback(d, folder):
             with raw.open("wb") as f:
                 for chunk in r.iter_content(1 << 20):
                     f.write(chunk)
-        res = make_flow(d, folder, raw)
+        st(d)["raw"] = raw
+        res = make_flow(d, folder, raw, st(d)["bgm"])
         if res:
             say(f"[{d}] 드라이브 영상 '{v['name']}'을 사용합니다({res[0]}).{res[1]}")
     except Exception as e:
-        say(f"[{d}] 드라이브 영상 확인 실패, 기본 릴스로 발행합니다: {type(e).__name__} {str(e)[:150]}")
+        say(f"[{d}] 드라이브 영상 확인 실패, 릴스 없이 카드뉴스만 발행합니다: {type(e).__name__} {str(e)[:150]}")
 
 
 def push_reel(d, folder):
@@ -209,7 +337,7 @@ def push_reel(d, folder):
             break
         time.sleep(5)
     if not pushed:
-        say(f"[{d}] Flow 영상 커밋·푸시 실패, 기본 릴스로 발행됩니다.")
+        say(f"[{d}] Flow 영상 커밋·푸시 실패, 릴스 없이 카드뉴스만 발행됩니다.")
         return ""
     size = dst.stat().st_size
     for _ in range(60):  # 최대 약 10분: raw 주소가 새 파일로 바뀔 때까지
@@ -233,7 +361,7 @@ def wait_decision(d, folder):
         for u in r.get("result", []):
             offset = u["update_id"] + 1
             if u.get("message"):
-                receive_video(d, folder, u["message"])
+                receive_message(d, folder, u["message"])
                 continue
             cq = u.get("callback_query") or {}
             if str(cq.get("message", {}).get("chat", {}).get("id")) != CHAT:
@@ -297,9 +425,11 @@ def process(d):
                 drive_fallback(d, folder)
             flow_note = push_reel(d, folder)
             out = run("publish.py", d, folder)
-            if (folder / "reel.mp4").exists():
+            if flow_note:  # 카드뉴스만으로 만든 릴스는 올리지 않는다. Flow 영상이 있을 때만 릴스 발행
                 out += run("publish_reel.py", d, folder)
-            result = summarize(out) + flow_note
+                result = summarize(out) + flow_note
+            else:
+                result = summarize(out) + " · 릴스 미발행(Flow 영상 없음)"
         elif decision == "cancel":
             say(f"[{d}] 취소됨, 발행 안 함")
             result = "승인 취소"
