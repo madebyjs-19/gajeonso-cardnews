@@ -295,6 +295,10 @@ def b_compare(spec):
                 c.text(176, mid, lab, font("semibold", 24), GRAY if c.bg == "white" else t["sub"], "lm")
                 c.text(590, mid, va, font("regular", 26), t["title"], "mm"); c.text(820, mid, vb, font("semibold", 26), t["accent"], "mm")
             cur += rh
+        if spec.get("footnote"):
+            cur += 6
+            if not dry: c.text(W / 2, cur, spec["footnote"], font("regular", 24), t["sub"], "ma")
+            cur += 24
         return cur - y
     return build
 
