@@ -17,5 +17,5 @@ No text, no letters, no logos, no watermark.
 
 ## 2. 저장소에 넣기
 
-- 고른 이미지를 `assets/reel_host/host.png` 로 저장해 main 에 올립니다(최대 3장까지 전송됨).
+- 고른 이미지를 `assets/reel_host/host.jpg`(또는 .png) 로 저장해 main 에 올립니다(최대 3장까지 전송됨).
 - 진행자 외모를 바꾸고 싶으면 이 이미지와 ROUTINE_PROMPT.md step3 7번의 HOST 문단을 함께 바꿉니다(둘이 다르면 인물이 흔들립니다).
