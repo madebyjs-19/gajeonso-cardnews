@@ -53,16 +53,21 @@ def request_approval(d, folder):
                 else f"[Flow 참고 이미지] {f.name}"
             tg("sendDocument", {"chat_id": CHAT, "caption": cap}, {"document": f}, timeout=120)
         fa = folder / "flow_assets.txt"
-        text = "[Flow 영상 프롬프트]\n" + fp.read_text(encoding="utf-8").strip()
+        # 프롬프트는 설명 없이 그것만 담은 메시지로 따로 보내서 길게 눌러 바로 복사할 수 있게 한다
+        lines = fp.read_text(encoding="utf-8").strip().splitlines()
+        while lines and lines[0].strip().startswith("[") and lines[0].strip().endswith("]"):
+            lines.pop(0)  # 혹시 들어간 제목 줄은 뺀다
+        say("[Flow 영상 프롬프트] 바로 다음 메시지가 프롬프트입니다. 그 메시지를 길게 눌러 복사해서 Flow에 붙여 넣으세요.")
+        say("\n".join(lines).strip())
         if fa.exists():
-            text += "\n\n[Flow에 넣을 이미지 자료 — 직접 준비해서 Flow에 올려 주세요]\n" + fa.read_text(encoding="utf-8").strip()
+            say("[Flow에 넣을 이미지 자료] 직접 준비해서 Flow에 올려 주세요.\n" + fa.read_text(encoding="utf-8").strip())
         if rc.exists():
-            text += "\n\n[팝업 자막(핵심 내용, 영상에 자동 합성됩니다. 영상 속에는 글자를 넣지 마세요)]\n" + rc.read_text(encoding="utf-8").strip()
-        text += ("\n\n※ 영상 맨 앞에 카드뉴스 표지(타이틀 카드) 1.5초가 자동으로 붙고, 팝업 자막은 그 뒤에 나옵니다. Flow 영상은 8초 안팎으로 만드세요(전체 10초 이내, 8.5초를 넘으면 뒷부분이 잘립니다)."
-                 "\n※ 만든 영상(20MB 이하)을 이 대화방에 보내 주세요. [발행] 버튼을 누르기 전에 보내야 반영됩니다. 대기 시간 최대 120분."
-                 f"\n※ 용량이 커서 텔레그램으로 못 보내면 구글 드라이브 '릴스영상/{d[2:]}' 폴더에 올려 두세요. 텔레그램 영상이 없으면 그 폴더의 가장 최근 영상을 씁니다."
-                 "\n※ 둘 다 없으면 기본 릴스로 발행됩니다.")
-        say(text)
+            say("[팝업 자막 목록] 핵심 내용이 영상에 자동 합성됩니다(맨 앞 1.5초는 표지). 영상 속에는 글자를 넣지 마세요.\n" + rc.read_text(encoding="utf-8").strip())
+        say("[영상 보내는 방법]"
+            "\n1) 영상 맨 앞에 카드뉴스 표지(타이틀 카드) 1.5초가 자동으로 붙고, 팝업 자막은 그 뒤에 나옵니다. Flow 영상은 8초 안팎으로 만드세요(전체 10초 이내, 8.5초를 넘으면 뒷부분이 잘립니다)."
+            "\n2) 만든 영상(20MB 이하)을 이 대화방에 보내 주세요. [발행] 버튼을 누르기 전에 보내야 반영됩니다. 대기 시간 최대 120분."
+            f"\n3) 용량이 커서 텔레그램으로 못 보내면 구글 드라이브 '릴스영상/{d[2:]}' 폴더에 올려 두세요. 텔레그램 영상이 없으면 그 폴더의 가장 최근 영상을 씁니다."
+            "\n4) 둘 다 없으면 기본 릴스로 발행됩니다.")
     kb = {"inline_keyboard": [[{"text": "✅ 발행 (Instagram + Facebook)", "callback_data": f"approve_{d}"},
                                {"text": "❌ 취소", "callback_data": f"cancel_{d}"}]]}
     r = tg("sendMessage", {"chat_id": CHAT, "reply_markup": json.dumps(kb),
@@ -101,6 +106,10 @@ def receive_video(d, folder, msg):
 
 def make_flow(d, folder, raw):
     """원본 영상을 정리·자막 합성해 FLOW[d] 에 등록한다. 성공하면 (설명, 경고, 경로), 실패하면 None."""
+    missing = [t for t in ("ffmpeg", "ffprobe") if not shutil.which(t)]
+    if missing:
+        say(f"[{d}] 영상 변환 도구({', '.join(missing)})가 설치되어 있지 않아 영상을 반영할 수 없습니다. 기본 릴스로 발행됩니다.")
+        return None
     out = pathlib.Path(tempfile.gettempdir()) / f"{d}_flow_reel.mp4"
     caps = folder / "reel_captions.txt"
     warn = ""
