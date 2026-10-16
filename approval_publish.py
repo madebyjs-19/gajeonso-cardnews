@@ -35,13 +35,22 @@ def say(text):
     tg("sendMessage", {"chat_id": CHAT, "text": text[:4000]})
 
 
+def card_files(folder):
+    """card1.jpg 부터 끊기지 않고 이어진 카드 목록(7~9장, 예전 회차는 5장)."""
+    out = []
+    while (folder / f"card{len(out) + 1}.jpg").exists() and len(out) < 10:
+        out.append(folder / f"card{len(out) + 1}.jpg")
+    return out
+
+
 def request_approval(d, folder):
     wr = folder / "weekly_report.txt"  # 주간 성과 리포트 날이면 맨 앞에 보낸다
     if wr.exists():
         say(wr.read_text(encoding="utf-8").strip())
-    media = [{"type": "photo", "media": f"attach://c{i}"} for i in range(1, 6)]
+    cards = card_files(folder)  # 텔레그램 앨범은 한 번에 2~10장
+    media = [{"type": "photo", "media": f"attach://c{i}"} for i in range(1, len(cards) + 1)]
     tg("sendMediaGroup", {"chat_id": CHAT, "media": json.dumps(media)},
-       {f"c{i}": folder / f"card{i}.jpg" for i in range(1, 6)}, timeout=180)
+       {f"c{i}": f for i, f in enumerate(cards, 1)}, timeout=240)
     note = folder / "approval.txt"
     say(note.read_text(encoding="utf-8") if note.exists() else f"[가전소 카드뉴스 승인 요청 {d}]")
     say("[Instagram 캡션]\n" + (folder / "ig.txt").read_text(encoding="utf-8"))
@@ -82,7 +91,7 @@ def request_approval(d, folder):
             "\n   BGM: https://…/음원.mp3  → 음원 파일 직링크"
             "\n   또는 음원 파일(mp3 등)을 이 대화방에 함께 보내 주세요."
             "\n   ※ 인스타그램 음악 라이브러리의 곡 제목, 유튜브·스트리밍 링크는 사용할 수 없습니다(저작권·이용약관, 자동 발행에서는 인스타 음악 선택 불가)."
-            "\n5) 영상을 보내지 않으면 카드 1·2·3·5장으로 만든 슬라이드 릴스가 자동으로 함께 발행됩니다.")
+            "\n5) 영상을 보내지 않으면 카드 표지·2·3장과 마지막 장으로 만든 슬라이드 릴스가 자동으로 함께 발행됩니다.")
     kb = {"inline_keyboard": [[{"text": "✅ 발행 (Instagram + Facebook)", "callback_data": f"approve_{d}"},
                                {"text": "❌ 취소", "callback_data": f"cancel_{d}"}]]}
     r = tg("sendMessage", {"chat_id": CHAT, "reply_markup": json.dumps(kb),
@@ -328,9 +337,10 @@ def drive_fallback(d, folder):
 
 
 def slide_reel(d, folder):
-    """Flow 영상이 없는 날: 카드 1·2·3·5장으로 슬라이드 릴스를 만든다. 실패하면 None."""
+    """Flow 영상이 없는 날: 표지·2·3장과 마지막 장(상담 접수증)으로 슬라이드 릴스를 만든다(약 14.5초). 실패하면 None."""
     out = tmpdir() / f"{d}_slide_reel.mp4"
-    r = subprocess.run([sys.executable, "make_reel.py", str(folder), "1,2,3,5", str(out)], capture_output=True, text=True)
+    pick = f"1,2,3,{len(card_files(folder))}"
+    r = subprocess.run([sys.executable, "make_reel.py", str(folder), pick, str(out)], capture_output=True, text=True)
     if r.returncode or not out.exists():
         say(f"[{d}] 카드 슬라이드 릴스 생성 실패, 카드뉴스만 발행됩니다: {(r.stderr or r.stdout)[-200:]}")
         return None
@@ -431,7 +441,9 @@ def process(d):
     if status.exists():
         print(f"{d}: 이미 처리됨({status.read_text(encoding='utf-8').strip()}), 건너뜀")
         return
-    missing = [n for n in [f"card{i}.jpg" for i in range(1, 6)] + ["ig.txt", "fb.txt"] if not (folder / n).exists()]
+    missing = [n for n in ["ig.txt", "fb.txt"] if not (folder / n).exists()]
+    if len(card_files(folder)) < 5:
+        missing.insert(0, f"카드(card1~ 이어진 것 {len(card_files(folder))}장, 5장 이상 필요)")
     if missing:
         say(f"[{d}] 승인 요청 불가: {', '.join(missing)} 없음")
         return

@@ -1,11 +1,14 @@
 # 사용: python3.13 publish.py YYYYMMDD caption_ig.txt caption_fb.txt
-# 승인된 카드(cards/YYYYMMDD/card1~5.jpg)를 Instagram 캐러셀과 Facebook 페이지에 발행하고 텔레그램에 결과를 알린다.
+# 승인된 카드(cards/YYYYMMDD/card1~N.jpg, 7~9장)를 Instagram 캐러셀과 Facebook 페이지에 발행하고 텔레그램에 결과를 알린다.
 import os, sys, json, time, urllib.request, urllib.parse, urllib.error
 
 E = os.environ
 G = "https://graph.facebook.com/v26.0"
 date, ig_cap, fb_cap = sys.argv[1], open(sys.argv[2], encoding="utf-8").read(), open(sys.argv[3], encoding="utf-8").read()
 URL = f"https://raw.githubusercontent.com/madebyjs-19/gajeonso-cardnews/main/cards/{date}/card%d.jpg"
+N = 1  # 카드 장수: card1.jpg 부터 끊기지 않고 이어진 만큼(Instagram 캐러셀은 최대 10장)
+while N < 10 and os.path.exists(f"cards/{date}/card{N + 1}.jpg"):
+    N += 1
 
 
 def call(method, path, **p):
@@ -42,7 +45,7 @@ def tg(text):
 res = {}
 try:
     t, u = E["IG_ACCESS_TOKEN"], E["IG_USER_ID"]
-    ids = [need(call("POST", f"/{u}/media", image_url=URL % i, is_carousel_item="true", access_token=t))["id"] for i in range(1, 6)]
+    ids = [need(call("POST", f"/{u}/media", image_url=URL % i, is_carousel_item="true", access_token=t))["id"] for i in range(1, N + 1)]
     for c in ids:
         wait(c, t)
     car = need(call("POST", f"/{u}/media", media_type="CAROUSEL", children=",".join(ids), caption=ig_cap, access_token=t))["id"]
@@ -55,7 +58,7 @@ except Exception as e:
     res["Instagram"] = "실패: " + str(e)[:150]
 try:
     p, t = E["FB_PAGE_ID"], E["FB_PAGE_ACCESS_TOKEN"]
-    ph = [need(call("POST", f"/{p}/photos", url=URL % i, published="false", access_token=t))["id"] for i in range(1, 6)]
+    ph = [need(call("POST", f"/{p}/photos", url=URL % i, published="false", access_token=t))["id"] for i in range(1, N + 1)]
     media = {f"attached_media[{i}]": json.dumps({"media_fbid": x}) for i, x in enumerate(ph)}
     pid = need(call("POST", f"/{p}/feed", message=fb_cap, access_token=t, **media))["id"]
     res["Facebook"] = "발행 완료 " + call("GET", f"/{pid}", fields="permalink_url", access_token=t).get("permalink_url", "")
