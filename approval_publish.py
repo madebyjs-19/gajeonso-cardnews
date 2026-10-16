@@ -1,13 +1,20 @@
 # 사용(GitHub Actions 전용): python approval_publish.py YYYYMMDD [YYYYMMDD ...]
 # cards/YYYYMMDD/ 의 카드·릴스를 텔레그램으로 승인 요청하고, [발행]을 누른 경우에만 publish.py·publish_reel.py 를 실행한다.
 # 결과는 cards/YYYYMMDD/status.txt 와 log/ig-card-news-log.md 에 남긴다. 토큰은 환경변수(GitHub Secrets)로만 받는다.
-import os, re, sys, json, time, subprocess, pathlib
+import os, re, sys, json, time, shutil, tempfile, subprocess, pathlib
+
+import reel_overlay
 
 E = os.environ
 API = f"https://api.telegram.org/bot{E['TELEGRAM_BOT_TOKEN']}/"
 CHAT = str(E["TELEGRAM_CHAT_ID"])
-WAIT = 3600  # 승인 대기 최대 60분
+WAIT = 7200  # 승인 대기 최대 120분(Flow 영상 제작 시간 포함)
 LOG = pathlib.Path("log/ig-card-news-log.md")
+REPO_RAW = "https://raw.githubusercontent.com/madebyjs-19/gajeonso-cardnews/main/cards"
+MAX_DL = 20 * 1024 * 1024  # 텔레그램 봇이 내려받을 수 있는 최대 크기
+MAX_DRIVE = 500 * 1024 * 1024
+DRIVE_ROOT = E.get("DRIVE_FOLDER_ID") or "1KT9JGteGYQLhsHnVDmcU2xAhqZLI-lKl"  # 구글 드라이브 "릴스영상" 폴더(하위에 YYMMDD 폴더)
+FLOW = {}  # 회차 -> 정리가 끝난 Flow 영상 경로(가장 최근에 받은 것)
 
 
 def tg(method, fields=None, files=None, timeout=70):
@@ -36,6 +43,16 @@ def request_approval(d, folder):
     note = folder / "approval.txt"
     say(note.read_text(encoding="utf-8") if note.exists() else f"[가전소 카드뉴스 승인 요청 {d}]")
     say("[Instagram 캡션]\n" + (folder / "ig.txt").read_text(encoding="utf-8"))
+    fp, rc = folder / "flow_prompt.txt", folder / "reel_captions.txt"
+    if fp.exists():
+        text = "[Flow 영상 프롬프트]\n" + fp.read_text(encoding="utf-8").strip()
+        if rc.exists():
+            text += "\n\n[자막(영상에 자동 합성됩니다. 영상에는 글자를 넣지 마세요)]\n" + rc.read_text(encoding="utf-8").strip()
+        text += ("\n\n※ Flow에서 만든 영상(10초 이내, 20MB 이하)을 이 대화방에 보내 주세요. 자막은 제가 한글로 합성합니다."
+                 "\n※ [발행] 버튼을 누르기 전에 보내야 반영됩니다. 대기 시간 최대 120분."
+                 f"\n※ 용량이 커서 텔레그램으로 못 보내면 구글 드라이브 '릴스영상/{d[2:]}' 폴더에 올려 두세요. 텔레그램 영상이 없으면 그 폴더의 가장 최근 영상을 씁니다."
+                 "\n※ 둘 다 없으면 기본 릴스로 발행됩니다.")
+        say(text)
     kb = {"inline_keyboard": [[{"text": "✅ 발행 (Instagram + Facebook)", "callback_data": f"approve_{d}"},
                                {"text": "❌ 취소", "callback_data": f"cancel_{d}"}]]}
     r = tg("sendMessage", {"chat_id": CHAT, "reply_markup": json.dumps(kb),
@@ -43,16 +60,162 @@ def request_approval(d, folder):
     return bool(r.get("ok"))
 
 
-def wait_decision(d):
+def receive_video(d, folder, msg):
+    """등록된 채팅에서 온 영상을 받아 정리하고 자막을 합성한다(발행 전까지 커밋하지 않는다)."""
+    if str(msg.get("chat", {}).get("id")) != CHAT:
+        return
+    v = msg.get("video") or (msg.get("document") if str(msg.get("document", {}).get("mime_type", "")).startswith("video/") else None)
+    if not v:
+        return
+    if v.get("file_size", 0) > MAX_DL:
+        say(f"[{d}] 영상이 20MB를 넘어 텔레그램으로는 받을 수 없습니다. 구글 드라이브 '릴스영상/{d[2:]}' 폴더에 올려 두시면 [발행] 시 그 영상을 씁니다.")
+        return
+    info = tg("getFile", {"file_id": v["file_id"]})
+    path = (info.get("result") or {}).get("file_path")
+    if not path:
+        say(f"[{d}] 영상을 내려받지 못했습니다(파일이 너무 크거나 만료됨). 다시 보내 주세요.")
+        return
+    tmp = pathlib.Path(tempfile.gettempdir())  # 저장소 밖에 둬서 결과 커밋에 섞이지 않게 한다
+    raw = tmp / f"{d}_flow_raw.mp4"
+    dl = subprocess.run(["curl", "-sS", "-f", "-m", "300", "-o", str(raw), f"https://api.telegram.org/file/bot{E['TELEGRAM_BOT_TOKEN']}/{path}"],
+                        capture_output=True, text=True)
+    if dl.returncode != 0 or not raw.exists():
+        say(f"[{d}] 영상 다운로드 실패. 다시 보내 주세요.")
+        return
+    res = make_flow(d, folder, raw)
+    if res:
+        note, warn, out = res
+        tg("sendVideo", {"chat_id": CHAT, "caption": f"[{d}] Flow 영상 반영본 미리보기 ({note}). 이대로면 [발행]을 누르세요. 다시 보내시면 최신 영상으로 교체됩니다.{warn}"[:1000]},
+           {"video": out}, timeout=180)
+
+
+def make_flow(d, folder, raw):
+    """원본 영상을 정리·자막 합성해 FLOW[d] 에 등록한다. 성공하면 (설명, 경고, 경로), 실패하면 None."""
+    out = pathlib.Path(tempfile.gettempdir()) / f"{d}_flow_reel.mp4"
+    caps = folder / "reel_captions.txt"
+    warn = ""
+    try:
+        note = reel_overlay.build(str(raw), str(out), str(caps))
+    except ValueError as e:  # 자막 검사 실패: 글자가 깨질 수 있으므로 자막 없이 합성
+        warn = "\n자막 검사에서 문제가 있어 자막 없이 합성했습니다:\n" + str(e)[:600]
+        try:
+            note = reel_overlay.build(str(raw), str(out), None)
+        except Exception as e2:
+            say(f"[{d}] 영상 변환 실패: {str(e2)[:200]}")
+            return None
+    except Exception as e:
+        say(f"[{d}] 영상 변환 실패: {str(e)[:200]}")
+        return None
+    pathlib.Path(raw).unlink(missing_ok=True)
+    FLOW[d] = out
+    return note, warn, out
+
+
+def drive_session():
+    raw = E.get("GOOGLE_SERVICE_ACCOUNT_JSON")
+    if not raw:
+        return None
+    from google.oauth2 import service_account
+    from google.auth.transport.requests import AuthorizedSession
+    creds = service_account.Credentials.from_service_account_info(
+        json.loads(raw), scopes=["https://www.googleapis.com/auth/drive.readonly"])
+    return AuthorizedSession(creds)
+
+
+def drive_list(sess, q):
+    r = sess.get("https://www.googleapis.com/drive/v3/files",
+                 params={"q": q, "fields": "files(id,name,size,modifiedTime)", "orderBy": "modifiedTime desc",
+                         "pageSize": 20, "supportsAllDrives": "true", "includeItemsFromAllDrives": "true"}, timeout=60)
+    r.raise_for_status()
+    return r.json().get("files", [])
+
+
+def drive_fallback(d, folder):
+    """텔레그램으로 영상이 오지 않았을 때 구글 드라이브 '릴스영상/YYMMDD' 폴더의 가장 최근 영상을 쓴다."""
+    ymd = d[2:]  # 20261016 -> 261016, 20261016b -> 261016b
+    names = [ymd] + ([ymd[:-1]] if ymd[-1].isalpha() else [])
+    try:
+        sess = drive_session()
+        if sess is None:
+            say(f"[{d}] 텔레그램 영상이 없고 드라이브 접근 설정(GOOGLE_SERVICE_ACCOUNT_JSON)도 없어 기본 릴스로 발행합니다.")
+            return
+        sub = []
+        for n in names:
+            sub = drive_list(sess, f"'{DRIVE_ROOT}' in parents and name = '{n}' and "
+                                   "mimeType = 'application/vnd.google-apps.folder' and trashed = false")
+            if sub:
+                break
+        if not sub:
+            say(f"[{d}] 드라이브에 '{names[0]}' 폴더가 없어 기본 릴스로 발행합니다.")
+            return
+        vids = drive_list(sess, f"'{sub[0]['id']}' in parents and mimeType contains 'video/' and trashed = false")
+        if not vids:
+            say(f"[{d}] 드라이브 '{names[0]}' 폴더에 영상이 없어 기본 릴스로 발행합니다.")
+            return
+        v = vids[0]  # 가장 최근에 수정된 영상
+        if int(v.get("size", 0)) > MAX_DRIVE:
+            say(f"[{d}] 드라이브 영상 '{v['name']}'이 500MB를 넘어 기본 릴스로 발행합니다.")
+            return
+        raw = pathlib.Path(tempfile.gettempdir()) / f"{d}_flow_raw.mp4"
+        with sess.get(f"https://www.googleapis.com/drive/v3/files/{v['id']}",
+                      params={"alt": "media", "supportsAllDrives": "true"}, stream=True, timeout=600) as r:
+            r.raise_for_status()
+            with raw.open("wb") as f:
+                for chunk in r.iter_content(1 << 20):
+                    f.write(chunk)
+        res = make_flow(d, folder, raw)
+        if res:
+            say(f"[{d}] 드라이브 영상 '{v['name']}'을 사용합니다({res[0]}).{res[1]}")
+    except Exception as e:
+        say(f"[{d}] 드라이브 영상 확인 실패, 기본 릴스로 발행합니다: {type(e).__name__} {str(e)[:150]}")
+
+
+def push_reel(d, folder):
+    """Flow 영상을 cards/<회차>/reel.mp4 로 교체해 main 에 올리고 raw 주소에 반영될 때까지 기다린다."""
+    src = FLOW.get(d)
+    if not src or not src.exists():
+        return ""
+    dst = folder / "reel.mp4"
+    shutil.copyfile(src, dst)
+    sh = lambda *a: subprocess.run(a, capture_output=True, text=True)
+    sh("git", "config", "user.name", "github-actions[bot]")
+    sh("git", "config", "user.email", "41898282+github-actions[bot]@users.noreply.github.com")
+    sh("git", "add", str(dst))
+    sh("git", "commit", "-m", f"Flow 영상 릴스 반영: {d}")
+    pushed = False
+    for _ in range(3):
+        if sh("git", "pull", "--rebase", "--autostash", "origin", "main").returncode == 0 and \
+                sh("git", "push", "origin", "HEAD:main").returncode == 0:
+            pushed = True
+            break
+        time.sleep(5)
+    if not pushed:
+        say(f"[{d}] Flow 영상 커밋·푸시 실패, 기본 릴스로 발행됩니다.")
+        return ""
+    size = dst.stat().st_size
+    for _ in range(60):  # 최대 약 10분: raw 주소가 새 파일로 바뀔 때까지
+        head = sh("curl", "-sSIL", "-m", "20", f"{REPO_RAW}/{d}/reel.mp4").stdout
+        m = re.findall(r"(?im)^content-length:\s*(\d+)", head)
+        if m and int(m[-1]) == size:
+            return " · Flow 영상 사용"
+        time.sleep(10)
+    say(f"[{d}] 새 영상이 아직 공개 주소에 반영되지 않아 릴스 발행이 실패할 수 있습니다.")
+    return " · Flow 영상 사용(반영 지연)"
+
+
+def wait_decision(d, folder):
     # 이전에 쌓인 업데이트는 건너뛴다(이번 요청 이후의 버튼만 인정)
     old = tg("getUpdates", {"timeout": "0"}).get("result", [])
     offset = old[-1]["update_id"] + 1 if old else 0
     end = time.time() + WAIT
     while time.time() < end:
         r = tg("getUpdates", {"offset": str(offset), "timeout": "50",
-                              "allowed_updates": json.dumps(["callback_query"])})
+                              "allowed_updates": json.dumps(["callback_query", "message"])})
         for u in r.get("result", []):
             offset = u["update_id"] + 1
+            if u.get("message"):
+                receive_video(d, folder, u["message"])
+                continue
             cq = u.get("callback_query") or {}
             if str(cq.get("message", {}).get("chat", {}).get("id")) != CHAT:
                 continue
@@ -109,12 +272,15 @@ def process(d):
         say(f"[{d}] 승인 요청 전송 실패, 발행 안 함")
         result = "승인 요청 전송 실패"
     else:
-        decision = wait_decision(d)
+        decision = wait_decision(d, folder)
         if decision == "approve":
+            if d not in FLOW:  # 텔레그램으로 영상이 안 왔으면 구글 드라이브 폴더에서 찾는다
+                drive_fallback(d, folder)
+            flow_note = push_reel(d, folder)
             out = run("publish.py", d, folder)
             if (folder / "reel.mp4").exists():
                 out += run("publish_reel.py", d, folder)
-            result = summarize(out)
+            result = summarize(out) + flow_note
         elif decision == "cancel":
             say(f"[{d}] 취소됨, 발행 안 함")
             result = "승인 취소"
