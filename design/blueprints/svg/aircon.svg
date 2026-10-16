@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 360" width="900" height="360" class="bp landscape" data-kind="aircon"><style>svg{--line:#DCE8F5;--dimc:#8FA5C7;--acc:#FF8A3D}
+.m{fill:none;stroke:var(--line);stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+.d{fill:none;stroke:var(--line);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;opacity:.55}
+.dd{fill:none;stroke:var(--line);stroke-width:2.5;stroke-linecap:round;stroke-dasharray:8 8;opacity:.6}
+.dot{fill:none;stroke:var(--line);stroke-width:4;stroke-linecap:round;stroke-dasharray:0 14;opacity:.55}
+.a{fill:none;stroke:var(--acc);stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+.af{fill:var(--acc);stroke:none}
+.c{fill:none;stroke:var(--acc);stroke-width:3;stroke-dasharray:10 10;stroke-linecap:round}
+.dm{fill:none;stroke:var(--dimc);stroke-width:2;stroke-linecap:round}
+text{font-family:"IBM Plex Mono","Pretendard Variable",monospace;font-size:21px;font-weight:600;letter-spacing:.06em}
+.lb{fill:var(--acc)} .tx{fill:var(--dimc)}
+</style><path class="dm" d="M100 20H800M120 20l-10 -12M148 20l-10 -12M176 20l-10 -12M204 20l-10 -12M232 20l-10 -12M260 20l-10 -12M288 20l-10 -12M316 20l-10 -12M344 20l-10 -12M372 20l-10 -12M400 20l-10 -12M428 20l-10 -12M456 20l-10 -12M484 20l-10 -12M512 20l-10 -12M540 20l-10 -12M568 20l-10 -12M596 20l-10 -12M624 20l-10 -12M652 20l-10 -12M680 20l-10 -12M708 20l-10 -12M736 20l-10 -12M764 20l-10 -12M792 20l-10 -12"/>
+<rect class="m" x="120" y="40" width="660" height="160" rx="44"/>
+<path class="d" d="M140 150H760"/>
+<rect class="m" x="170" y="168" width="560" height="20" rx="10"/>
+<rect class="d" x="640" y="80" width="80" height="22" rx="5"/>
+<path class="c" d="M200 214q30 40 0 90M330 214q30 40 0 90M460 214q30 40 0 90M590 214q30 40 0 90"/>
+<text class="lb" x="800" y="270">AIRFLOW</text>
+<path class="dm" d="M120 340H780M120 330v20M780 330v20"/></svg>

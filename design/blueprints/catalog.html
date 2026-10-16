@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>가전소 제품 도면 세트</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--navy:#1A2A4A;--blue:#2E5EAA;--ice:#DCE8F5;--white:#FDFEFE;--off:#F7F8FA;--gray:#6B7688;--orange:#FF8A3D;--navy-note:#8FA5C7;--z:.3}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#EEF0F3;color:var(--navy);font-family:"Pretendard Variable",Pretendard,system-ui,sans-serif;word-break:keep-all;line-height:1.6}
+  .page{max-width:1180px;margin:0 auto;padding:48px 16px 96px}
+  header.top h1{font-size:34px;font-weight:800;letter-spacing:-.02em;line-height:1.3}
+  header.top p{color:var(--gray);margin-top:8px;font-size:16px}
+  section.dir{margin-top:40px;background:#fff;border-radius:20px;padding:28px}
+  .dir-head{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:baseline}
+  .dir-head .tag{font-family:"IBM Plex Mono",monospace;font-size:13px;font-weight:600;color:#fff;background:var(--navy);padding:3px 10px;border-radius:99px}
+  .dir-head h2{font-size:24px;font-weight:800;letter-spacing:-.02em}
+  .dir-head .one{color:var(--gray);font-size:16px;width:100%}
+  .rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-top:20px}
+  .rules div{background:var(--off);border-radius:12px;padding:14px 16px;font-size:15px}
+  .rules h3{font-size:14px;font-weight:700;color:var(--blue);margin-bottom:4px}
+  .rules ul{padding-left:18px}
+
+  /* 배경 테마 */
+  .th-navy{--line:#DCE8F5;--dimc:#8FA5C7;--acc:#FF8A3D;--bg:#1A2A4A;--gl:rgba(220,232,245,.08);--cap:#DCE8F5}
+  .th-ice{--line:#1A2A4A;--dimc:#2E5EAA;--acc:#FF8A3D;--bg:#DCE8F5;--gl:rgba(46,94,170,.12);--cap:#1A2A4A}
+  .th-white{--line:#1A2A4A;--dimc:#2E5EAA;--acc:#FF8A3D;--bg:#FDFEFE;--gl:rgba(26,42,74,.06);--cap:#1A2A4A}
+  .th-orange{--line:#1A2A4A;--dimc:#1A2A4A;--acc:#FDFEFE;--bg:#FF8A3D;--gl:rgba(26,42,74,.10);--cap:#1A2A4A}
+  .gridbg{background:linear-gradient(var(--gl) 2px,transparent 2px) -2px -2px/27px 27px,linear-gradient(90deg,var(--gl) 2px,transparent 2px) -2px -2px/27px 27px,var(--bg)}
+  
+.m{fill:none;stroke:var(--line);stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+.d{fill:none;stroke:var(--line);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;opacity:.55}
+.dd{fill:none;stroke:var(--line);stroke-width:2.5;stroke-linecap:round;stroke-dasharray:8 8;opacity:.6}
+.dot{fill:none;stroke:var(--line);stroke-width:4;stroke-linecap:round;stroke-dasharray:0 14;opacity:.55}
+.a{fill:none;stroke:var(--acc);stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+.af{fill:var(--acc);stroke:none}
+.c{fill:none;stroke:var(--acc);stroke-width:3;stroke-dasharray:10 10;stroke-linecap:round}
+.dm{fill:none;stroke:var(--dimc);stroke-width:2;stroke-linecap:round}
+text{font-family:"IBM Plex Mono","Pretendard Variable",monospace;font-size:21px;font-weight:600;letter-spacing:.06em}
+.lb{fill:var(--acc)} .tx{fill:var(--dimc)}
+
+
+  .switch{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+  .switch button{font:inherit;font-size:14px;font-weight:700;border:2px solid var(--navy);background:#fff;color:var(--navy);padding:6px 14px;border-radius:99px;cursor:pointer}
+  .switch button[aria-pressed=true]{background:var(--navy);color:#fff}
+  .catalog{display:flex;flex-wrap:wrap;align-items:flex-start;gap:16px;margin-top:20px;padding:16px;border-radius:16px}
+  .tile{display:flex;flex-direction:column;border-radius:12px;overflow:hidden;cursor:zoom-in;border:1px solid rgba(26,42,74,.12);background:var(--bg)}
+  .tile .pad{display:grid;place-items:center;padding:6px}
+  .tile.portrait .pad svg{width:220px;height:480px}
+  .tile.landscape .pad svg{width:450px;height:180px}
+  .tile figcaption{padding:10px 14px;background:rgba(255,255,255,.92);font-size:15px;line-height:1.35}
+  .tile figcaption span{display:block;font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--gray)}
+  .modal{position:fixed;inset:0;background:rgba(16,24,40,.75);display:none;place-items:center;padding:24px;z-index:9;cursor:zoom-out}
+  .modal.on{display:grid}
+  .modal .box{border-radius:14px;padding:12px;max-width:100%;max-height:100%;overflow:auto}
+  .modal svg{display:block;max-width:calc(100vw - 72px);max-height:calc(100vh - 72px);width:auto;height:auto}
+
+  /* 표지 예시 */
+  .cards{display:flex;flex-wrap:wrap;gap:20px;margin-top:20px}
+  .shot{display:flex;flex-direction:column;gap:8px;width:324px}
+  .shot figcaption{font-size:14px;color:var(--gray)} .shot figcaption b{display:block;color:var(--navy)}
+  .card{zoom:var(--z);width:1080px;height:1350px;position:relative;overflow:hidden;border-radius:18px;box-shadow:0 18px 70px rgba(26,42,74,.22);line-height:1.2;flex:none;color:var(--cap)}
+  .card.gridbg{background:linear-gradient(var(--gl) 2px,transparent 2px) -2px -2px/54px 54px,linear-gradient(90deg,var(--gl) 2px,transparent 2px) -2px -2px/54px 54px,var(--bg)}
+  .card.th-navy{color:var(--off)}
+  .mono{font-family:"IBM Plex Mono","Pretendard Variable",monospace}
+  .crop{position:absolute;width:56px;height:56px;border:0 solid var(--dimc)}
+  .crop.tl{left:40px;top:40px;border-left-width:4px;border-top-width:4px}.crop.tr{right:40px;top:40px;border-right-width:4px;border-top-width:4px}
+  .crop.bl{left:40px;bottom:40px;border-left-width:4px;border-bottom-width:4px}.crop.br{right:40px;bottom:40px;border-right-width:4px;border-bottom-width:4px}
+  .file{position:absolute;left:96px;top:92px;font-size:26px;font-weight:600;letter-spacing:.1em;color:var(--dimc)}
+  .file b{color:var(--orange);font-weight:600}
+  .card svg.bp.portrait{position:absolute;right:70px;top:170px;width:440px;height:960px}
+  .card svg.bp.landscape{position:absolute;left:90px;top:160px;width:900px;height:360px}
+  .ctag{position:absolute;left:96px;top:470px;font-size:30px;font-weight:700;padding:10px 24px;border-radius:999px;background:var(--orange);color:var(--navy)}
+  .th-ice .ctag{background:var(--navy);color:var(--off)}
+  .card h1{position:absolute;left:90px;top:550px;font-size:112px;font-weight:850;letter-spacing:-.05em;line-height:1.06}
+  .card .sub{position:absolute;left:96px;top:1075px;font-size:30px;font-weight:500;color:var(--gray)}
+  .th-navy .sub{color:var(--ice)}
+  .card .sub .mono{color:var(--orange)}
+  .pageno{position:absolute;left:96px;bottom:92px;font-size:26px;color:var(--dimc)}
+  .swipe{position:absolute;right:110px;bottom:92px;font-size:24px;letter-spacing:.12em;color:var(--dimc)}
+  .land .ctag{top:570px} .land h1{top:650px}
+</style>
+</head>
+<body>
+<div class="page">
+<header class="top">
+  <h1>가전소 제품 도면 세트 v1</h1>
+  <p>카드뉴스에 쓰는 제품 그림을 '설계 도면' 방식으로 다시 그렸습니다. 지금 자동화가 쓰는 13종에 4종(스탠드 에어컨, 의류관리기, 정수기, 인덕션)을 더해 17종입니다. 그림을 누르면 크게 볼 수 있습니다.</p>
+</header>
+
+<section class="dir">
+  <div class="dir-head"><span class="tag">RULES</span><h2>도면 그리는 규칙</h2>
+    <p class="one">모든 제품이 같은 규칙을 따라야 한 회차 안에서, 그리고 피드 전체에서 한 사람이 그린 것처럼 보입니다.</p></div>
+  <div class="rules">
+    <div><h3>보는 방향</h3><ul><li>세우는 제품은 정면도</li><li>로봇청소기는 위·옆 두 면</li><li>인덕션은 위에서 본 모습</li><li>특정 브랜드 모델을 따라 그리지 않음</li></ul></div>
+    <div><h3>선 종류 4가지</h3><ul><li>외곽선 4px</li><li>세부선 2.5px 반투명</li><li>점선: 숨은 부분·열린 상태</li><li>치수선 2px (높이·폭)</li></ul></div>
+    <div><h3>오렌지 강조는 한 곳</h3><ul><li>그 회차 주제와 관련된 부품</li><li>점선 원 + 지시선 + 영문 라벨</li><li>예: 배터리, 필터, 대각선(인치)</li></ul></div>
+    <div><h3>크기와 자리</h3><ul><li>세로형 440×960, 가로형 900×360</li><li>세로형은 표지 오른쪽에 세움</li><li>가로형은 표지 위쪽에 눕힘</li><li>모든 제품은 같은 바닥선 위</li></ul></div>
+  </div>
+</section>
+
+<section class="dir">
+  <div class="dir-head"><span class="tag">SET</span><h2>제품 17종</h2>
+    <p class="one">배경을 바꾸면 선 색이 자동으로 바뀝니다. 오렌지 배경에서는 강조색이 흰색이 됩니다.</p></div>
+  <div class="switch" role="group" aria-label="배경색">
+    <button data-t="navy" aria-pressed="true">네이비</button><button data-t="ice" aria-pressed="false">아이스블루</button>
+    <button data-t="white" aria-pressed="false">흰색</button><button data-t="orange" aria-pressed="false">오렌지</button>
+  </div>
+  <div class="catalog th-navy" id="catalog">
+<figure class="tile portrait" data-i="0"><div class="pad"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 960" width="440" height="960" class="bp portrait" data-kind="stick_vacuum"><rect class="m" x="160" y="60" width="120" height="150" rx="40"/>
+<rect class="d" x="190" y="90" width="60" height="80" rx="22"/>
+<rect class="d" x="206" y="176" width="28" height="14" rx="5"/>
+<rect class="m" x="140" y="200" width="160" height="270" rx="44"/>
+<rect class="d" x="165" y="225" width="110" height="140" rx="18"/>
+<ellipse class="d" cx="220" cy="255" rx="40" ry="8"/>
+<path class="d" d="M180 300H260M180 330H260"/>
+<rect class="a" x="165" y="385" width="110" height="62" rx="14"/>
+<path class="a" style="stroke-width:3" d="M195 400v32M220 400v32M245 400v32"/>
+<path class="m" d="M196 470v40h48v-40"/>
+<rect class="m" x="190" y="510" width="60" height="26" rx="8"/>
+<path class="m" d="M208 536V826M232 536V826"/>
+<rect class="d" x="200" y="672" width="40" height="16" rx="6"/>
+<circle class="m" cx="220" cy="836" r="16"/>
+<rect class="m" x="70" y="850" width="300" height="50" rx="24"/>
+<rect class="d" x="95" y="866" width="250" height="20" rx="10"/>
+<path class="d" d="M110 866l12 20M140 866l12 20M170 866l12 20M200 866l12 20M230 866l12 20M260 866l12 20M290 866l12 20M320 866l12 20"/>
+<circle class="c" cx="220" cy="416" r="78"/><path class="a" style="stroke-width:3" d="M275 361L330 300H430"/><text class="lb" x="430" y="288" text-anchor="end">BATTERY</text>
+<path class="dm" d="M20 900H420M40 900l-10 12M68 900l-10 12M96 900l-10 12M124 900l-10 12M152 900l-10 12M180 900l-10 12M208 900l-10 12M236 900l-10 12M264 900l-10 12M292 900l-10 12M320 900l-10 12M348 900l-10 12M376 900l-10 12M404 900l-10 12"/><path class="dm" d="M40 60V900M30 60h20M30 900h20"/><path class="dm" d="M70 945H370M70 935v20M370 935v20"/></svg></div><figcaption><b>무선청소기</b><span>stick_vacuum</span></figcaption></figure>
+<figure class="tile landscape" data-i="1"><div class="pad"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 360" width="900" height="360" class="bp landscape" data-kind="robot_vacuum"><text class="tx" x="60" y="24">TOP VIEW</text>
+<circle class="m" cx="200" cy="180" r="140"/>
+<circle class="d" cx="200" cy="180" r="112"/>
+<path class="d" d="M89 116A128 128 0 0 1 311 116"/>
+<circle class="m" cx="200" cy="120" r="30"/><circle class="d" cx="200" cy="120" r="14"/>
+<rect class="d" x="150" y="210" width="100" height="60" rx="14"/>
+<path class="a" d="M95 262L58 248M95 262L84 300M95 262L122 296"/><circle class="af" cx="95" cy="262" r="6"/>
+<circle class="c" cx="200" cy="120" r="52"/><path class="a" style="stroke-width:3" d="M237 83L270 50H400"/><text class="lb" x="410" y="57" text-anchor="start">SENSOR</text>
+<path class="dm" d="M60 344H340M60 334v20M340 334v20"/>
+<text class="tx" x="480" y="150">SIDE VIEW</text>
+<rect class="m" x="480" y="200" width="330" height="80" rx="30"/>
+<rect class="m" x="610" y="172" width="70" height="28" rx="8"/>
+<circle class="d" cx="570" cy="280" r="22"/>
+<path class="d" d="M800 215V265"/>
+<path class="dm" d="M460 302H840M480 302l-10 12M508 302l-10 12M536 302l-10 12M564 302l-10 12M592 302l-10 12M620 302l-10 12M648 302l-10 12M676 302l-10 12M704 302l-10 12M732 302l-10 12M760 302l-10 12M788 302l-10 12M816 302l-10 12"/><path class="dm" d="M870 172V302M860 172h20M860 302h20"/></svg></div><figcaption><b>로봇청소기</b><span>robot_vacuum</span></figcaption></figure>
+<figure class="tile portrait" data-i="2"><div class="pad"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 960" width="440" height="960" class="bp portrait" data-kind="fridge"><rect class="m" x="80" y="250" width="320" height="640" rx="22"/>
+<path class="m" d="M240 250V890M80 610H400M110 890v10M370 890v10"/>
+<path class="d" d="M228 300V430M252 300V430M110 632H210M270 632H370M110 870H370"/>
+<rect class="d" x="108" y="290" width="56" height="34" rx="6"/>
+<path class="dm" d="M20 900H420M40 900l-10 12M68 900l-10 12M96 900l-10 12M124 900l-10 12M152 900l-10 12M180 900l-10 12M208 900l-10 12M236 900l-10 12M264 900l-10 12M292 900l-10 12M320 900l-10 12M348 900l-10 12M376 900l-10 12M404 900l-10 12"/><path class="dm" d="M44 250V900M34 250h20M34 900h20"/>
+<path class="a" d="M80 948H400M80 938v20M400 938v20"/>
+<text class="lb" x="240" y="936" text-anchor="middle">W · 설치 폭</text></svg></div><figcaption><b>냉장고 (4도어)</b><span>fridge</span></figcaption></figure>
+<figure class="tile portrait" data-i="3"><div class="pad"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 960" width="440" height="960" class="bp portrait" data-kind="kimchi_fridge"><rect class="m" x="60" y="300" width="260" height="590" rx="20"/>
+<path class="m" d="M190 300V560M60 560H320M60 725H320M86 890v10M294 890v10"/>
+<path class="d" d="M178 340V460M202 340V460M120 582H260M120 747H260"/>
+<rect class="d" x="82" y="330" width="52" height="30" rx="6"/>
+<circle class="c" cx="190" cy="642" r="92"/><path class="a" style="stroke-width:3" d="M255 577L330 520H436"/><text class="lb" x="436" y="508" text-anchor="end">DRAWER</text>
+<path class="dm" d="M20 900H420M40 900l-10 12M68 900l-10 12M96 900l-10 12M124 900l-10 12M152 900l-10 12M180 900l-10 12M208 900l-10 12M236 900l-10 12M264 900l-10 12M292 900l-10 12M320 900l-10 12M348 900l-10 12M376 900l-10 12M404 900l-10 12"/><path class="dm" d="M30 300V900M20 300h20M20 900h20"/><path class="dm" d="M60 945H320M60 935v20M320 935v20"/></svg></div><figcaption><b>김치냉장고 (스탠드)</b><span>kimchi_fridge</span></figcaption></figure>
+<figure class="tile portrait" data-i="4"><div class="pad"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 960" width="440" height="960" class="bp portrait" data-kind="washer_drum"><rect class="m" x="30" y="400" width="320" height="490" rx="24"/>
+<path class="m" d="M30 480H350M56 890v10M324 890v10"/>
+<circle class="m" cx="310" cy="440" r="20"/>
+<circle class="m" cx="190" cy="680" r="130"/>
+<rect class="m" x="306" y="650" width="14" height="60" rx="6"/>
+
+<rect class="d" x="52" y="414" width="92" height="46" rx="6"/>
+<rect class="d" x="166" y="424" width="100" height="26" rx="5"/>
+<circle class="d" cx="190" cy="680" r="100"/><circle class="d" cx="190" cy="680" r="70"/>
+<path class="d" d="M150 640l20 10M215 700l20 10M200 630l-8 20"/>
+<rect class="d" x="52" y="842" width="60" height="30" rx="6"/>
+<circle class="c" cx="190" cy="680" r="160"/><path class="a" style="stroke-width:3" d="M303 567L370 520H436"/><text class="lb" x="436" y="508" text-anchor="end">DRUM</text>
+
+<path class="dm" d="M20 900H420M40 900l-10 12M68 900l-10 12M96 900l-10 12M124 900l-10 12M152 900l-10 12M180 900l-10 12M208 900l-10 12M236 900l-10 12M264 900l-10 12M292 900l-10 12M320 900l-10 12M348 900l-10 12M376 900l-10 12M404 900l-10 12"/><path class="dm" d="M12 400V900M2 400h20M2 900h20"/><path class="dm" d="M30 945H350M30 935v20M350 935v20"/></svg></div><figcaption><b>드럼세탁기</b><span>washer_drum</span></figcaption></figure>
+<figure class="tile portrait" data-i="5"><div class="pad"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 960" width="440" height="960" class="bp portrait" data-kind="washer_top"><rect class="dd" x="70" y="165" width="240" height="220" rx="16"/>
+<rect class="m" x="30" y="385" width="320" height="55" rx="12"/>
+<rect class="d" x="140" y="398" width="100" height="26" rx="5"/><circle class="d" cx="310" cy="412" r="14"/>
+<rect class="m" x="30" y="440" width="320" height="450" rx="18"/>
+<path class="m" d="M56 890v10M324 890v10"/>
+<path class="d" d="M30 850H350M70 470H310"/>
+<path class="a" d="M335 445C420 380 420 220 330 165M330 165l20 -2M330 165l8 18"/>
+<text class="lb" x="436" y="136" text-anchor="end">TOP-LOAD</text>
+<path class="dm" d="M20 900H420M40 900l-10 12M68 900l-10 12M96 900l-10 12M124 900l-10 12M152 900l-10 12M180 900l-10 12M208 900l-10 12M236 900l-10 12M264 900l-10 12M292 900l-10 12M320 900l-10 12M348 900l-10 12M376 900l-10 12M404 900l-10 12"/><path class="dm" d="M12 385V900M2 385h20M2 900h20"/><path class="dm" d="M30 945H350M30 935v20M350 935v20"/></svg></div><figcaption><b>통돌이 세탁기</b><span>washer_top</span></figcaption></figure>
+<figure class="tile portrait" data-i="6"><div class="pad"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 960" width="440" height="960" class="bp portrait" data-kind="dryer"><rect class="m" x="30" y="400" width="320" height="490" rx="24"/>
+<path class="m" d="M30 480H350M56 890v10M324 890v10"/>
+<circle class="m" cx="310" cy="440" r="20"/>
+<circle class="m" cx="190" cy="680" r="130"/>
+<rect class="m" x="306" y="650" width="14" height="60" rx="6"/>
+
+<rect class="d" x="52" y="414" width="120" height="46" rx="6"/>
+<rect class="d" x="196" y="424" width="80" height="26" rx="5"/>
+<circle class="d" cx="190" cy="680" r="104"/>
+<path class="d" d="M130 640q60-30 120 0M130 680q60-30 120 0M130 720q60-30 120 0"/>
+<rect class="a" x="150" y="752" width="80" height="18" rx="6"/>
+<circle class="c" cx="190" cy="761" r="50"/><path class="a" style="stroke-width:3" d="M240 761H436"/><text class="lb" x="436" y="750" text-anchor="end">FILTER</text>
+
+<path class="dm" d="M20 900H420M40 900l-10 12M68 900l-10 12M96 900l-10 12M124 900l-10 12M152 900l-10 12M180 900l-10 12M208 900l-10 12M236 900l-10 12M264 900l-10 12M292 900l-10 12M320 900l-10 12M348 900l-10 12M376 900l-10 12M404 900l-10 12"/><path class="dm" d="M12 400V900M2 400h20M2 900h20"/><path class="dm" d="M30 945H350M30 935v20M350 935v20"/></svg></div><figcaption><b>건조기</b><span>dryer</span></figcaption></figure>
+<figure class="tile landscape" data-i="7"><div class="pad"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 360" width="900" height="360" class="bp landscape" data-kind="tv"><rect class="m" x="190" y="14" width="520" height="292" rx="10"/>
+<rect class="d" x="202" y="26" width="496" height="268" rx="4"/>
+<path class="m" d="M430 306v16h40v-16"/>
+<rect class="m" x="350" y="322" width="200" height="14" rx="7"/>
+<path class="c" d="M212 286L688 34"/>
+<text class="lb" x="726" y="44">DIAGONAL</text>
+<text class="lb" x="726" y="70">= 인치</text>
+<path class="dm" d="M100 340H800M120 340l-10 12M148 340l-10 12M176 340l-10 12M204 340l-10 12M232 340l-10 12M260 340l-10 12M288 340l-10 12M316 340l-10 12M344 340l-10 12M372 340l-10 12M400 340l-10 12M428 340l-10 12M456 340l-10 12M484 340l-10 12M512 340l-10 12M540 340l-10 12M568 340l-10 12M596 340l-10 12M624 340l-10 12M652 340l-10 12M680 340l-10 12M708 340l-10 12M736 340l-10 12M764 340l-10 12M792 340l-10 12"/><path class="dm" d="M160 14V306M150 14h20M150 306h20"/></svg></div><figcaption><b>TV</b><span>tv</span></figcaption></figure>
+<figure class="tile landscape" data-i="8"><div class="pad"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 360" width="900" height="360" class="bp landscape" data-kind="aircon"><path class="dm" d="M100 20H800M120 20l-10 -12M148 20l-10 -12M176 20l-10 -12M204 20l-10 -12M232 20l-10 -12M260 20l-10 -12M288 20l-10 -12M316 20l-10 -12M344 20l-10 -12M372 20l-10 -12M400 20l-10 -12M428 20l-10 -12M456 20l-10 -12M484 20l-10 -12M512 20l-10 -12M540 20l-10 -12M568 20l-10 -12M596 20l-10 -12M624 20l-10 -12M652 20l-10 -12M680 20l-10 -12M708 20l-10 -12M736 20l-10 -12M764 20l-10 -12M792 20l-10 -12"/>
+<rect class="m" x="120" y="40" width="660" height="160" rx="44"/>
+<path class="d" d="M140 150H760"/>
+<rect class="m" x="170" y="168" width="560" height="20" rx="10"/>
+<rect class="d" x="640" y="80" width="80" height="22" rx="5"/>
+<path class="c" d="M200 214q30 40 0 90M330 214q30 40 0 90M460 214q30 40 0 90M590 214q30 40 0 90"/>
+<text class="lb" x="800" y="270">AIRFLOW</text>
+<path class="dm" d="M120 340H780M120 330v20M780 330v20"/></svg></div><figcaption><b>벽걸이 에어컨</b><span>aircon</span></figcaption></figure>
+<figure class="tile portrait" data-i="9"><div class="pad"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 960" width="440" height="960" class="bp portrait" data-kind="stand_aircon"><rect class="m" x="150" y="110" width="150" height="770" rx="46"/>
+<rect class="m" x="140" y="880" width="170" height="20" rx="8"/>
+<rect class="d" x="172" y="150" width="106" height="300" rx="30"/>
+<path class="d" d="M190 190H260M190 220H260M190 250H260M190 280H260M190 310H260M190 340H260M190 370H260M190 400H260"/>
+<circle class="d" cx="225" cy="500" r="16"/>
+<rect class="d" x="176" y="560" width="98" height="280" rx="20"/>
+<path class="dot" d="M196 590H254M196 620H254M196 650H254M196 680H254M196 710H254M196 740H254M196 770H254M196 800H254"/>
+<circle class="c" cx="225" cy="300" r="110"/><path class="a" style="stroke-width:3" d="M303 222L350 170H436"/><text class="lb" x="436" y="158" text-anchor="end">AIRFLOW</text>
+<path class="dm" d="M20 900H420M40 900l-10 12M68 900l-10 12M96 900l-10 12M124 900l-10 12M152 900l-10 12M180 900l-10 12M208 900l-10 12M236 900l-10 12M264 900l-10 12M292 900l-10 12M320 900l-10 12M348 900l-10 12M376 900l-10 12M404 900l-10 12"/><path class="dm" d="M110 110V900M100 110h20M100 900h20"/><path class="dm" d="M150 945H300M150 935v20M300 935v20"/></svg></div><figcaption><b>스탠드 에어컨</b><span>stand_aircon · 새로 추가</span></figcaption></figure>
+<figure class="tile portrait" data-i="10"><div class="pad"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 960" width="440" height="960" class="bp portrait" data-kind="air_purifier"><rect class="m" x="70" y="300" width="190" height="590" rx="44"/>
+<path class="d" d="M95 330H235M95 348H235M95 366H235M95 384H235"/>
+<circle class="m" cx="165" cy="430" r="30"/><circle class="d" cx="165" cy="430" r="16"/>
+<rect class="d" x="95" y="500" width="140" height="360" rx="22"/>
+<path class="dot" d="M115 530H215M115 558H215M115 586H215M115 614H215M115 642H215M115 670H215M115 698H215M115 726H215M115 754H215M115 782H215M115 810H215"/>
+<path class="dm" d="M262 680H290"/>
+<rect class="d" x="296" y="500" width="24" height="360" rx="8"/>
+<rect class="a" x="330" y="500" width="24" height="360" rx="8"/>
+<rect class="d" x="364" y="500" width="24" height="360" rx="8"/>
+<text class="lb" x="430" y="478" text-anchor="end">FILTER</text>
+<path class="dm" d="M20 900H420M40 900l-10 12M68 900l-10 12M96 900l-10 12M124 900l-10 12M152 900l-10 12M180 900l-10 12M208 900l-10 12M236 900l-10 12M264 900l-10 12M292 900l-10 12M320 900l-10 12M348 900l-10 12M376 900l-10 12M404 900l-10 12"/><path class="dm" d="M40 300V900M30 300h20M30 900h20"/><path class="dm" d="M70 945H260M70 935v20M260 935v20"/></svg></div><figcaption><b>공기청정기</b><span>air_purifier</span></figcaption></figure>
+<figure class="tile landscape" data-i="11"><div class="pad"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 360" width="900" height="360" class="bp landscape" data-kind="microwave"><rect class="m" x="150" y="70" width="600" height="262" rx="18"/>
+<path class="m" d="M590 70V332M190 332v8M710 332v8"/>
+<rect class="m" x="180" y="100" width="380" height="200" rx="10"/>
+<rect class="d" x="196" y="116" width="348" height="168" rx="6"/>
+<rect class="d" x="615" y="100" width="110" height="34" rx="6"/>
+<circle class="m" cx="670" cy="200" r="34"/><circle class="d" cx="670" cy="200" r="8"/>
+<rect class="d" x="625" y="270" width="90" height="26" rx="8"/>
+<ellipse class="c" cx="370" cy="262" rx="140" ry="18"/>
+<path class="a" style="stroke-width:3" d="M230 262H148"/>
+<text class="lb" x="140" y="270" text-anchor="end">CAPACITY</text>
+<path class="dm" d="M100 340H800M120 340l-10 12M148 340l-10 12M176 340l-10 12M204 340l-10 12M232 340l-10 12M260 340l-10 12M288 340l-10 12M316 340l-10 12M344 340l-10 12M372 340l-10 12M400 340l-10 12M428 340l-10 12M456 340l-10 12M484 340l-10 12M512 340l-10 12M540 340l-10 12M568 340l-10 12M596 340l-10 12M624 340l-10 12M652 340l-10 12M680 340l-10 12M708 340l-10 12M736 340l-10 12M764 340l-10 12M792 340l-10 12"/><path class="dm" d="M790 70V332M780 70h20M780 332h20"/></svg></div><figcaption><b>전자레인지</b><span>microwave</span></figcaption></figure>
+<figure class="tile portrait" data-i="12"><div class="pad"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 960" width="440" height="960" class="bp portrait" data-kind="dishwasher"><text class="tx" x="95" y="140">UPPER</text>
+<rect class="dd" x="95" y="150" width="250" height="80" rx="10"/>
+<rect class="d" x="115" y="166" width="30" height="48" rx="6"/><rect class="d" x="160" y="166" width="30" height="48" rx="6"/><rect class="d" x="205" y="166" width="30" height="48" rx="6"/><rect class="d" x="250" y="166" width="30" height="48" rx="6"/><rect class="d" x="295" y="166" width="30" height="48" rx="6"/>
+<text class="tx" x="95" y="280">LOWER</text>
+<rect class="dd" x="95" y="290" width="250" height="110" rx="10"/>
+<path class="a" d="M130 306V384M160 306V384M190 306V384M220 306V384M250 306V384M280 306V384M310 306V384"/>
+<text class="lb" x="436" y="140" text-anchor="end">RACK ×2</text>
+<path class="dm" d="M220 410V438M212 428l8 10 8-10"/>
+<rect class="m" x="70" y="450" width="300" height="440" rx="16"/>
+<path class="m" d="M70 510H370"/>
+<rect class="d" x="250" y="468" width="90" height="26" rx="5"/>
+<rect class="m" x="150" y="530" width="140" height="16" rx="8"/>
+<rect class="d" x="92" y="570" width="256" height="270" rx="10"/>
+<path class="d" d="M70 860H370"/>
+<path class="dm" d="M20 900H420M40 900l-10 12M68 900l-10 12M96 900l-10 12M124 900l-10 12M152 900l-10 12M180 900l-10 12M208 900l-10 12M236 900l-10 12M264 900l-10 12M292 900l-10 12M320 900l-10 12M348 900l-10 12M376 900l-10 12M404 900l-10 12"/><path class="dm" d="M40 450V900M30 450h20M30 900h20"/><path class="dm" d="M70 945H370M70 935v20M370 935v20"/></svg></div><figcaption><b>식기세척기</b><span>dishwasher</span></figcaption></figure>
+<figure class="tile portrait" data-i="13"><div class="pad"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 960" width="440" height="960" class="bp portrait" data-kind="styler"><text class="lb" x="220" y="110" text-anchor="middle">HANGER</text>
+<rect class="m" x="110" y="130" width="220" height="760" rx="16"/>
+<path class="m" d="M130 890v10M310 890v10"/>
+<rect class="d" x="128" y="148" width="184" height="690" rx="10"/>
+<path class="dd" d="M160 300L130 360L160 375L165 560H275L280 375L310 360L280 300"/>
+<path class="a" d="M220 250v-18a12 12 0 1 1 12-12M160 300L220 250L280 300ZM146 252q-12 12 0 24M294 252q12 12 0 24"/>
+<rect class="d" x="190" y="852" width="60" height="18" rx="5"/>
+<path class="dm" d="M20 900H420M40 900l-10 12M68 900l-10 12M96 900l-10 12M124 900l-10 12M152 900l-10 12M180 900l-10 12M208 900l-10 12M236 900l-10 12M264 900l-10 12M292 900l-10 12M320 900l-10 12M348 900l-10 12M376 900l-10 12M404 900l-10 12"/><path class="dm" d="M80 130V900M70 130h20M70 900h20"/><path class="dm" d="M110 945H330M110 935v20M330 935v20"/></svg></div><figcaption><b>의류관리기</b><span>styler · 새로 추가</span></figcaption></figure>
+<figure class="tile portrait" data-i="14"><div class="pad"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 960" width="440" height="960" class="bp portrait" data-kind="water_purifier"><rect class="m" x="110" y="300" width="200" height="590" rx="30"/>
+<path class="m" d="M136 890v10M284 890v10"/>
+<rect class="d" x="160" y="336" width="100" height="40" rx="8"/>
+<circle class="d" cx="170" cy="420" r="12"/><circle class="d" cx="210" cy="420" r="12"/><circle class="d" cx="250" cy="420" r="12"/>
+<rect class="m" x="140" y="500" width="140" height="290" rx="18"/>
+<rect class="m" x="198" y="500" width="24" height="22" rx="6"/>
+<path class="c" d="M210 530V620"/>
+<path class="af" d="M210 630q-12 18 0 28q12-10 0-28"/>
+<path class="dd" d="M172 670L178 760H242L248 670"/>
+<path class="d" d="M160 772H260"/>
+<path class="dm" d="M312 520H334"/>
+<rect class="d" x="340" y="400" width="22" height="240" rx="11"/>
+<rect class="a" x="372" y="400" width="22" height="240" rx="11"/>
+<rect class="d" x="404" y="400" width="22" height="240" rx="11"/>
+<text class="lb" x="430" y="378" text-anchor="end">FILTER</text>
+<path class="dm" d="M20 900H420M40 900l-10 12M68 900l-10 12M96 900l-10 12M124 900l-10 12M152 900l-10 12M180 900l-10 12M208 900l-10 12M236 900l-10 12M264 900l-10 12M292 900l-10 12M320 900l-10 12M348 900l-10 12M376 900l-10 12M404 900l-10 12"/><path class="dm" d="M70 300V900M60 300h20M60 900h20"/><path class="dm" d="M110 945H310M110 935v20M310 935v20"/></svg></div><figcaption><b>정수기</b><span>water_purifier · 새로 추가</span></figcaption></figure>
+<figure class="tile landscape" data-i="15"><div class="pad"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 360" width="900" height="360" class="bp landscape" data-kind="induction"><text class="tx" x="200" y="22">TOP VIEW</text>
+<rect class="m" x="200" y="30" width="500" height="290" rx="22"/>
+<circle class="m" cx="330" cy="160" r="85"/><circle class="d" cx="330" cy="160" r="60"/><circle class="d" cx="330" cy="160" r="35"/>
+<circle class="m" cx="570" cy="110" r="52"/><circle class="d" cx="570" cy="110" r="30"/>
+<circle class="m" cx="570" cy="235" r="58"/><circle class="d" cx="570" cy="235" r="34"/>
+<path class="d" d="M220 282H680"/>
+<circle class="d" cx="300" cy="301" r="7"/><circle class="d" cx="360" cy="301" r="7"/><circle class="d" cx="420" cy="301" r="7"/><circle class="d" cx="480" cy="301" r="7"/><circle class="d" cx="540" cy="301" r="7"/><circle class="d" cx="600" cy="301" r="7"/>
+<circle class="c" cx="330" cy="160" r="110"/><path class="a" style="stroke-width:3" d="M252 82L222 56H195"/><text class="lb" x="190" y="63" text-anchor="end">ZONE</text>
+<path class="dm" d="M200 345H700M200 335v20M700 335v20"/><path class="dm" d="M730 30V320M720 30h20M720 320h20"/></svg></div><figcaption><b>인덕션</b><span>induction · 새로 추가</span></figcaption></figure>
+<figure class="tile portrait" data-i="16"><div class="pad"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 960" width="440" height="960" class="bp portrait" data-kind="generic"><rect class="m" x="90" y="520" width="240" height="370" rx="32"/>
+<rect class="d" x="120" y="560" width="180" height="120" rx="14"/>
+<circle class="d" cx="210" cy="770" r="40"/>
+<path class="m" d="M114 890v10M306 890v10"/>
+<path class="a" d="M330 790C356 790 352 862 366 862"/>
+<g transform="translate(352 820) scale(1.6)"><path class="a" style="stroke-width:2.5" d="M18 4v11M30 4v11"/><rect class="a" style="stroke-width:2.5" x="8" y="15" width="32" height="27" rx="8"/><circle class="af" cx="24" cy="28.5" r="4.6"/></g>
+<text class="tx" x="90" y="500">GENERIC</text>
+<path class="dm" d="M20 900H420M40 900l-10 12M68 900l-10 12M96 900l-10 12M124 900l-10 12M152 900l-10 12M180 900l-10 12M208 900l-10 12M236 900l-10 12M264 900l-10 12M292 900l-10 12M320 900l-10 12M348 900l-10 12M376 900l-10 12M404 900l-10 12"/><path class="dm" d="M50 520V900M40 520h20M40 900h20"/><path class="dm" d="M90 945H330M90 935v20M330 935v20"/></svg></div><figcaption><b>기타 가전 (공통)</b><span>generic</span></figcaption></figure>
+  </div>
+</section>
+
+<section class="dir">
+  <div class="dir-head"><span class="tag">COVER</span><h2>표지에 넣은 모습</h2>
+    <p class="one">세로형은 오른쪽, 가로형은 위쪽에 둡니다. 가로형 표지는 제목을 3줄까지만 씁니다. 문구는 브랜드 가이드 예시입니다.</p></div>
+  <div class="cards">
+    <figure class="shot">
+      <div class="card gridbg th-ice">
+        <i class="crop tl"></i><i class="crop tr"></i><i class="crop bl"></i><i class="crop br"></i>
+        <div class="file mono">家電所 LAB · <b>FILE 0000</b> · FRIDGE</div>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 960" width="440" height="960" class="bp portrait" data-kind="fridge"><rect class="m" x="80" y="250" width="320" height="640" rx="22"/>
+<path class="m" d="M240 250V890M80 610H400M110 890v10M370 890v10"/>
+<path class="d" d="M228 300V430M252 300V430M110 632H210M270 632H370M110 870H370"/>
+<rect class="d" x="108" y="290" width="56" height="34" rx="6"/>
+<path class="dm" d="M20 900H420M40 900l-10 12M68 900l-10 12M96 900l-10 12M124 900l-10 12M152 900l-10 12M180 900l-10 12M208 900l-10 12M236 900l-10 12M264 900l-10 12M292 900l-10 12M320 900l-10 12M348 900l-10 12M376 900l-10 12M404 900l-10 12"/><path class="dm" d="M44 250V900M34 250h20M34 900h20"/>
+<path class="a" d="M80 948H400M80 938v20M400 938v20"/>
+<text class="lb" x="240" y="936" text-anchor="middle">W · 설치 폭</text></svg>
+        <div class="ctag">비교·계산</div>
+        <h1>냉장고,<br>몇 리터가<br>우리 집에<br>맞을까</h1>
+        <div class="sub">가족 수별 권장 용량</div>
+        <div class="pageno mono">01/05</div><div class="swipe mono">SWIPE →</div>
+      </div><figcaption><b>세로형 · 냉장고</b>아이스블루 표지</figcaption>
+    </figure>
+    <figure class="shot">
+      <div class="card gridbg th-navy land">
+        <i class="crop tl"></i><i class="crop tr"></i><i class="crop bl"></i><i class="crop br"></i>
+        <div class="file mono">家電所 LAB · <b>FILE 0000</b> · TV</div>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 360" width="900" height="360" class="bp landscape" data-kind="tv"><rect class="m" x="190" y="14" width="520" height="292" rx="10"/>
+<rect class="d" x="202" y="26" width="496" height="268" rx="4"/>
+<path class="m" d="M430 306v16h40v-16"/>
+<rect class="m" x="350" y="322" width="200" height="14" rx="7"/>
+<path class="c" d="M212 286L688 34"/>
+<text class="lb" x="726" y="44">DIAGONAL</text>
+<text class="lb" x="726" y="70">= 인치</text>
+<path class="dm" d="M100 340H800M120 340l-10 12M148 340l-10 12M176 340l-10 12M204 340l-10 12M232 340l-10 12M260 340l-10 12M288 340l-10 12M316 340l-10 12M344 340l-10 12M372 340l-10 12M400 340l-10 12M428 340l-10 12M456 340l-10 12M484 340l-10 12M512 340l-10 12M540 340l-10 12M568 340l-10 12M596 340l-10 12M624 340l-10 12M652 340l-10 12M680 340l-10 12M708 340l-10 12M736 340l-10 12M764 340l-10 12M792 340l-10 12"/><path class="dm" d="M160 14V306M150 14h20M150 306h20"/></svg>
+        <div class="ctag">가이드</div>
+        <h1>TV,<br>인치보다<br>시청거리가 먼저</h1>
+        <div class="sub">"생각보다 작네" 를 피하는 법</div>
+        <div class="pageno mono">01/05</div><div class="swipe mono">SWIPE →</div>
+      </div><figcaption><b>가로형 · TV</b>네이비 표지</figcaption>
+    </figure>
+  </div>
+</section>
+</div>
+<div class="modal" id="modal"><div class="box gridbg" id="mbox"></div></div>
+<script>
+  const cat = document.getElementById('catalog');
+  const setTheme = t => {
+    cat.className = 'catalog th-' + t;
+    document.querySelectorAll('.switch button').forEach(b => b.setAttribute('aria-pressed', b.dataset.t === t));
+  };
+  document.querySelectorAll('.switch button').forEach(b => b.onclick = () => setTheme(b.dataset.t));
+  const modal = document.getElementById('modal'), mbox = document.getElementById('mbox');
+  cat.addEventListener('click', e => {
+    const tile = e.target.closest('.tile'); if (!tile) return;
+    mbox.className = 'box gridbg ' + [...cat.classList].find(c => c.startsWith('th-'));
+    mbox.innerHTML = tile.querySelector('svg').outerHTML; modal.classList.add('on');
+  });
+  modal.onclick = () => modal.classList.remove('on');
+
+  // 확인용: #draw=N&t=테마 → N번 도면만 실제 크기 / #card=N → N번 표지만 실제 크기
+  const h = new URLSearchParams(location.hash.slice(1));
+  if (h.has('draw')) {
+    const s = document.querySelectorAll('#catalog svg')[+h.get('draw')];
+    const box = document.createElement('div'); box.className = 'gridbg th-' + (h.get('t') || 'navy');
+    box.style.cssText = 'display:inline-block;line-height:0'; box.append(s);
+    document.body.replaceChildren(box); document.body.style.cssText = 'margin:0;background:none';
+  } else if (h.has('card')) {
+    const c = document.querySelectorAll('.card')[+h.get('card')];
+    document.body.replaceChildren(c); document.body.style.cssText = 'margin:0;background:none';
+    c.style.cssText += ';zoom:1;border-radius:0;box-shadow:none';
+  }
+</script>
+</body>
+</html>

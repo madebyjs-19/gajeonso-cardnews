@@ -66,7 +66,8 @@
    - 결과를 네이비 배경 위에 합성해서 직접 열어 확인한다. 윤곽이 지저분하거나 제품이 잘리면 다른 이미지로 다시 시도한다(최대 5회).
    - 이미 투명 PNG인 이미지는 그대로 쓴다.
 3. 적합한 실물 이미지를 끝내 못 찾았거나 배경 제거가 안 되면 사용자에게 묻지 말고, 브랜드 스타일 일러스트를 넣는다.
-   - 카드 spec 의 image(표지는 product_cover 의 image)에 "illust:종류"를 쓰면 생성기가 일러스트를 그려 넣는다. 종류: stick_vacuum(무선청소기), robot_vacuum(로봇청소기), fridge(냉장고), kimchi_fridge(김치냉장고), washer(세탁기, 드럼형), washer_drum(드럼세탁기), washer_top(통돌이 세탁기), dryer(건조기), tv, aircon(벽걸이 에어컨), air_purifier(공기청정기), microwave(전자레인지·오븐), dishwasher(식기세척기), generic(그 외).
+   - 카드 spec 의 image(표지는 product_cover 의 image)에 "illust:종류"를 쓰면 생성기가 제품 도면(assets/blueprints/)을 넣는다. 종류: stick_vacuum(무선청소기), robot_vacuum(로봇청소기), fridge(냉장고), kimchi_fridge(김치냉장고), washer(세탁기, 드럼형), washer_drum(드럼세탁기), washer_top(통돌이 세탁기), dryer(건조기), tv, aircon(벽걸이 에어컨), stand_aircon(스탠드 에어컨), air_purifier(공기청정기), microwave(전자레인지·오븐), dishwasher(식기세척기), styler(의류관리기), water_purifier(정수기), induction(인덕션·전기레인지), generic(그 외).
+   - 도면에는 주제 부품 한 곳이 오렌지로 표시되어 있다(예: 무선청소기=배터리, 건조기=필터, TV=대각선 인치, 냉장고=설치 폭). 세로형 제품은 표지 오른쪽, 가로형(robot_vacuum, tv, aircon, microwave, induction)은 표지 위쪽에 들어간다.
    - 제품군에 가장 가까운 종류를 고른다. 드럼 vs 통돌이처럼 같은 제품군의 두 방식을 비교하는 표지는 washer_drum + washer_top 을 쓴다. 일러스트를 쓴 카드에는 "※ 이해를 돕기 위한 일러스트입니다"가 자동으로 표기된다.
    - 일러스트는 특정 모델의 실물처럼 보이게 꾸미지 않는다(모델명·로고·고유 디자인 표현 금지). approval.txt 에 "제품 이미지: 일러스트 사용"이라고 명시한다.
 4. 제품 이미지 자체에는 배경·프레임·테두리·그림자 상자를 두지 않고 제품 전체 모습만 쓴다. 비율을 유지하고, 늘리거나 자르지 않는다.
@@ -79,14 +80,17 @@
 [생성 방법]
 1. 저장소의 gen_cards.py 와 gajeonso_logo.png 가 있는지 확인한다.
    없으면 카드를 만들지 말고 step5(중단 기록)로 간다.
-2. 필요한 패키지: python3.13 -m pip install pillow qrcode numpy. 폰트는 스크립트가 자동으로 내려받는다(fonts/, 커밋하지 않는다): 본문 Pretendard, 표지·강조용 Do Hyeon.
-   Do Hyeon 다운로드가 실패하면 생성기가 "COVER_FONT_FALLBACK" 를 출력한다. 이 문구가 출력되면 approval.txt 에 "표지 폰트: 대체 폰트 사용"이라고 명시한다.
-3. deck.json 을 작성한다.
-   { "cover_color": "navy|ice|white|orange", "cover_style": "v2",
+2. 필요한 패키지: python3.13 -m pip install pillow qrcode numpy. 폰트는 스크립트가 자동으로 내려받는다(fonts/, 커밋하지 않는다): 제목·본문 Pretendard(ExtraBold 포함), 라벨·숫자용 IBM Plex Mono.
+   Plex Mono 다운로드가 실패하면 생성기가 "MONO_FONT_FALLBACK" 를 출력한다. 이 문구가 출력되면 approval.txt 에 "라벨 폰트: 대체 폰트 사용"이라고 명시한다.
+3. deck.json 을 작성한다. 디자인은 "연구소 리포트"(design: "lab")를 쓴다.
+   { "design": "lab", "cover_color": "navy|ice|white|orange",
      "cards": [ 카드 5개 ] }
+   (예전 회차를 예전 디자인으로 다시 만들 때만 "design" 대신 "cover_style": "v2" 를 쓴다.)
    카드 유형 (type):
-   - product_cover : tag, title(2줄, "\n"), subtitle, image(컷아웃 PNG 경로 또는 "illust:종류") → 1장 표지 기본형
-   - cover   : tag, title(2줄), subtitle, visuals(0~2개), badge(비교형 "VS"), logo:true(브랜드 소개 게시물 1장에만, white 표지)
+   - product_cover : tag, title(2줄, "\n"), subtitle, image(컷아웃 PNG 경로 또는 "illust:종류"), file_tag(선택) → 1장 표지 기본형
+     · 제목은 생성기가 표지 왼쪽 칸 너비에 맞춰 띄어쓰기 단위로 자동 줄바꿈한다(보통 3~4줄로 보인다). 한 줄에 억지로 맞추지 않는다.
+     · file_tag: 왼쪽 위 "가전소 LAB · FILE MMDD · ○○" 의 끝 단어(영문 대문자 한 단어, 예: BATTERY). 없으면 제품군 이름이 자동으로 들어간다.
+   - cover   : tag, title(2줄), subtitle, visuals(0~2개), badge(비교형 "VS"), logo:true(브랜드 소개 게시물 1장에만, white 표지 — 이 카드만 예전 레이아웃)
    - formula : title, kicker, big(핵심 수치), tail, example
    - table   : title, rows[[항목,값]…](최대 6행), footnote
    - checklist: title, items[…](최대 5개, 항목당 한 줄 한 가지)
@@ -94,13 +98,13 @@
    - steps   : title, steps[[단계명,설명]…](최대 4)
    - contact : title, items[[이름,설명,번호]…]  (번호는 공식 출처로 확인된 것만)
    - review  : tag, quote, meta, initial, name  (실제 상담 고객 후기만. 없으면 사용 금지)
-   - deal    : tag, pct, product, original, price, note  (실제 확인된 특가만)
+   - deal    : title(선택, 기본 "특가 정보"), tag, pct, product, original, price, note  (실제 확인된 특가만)
    - cta     : question(2줄), dm(2줄)  → question 은 저장·공유를 부르는 문구, dm 은 저장·공유 요청 + 한 줄 상담 안내 (아래 [말투] 참고)
    - product : tag, title, subtitle, specs[[항목,값]…](최대 4), image, price/original/price_note(공식 확인된 가격만), bg
    - poster  : mode "headline" → tag, headline(최대 3줄), highlight, subtitle, burst_top/burst_main/burst_sub, image, note, bg(orange|blue|navy)
                mode "benefits" → title, subtitle, items[[혜택명,설명,값(선택)]…](최대 4), note, bg
 4. 실행: python3.13 gen_cards.py deck.json out/RUN  → out/RUN/card1~5.png 와 card1~5.jpg 가 만들어진다. JPG(1080×1350)를 업로드·발행에 쓴다.
-   만든 card1 을 직접 열어 표지 제목이 Do Hyeon 으로, [표지 디자인 규칙]대로 그려졌는지 확인한다. 이전 방식의 표지(중앙 정렬 Pretendard 제목 등)가 나오면 직접 새로 그리지 말고 그대로 진행하되, approval.txt 에 "표지 v2 미적용(생성기 업데이트 필요)"이라고 명시한다.
+   만든 card1~5 를 직접 열어 [표지 디자인 규칙]대로 그려졌는지(모눈 배경, 왼쪽 위 FILE 라벨, 오른쪽 위 빈 로고 칸, 도면 또는 제품 컷) 확인한다. 모눈 배경이 없는 예전 방식 카드가 나오면 직접 새로 그리지 말고 그대로 진행하되, approval.txt 에 "연구소 디자인 미적용(생성기 업데이트 필요)"이라고 명시한다.
 5. 생성이 끝나면 곧바로 [대표 로고] 규칙대로 card1 에 로고를 넣고 확인한다. 이 단계가 끝나기 전에는 step4 로 가지 않는다.
 6. 기본 슬라이드 릴스(make_reel.py)는 더 이상 만들지도 올리지도 않는다. 릴스는 사용자가 보낸 Flow 영상이 있을 때만 Actions 가 발행하고, 영상이 없으면 카드뉴스(캐러셀)만 발행된다. reel.mp4 를 만들거나 푸시하지 않는다.
 7. Flow 영상 프롬프트·팝업 자막·이미지 자료 (사용자가 Google Flow 에서 영상을 만들어 텔레그램으로 보내면 Actions 가 그 영상으로 릴스를 바꿔 발행한다. 보내지 않으면 6번의 기본 릴스로 발행된다.)
@@ -125,26 +129,27 @@
 - 제목·부제의 수치는 본문 카드와 출처에서 확인된 값이어야 한다.
 - 로고는 항상 표지 우측 상단(x=880~990, y=60~210)에 넣는다(stamp_logo.py 의 top-right). top-right 에 자리가 없어 다른 위치로 합성되면 deck.json 을 고쳐 제목·태그가 우측 상단을 침범하지 않게 다시 만든 뒤 합성한다.
 
-[표지 디자인 규칙: 1장(cover·product_cover). 유형 C의 poster 표지는 [포스터형]을 따르되 폰트·로고 규칙만 이 문서 기준을 쓴다]
-목표: 피드에서 한눈에 들어오는 표지. 장식(밑줄·형광펜 바)이 아니라 크기·색 위계·큰 제품 컷으로 눈에 띄게 한다. 속지(2~4장)와 CTA(5장)는 기존 깔끔한 템플릿을 유지한다.
-- 폰트: 태그·제목·VS 배지·제품 라벨·표지 페이지 번호는 Do Hyeon, 부제·"넘겨서 확인하기" 문구·면책 문구는 Pretendard.
-- 정렬: 표지는 좌측 정렬(왼쪽 기준선 x=90).
-- 레이아웃(1080×1350 기준, 위에서 아래로)
-  1) 태그: 좌상단 x=90, y=105, 높이 74, 알약형. Do Hyeon 38px. 문구는 유형 표시 한두 단어(예: 비교 가이드 / 구매 가이드 / 신제품 소식 / 서비스 안내).
-  2) 제목: 2줄, Do Hyeon 128px, 기준선 y=330·470. 1줄=대상(핵심어), 2줄=질문 또는 결론. 한 줄은 공백 포함 10자 안팎, 폭 900px 초과 시 8px씩 줄여 맞춘다(최소 96px). 비교형의 "vs"는 78px 시그니처 블루.
-  3) 부제: Pretendard Medium 40px, 기준선 y=575, 한 줄 20자 이내.
-  4) 제품 영역: 둥근 카드(모서리 40px) x=90~990, y=630~1080. 흰색(#FDFEFE), white 표지는 #EEF3FA. 제품 컷은 카드 안에서 높이 80% 안팎으로 크게.
-     - 제품 1개: 중앙 배치. 제품 2개(비교형): 좌우 배치 + 가운데 지름 116px 주황 "VS" 배지 + 제품별 Do Hyeon 46px 네이비 라벨.
-     - 일러스트를 쓴 경우 카드 하단에 "※ 이해를 돕기 위한 일러스트입니다"(22px 웜 그레이).
-  5) 하단: 좌하단 "넘겨서 확인하기 →"(Pretendard Medium 34px, y=1210)와 "1 / 5"(Do Hyeon 34px, y=1262). 우측 하단 상담 배지(QR).
-  6) 콘센트 심볼은 표지에서 쓰지 않는다. 우측 상단(x=880~990, y=60~210)은 로고 자리이므로 제목 첫 줄이 침범하지 않게 한다.
-- 표지색별 색 조합
-  | cover_color | 배경 | 제목 1줄 | 제목 2줄 | 부제 | 태그 알약 | VS 배지 | 테두리 |
-  | ice    | #DCE8F5 | #1A2A4A | #2E5EAA | #2E5EAA | 주황 #FF8A3D, 흰 글씨 | 주황 | 6px 네이비, 안쪽 30px |
-  | white  | #FDFEFE | #1A2A4A | #2E5EAA | #2E5EAA | 주황, 흰 글씨 | 주황 | 네이비 2px |
-  | navy   | #1A2A4A | #F7F8FA | #8FA5C7 | #8FA5C7 | 주황, 흰 글씨 | 주황 | 없음 |
-  | orange | #FF8A3D | #1A2A4A | #1A2A4A | #1A2A4A | 네이비, 오프화이트 글씨 | 네이비 | 없음 |
-- 강조 방식: 밑줄·형광펜 바·박스 같은 장식 강조는 쓰지 않는다. 주황은 태그와 VS 배지에만 쓴다.
+[표지 디자인 규칙: 연구소 리포트(design "lab") — 생성기가 자동으로 그린다. 이 규칙은 결과 확인용]
+목표: '가전, 제대로 알고 사는 곳'을 연구소 설계 도면처럼 보여 준다. 큰 제목과 제품 도면으로 피드에서 눈에 띄게 하고, 내용 카드는 스펙 시트처럼 정리한다.
+- 공통 모티프(5장 모두): 54px 모눈 배경, 네 모서리 크롭 마크, 왼쪽 위 FILE 라벨(IBM Plex Mono), 흰 스펙 시트 패널(네이비 3px 테두리), 페이지 번호 "01/05".
+- 폰트: 제목·본문 Pretendard(제목 ExtraBold), 라벨·숫자·페이지 번호는 IBM Plex Mono.
+- 1장 표지 레이아웃(1080×1350)
+  1) 왼쪽 위: "가전소 LAB · FILE MMDD · 제품군" 라벨(FILE 번호는 회차 날짜).
+  2) 오른쪽 위(x=820~1040, y=24~252): 모눈 없는 빈 로고 칸. stamp_logo.py 가 이 칸에 로고를 넣는다(LOGO_OK top-right).
+  3) 세로형 제품: 오른쪽 칸(x=570~1010)에 도면 또는 제품 컷을 바닥선 위에 세운다. 제목은 왼쪽 칸(폭 470px), 태그 y=470, 제목 y=550부터 최대 112px.
+     가로형 제품(robot_vacuum, tv, aircon, microwave, induction 또는 가로로 긴 사진): 도면을 위쪽(y=250~610)에 두고 제목은 아래에 전체 폭으로.
+     제품 2개(비교형): 오른쪽 칸 위아래 + 가운데 주황 "VS" 원.
+  4) 부제: 제목 바로 아래 Pretendard Medium 30px, 최대 2줄.
+  5) 일러스트(도면)를 쓴 경우 왼쪽 아래에 "※ 이해를 돕기 위한 일러스트입니다". 맨 아래 "01/05"와 "SWIPE →".
+  6) 콘센트 심볼은 표지에서 쓰지 않는다(로고 칸 자리).
+- 표지색별 색 조합(모눈 색은 배경에 맞춰 자동)
+  | cover_color | 배경 | 제목 | 부제 | 태그 알약 | 도면 선 |
+  | navy   | #1A2A4A | #F7F8FA | #DCE8F5 | 주황, 네이비 글씨 | 아이스블루 |
+  | ice    | #DCE8F5 | #1A2A4A | #6B7688 | 네이비, 오프화이트 글씨 | 네이비 |
+  | white  | #FDFEFE | #1A2A4A | #6B7688 | 아이스블루, 네이비 글씨 | 네이비 |
+  | orange | #FF8A3D | #1A2A4A | #1A2A4A | 네이비, 오프화이트 글씨 | 네이비(강조는 흰색) |
+- 강조 방식: 밑줄·형광펜 바 같은 장식 강조는 쓰지 않는다. 주황은 태그, FILE 번호, 도면의 강조 부품, VS 원, 특가 가격, 스텝의 마지막 단계에만 쓴다.
+- 내용 카드 배경: table·compare·contact 는 아이스블루, 나머지와 CTA 는 흰색(카드 spec 의 bg 로 바꿀 수 있다). 5장 CTA 는 네이비 '상담 접수증'(질문 → 점선 → QR·DM 안내) 아래에 원형 로고와 "가전, 제대로 알고 사는 곳".
 
 [대표 로고: 모든 게시물의 1장(표지)에 항상 삽입]
 - 로고 원본은 저장소의 gajeonso_logo.png 하나뿐이다. 다시 그리거나 모양·비율·글자를 바꾸지 않는다.
@@ -226,7 +231,7 @@ if __name__ == "__main__":
 ```
 
 [포스터형: 유형 C(혜택·행사) 전용]
-- 큰 헤드라인(최대 3줄), 강조 줄 하이라이트, 별 모양 버스트 배지(핵심 혜택 한 가지), 번호 붙은 큰 혜택 카드, 큰 숫자를 쓴다.
+- 큰 헤드라인(최대 3줄), 강조 줄 하이라이트(네이비 상자), 원형 스탬프 배지(burst_*, 핵심 혜택 한 가지), 번호 붙은 큰 혜택 카드, 큰 숫자를 쓴다.
 - 구성 예: 1장 poster(headline) → 2장 poster(benefits) → 3장 table(기간·조건) 또는 poster(headline, 제품 이미지) → 4장 checklist(유의사항) → 5장 cta.
 - 버스트 배지의 수치와 기간·조건은 공식 출처로 확인된 것만 쓴다. 확인되지 않으면 비운다.
 - 형광색·이모지는 쓰지 않는다. 과장·느낌표 남발 금지.
@@ -242,15 +247,15 @@ if __name__ == "__main__":
 - 구매 판단에 쓰이는 정보(정격 소비전력, 용량, 규격, 요금 구간, 지원 조건 등)를 우선한다.
 
 [구조: 게시물은 항상 5장]
-1장 표지(로고 포함) → 2~4장 내용(한 장에 메시지 하나, 흰 배경) → 5장 CTA(네이비 배경). 수치·가격·후기 카드는 하단에 면책 한 줄.
+1장 표지(로고 포함) → 2~4장 내용(한 장에 메시지 하나, 흰색·아이스블루 모눈 배경) → 5장 CTA(상담 접수증). 수치·가격·후기 카드는 하단에 면책 한 줄.
 
 [디자인 규칙 요약(생성기에 반영됨)]
-- 캔버스 1080×1350. 본문 Pretendard, 표지·강조 Do Hyeon.
+- 캔버스 1080×1350. 연구소 리포트 디자인: 제목·본문 Pretendard, 라벨·숫자 IBM Plex Mono. 도면 원본은 design/blueprints/(수정 후 render_png.sh 로 assets/blueprints/ 갱신).
 - 색: 딥 네이비 #1A2A4A, 시그니처 블루 #2E5EAA, 아이스 블루 #DCE8F5, 화이트 #FDFEFE, 오프화이트 #F7F8FA, 웜 그레이 #6B7688, 라이트 그레이 #9AA6B2, 오렌지 #FF8A3D.
 - 이모지·과장 표현·형광색·느낌표 남발 금지.
 
-[상담 배지: 모든 카드 우측 하단 고정 — 생성기가 자동 처리]
-- 카카오톡 채널 QR(http://pf.kakao.com/_PHwrX/chat) + "상담문의 · 가전소"
+[상담 배지: 생성기가 자동 처리]
+- 카카오톡 채널 QR(http://pf.kakao.com/_PHwrX/chat) + "상담문의 · 가전소". 2~4장은 우측 하단 작은 배지, 5장은 상담 접수증 안의 큰 QR. 1장 표지는 QR 대신 로고 칸을 둔다.
 - "롯데하이마트 정왕역점" 및 매장 안내·위치·연락처 문구는 카드·캡션·메시지 어디에도 쓰지 않는다.
 
 [말투]
@@ -284,7 +289,7 @@ if __name__ == "__main__":
        [가전소 카드뉴스 승인 요청 RUN]
        주제 한 줄 요약 / 유형 / 표지색·2~4장 카드 유형과 선택 이유 한 줄 /
        사용한 수치와 출처 URL(전체 링크) / 제품 이미지 출처 URL(또는 "제품 이미지: 일러스트 사용")과 사용권 확인 필요 여부 /
-       표지 폰트·표지 v2 적용 여부 / 표지 제목 형태(사실형·질문손실형)와 공유 동기 한 줄 / 미확인 항목
+       연구소 디자인 적용 여부·대체 폰트 사용 여부 / 표지 제목 형태(사실형·질문손실형)와 공유 동기 한 줄 / 미확인 항목
 2. 커밋 대상은 cards/RUN/ 뿐이다(fonts/, img/, out/, deck.json, stamp_logo.py 는 커밋하지 않는다).
    위 파일 전부를 **한 커밋**으로 묶어 main 에 푸시한다(git pull --rebase origin main 후 git push origin HEAD:main, 네트워크 오류 시 2·4·8·16초 간격 재시도).
    approval.txt 가 main 에 들어가는 순간 GitHub Actions 가 시작되므로, 카드·캡션이 다 준비되기 전에 approval.txt 를 푸시하지 않는다.
@@ -308,7 +313,7 @@ if __name__ == "__main__":
 - 실물 제품 이미지는 공식·신뢰 출처에서만 가져오고 출처를 기록한다. 실물을 못 구하면 일러스트("illust:")를 쓰되 실제 제품 사진처럼 보이게 하지 않는다. 이미지 때문에 사용자에게 파일을 요청하지 않는다
 - 직전 회차와 같은 주제를 반복하지 않는다
 - 모든 게시물의 1장에는 대표 로고(gajeonso_logo.png 기반, 네이비 라인)를 항상 넣는다. 로고가 없는 1장은 푸시하지 않는다
-- 표지 제목에 장식 강조를 넣지 않는다. 표지의 주황은 태그와 VS 배지에만 쓴다
+- 표지 제목에 장식 강조를 넣지 않는다. 주황은 태그·FILE 번호·도면 강조 부품·VS 원에만 쓴다
 - 표지색은 의미 규칙을 우선하되 선택지가 여럿이면 직전 회차와 다른 색을 쓴다. 2~4장 카드 유형은 한 게시물 안에서 중복하지 않는다
 - 이 루틴은 Instagram·Facebook 에 직접 게시하지 않는다. 발행은 텔레그램 [발행] 버튼을 누른 뒤 GitHub Actions 만 한다
 - 토큰·시크릿 값은 어떤 출력, 로그, 파일, 커밋에도 남기지 않는다

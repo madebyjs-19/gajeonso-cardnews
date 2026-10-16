@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 960" width="440" height="960" class="bp portrait" data-kind="stand_aircon"><style>svg{--line:#DCE8F5;--dimc:#8FA5C7;--acc:#FF8A3D}
+.m{fill:none;stroke:var(--line);stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+.d{fill:none;stroke:var(--line);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;opacity:.55}
+.dd{fill:none;stroke:var(--line);stroke-width:2.5;stroke-linecap:round;stroke-dasharray:8 8;opacity:.6}
+.dot{fill:none;stroke:var(--line);stroke-width:4;stroke-linecap:round;stroke-dasharray:0 14;opacity:.55}
+.a{fill:none;stroke:var(--acc);stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+.af{fill:var(--acc);stroke:none}
+.c{fill:none;stroke:var(--acc);stroke-width:3;stroke-dasharray:10 10;stroke-linecap:round}
+.dm{fill:none;stroke:var(--dimc);stroke-width:2;stroke-linecap:round}
+text{font-family:"IBM Plex Mono","Pretendard Variable",monospace;font-size:21px;font-weight:600;letter-spacing:.06em}
+.lb{fill:var(--acc)} .tx{fill:var(--dimc)}
+</style><rect class="m" x="150" y="110" width="150" height="770" rx="46"/>
+<rect class="m" x="140" y="880" width="170" height="20" rx="8"/>
+<rect class="d" x="172" y="150" width="106" height="300" rx="30"/>
+<path class="d" d="M190 190H260M190 220H260M190 250H260M190 280H260M190 310H260M190 340H260M190 370H260M190 400H260"/>
+<circle class="d" cx="225" cy="500" r="16"/>
+<rect class="d" x="176" y="560" width="98" height="280" rx="20"/>
+<path class="dot" d="M196 590H254M196 620H254M196 650H254M196 680H254M196 710H254M196 740H254M196 770H254M196 800H254"/>
+<circle class="c" cx="225" cy="300" r="110"/><path class="a" style="stroke-width:3" d="M303 222L350 170H436"/><text class="lb" x="436" y="158" text-anchor="end">AIRFLOW</text>
+<path class="dm" d="M20 900H420M40 900l-10 12M68 900l-10 12M96 900l-10 12M124 900l-10 12M152 900l-10 12M180 900l-10 12M208 900l-10 12M236 900l-10 12M264 900l-10 12M292 900l-10 12M320 900l-10 12M348 900l-10 12M376 900l-10 12M404 900l-10 12"/><path class="dm" d="M110 110V900M100 110h20M100 900h20"/><path class="dm" d="M150 945H300M150 935v20M300 935v20"/></svg>
