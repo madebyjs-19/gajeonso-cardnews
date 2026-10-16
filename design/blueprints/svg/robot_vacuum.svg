@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 360" width="900" height="360" class="bp landscape" data-kind="robot_vacuum"><style>svg{--line:#DCE8F5;--dimc:#8FA5C7;--acc:#FF8A3D}
+.m{fill:none;stroke:var(--line);stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+.d{fill:none;stroke:var(--line);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;opacity:.55}
+.dd{fill:none;stroke:var(--line);stroke-width:2.5;stroke-linecap:round;stroke-dasharray:8 8;opacity:.6}
+.dot{fill:none;stroke:var(--line);stroke-width:4;stroke-linecap:round;stroke-dasharray:0 14;opacity:.55}
+.a{fill:none;stroke:var(--acc);stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+.af{fill:var(--acc);stroke:none}
+.c{fill:none;stroke:var(--acc);stroke-width:3;stroke-dasharray:10 10;stroke-linecap:round}
+.dm{fill:none;stroke:var(--dimc);stroke-width:2;stroke-linecap:round}
+text{font-family:"IBM Plex Mono","Pretendard Variable",monospace;font-size:21px;font-weight:600;letter-spacing:.06em}
+.lb{fill:var(--acc)} .tx{fill:var(--dimc)}
+</style><text class="tx" x="60" y="24">TOP VIEW</text>
+<circle class="m" cx="200" cy="180" r="140"/>
+<circle class="d" cx="200" cy="180" r="112"/>
+<path class="d" d="M89 116A128 128 0 0 1 311 116"/>
+<circle class="m" cx="200" cy="120" r="30"/><circle class="d" cx="200" cy="120" r="14"/>
+<rect class="d" x="150" y="210" width="100" height="60" rx="14"/>
+<path class="a" d="M95 262L58 248M95 262L84 300M95 262L122 296"/><circle class="af" cx="95" cy="262" r="6"/>
+<circle class="c" cx="200" cy="120" r="52"/><path class="a" style="stroke-width:3" d="M237 83L270 50H400"/><text class="lb" x="410" y="57" text-anchor="start">SENSOR</text>
+<path class="dm" d="M60 344H340M60 334v20M340 334v20"/>
+<text class="tx" x="480" y="150">SIDE VIEW</text>
+<rect class="m" x="480" y="200" width="330" height="80" rx="30"/>
+<rect class="m" x="610" y="172" width="70" height="28" rx="8"/>
+<circle class="d" cx="570" cy="280" r="22"/>
+<path class="d" d="M800 215V265"/>
+<path class="dm" d="M460 302H840M480 302l-10 12M508 302l-10 12M536 302l-10 12M564 302l-10 12M592 302l-10 12M620 302l-10 12M648 302l-10 12M676 302l-10 12M704 302l-10 12M732 302l-10 12M760 302l-10 12M788 302l-10 12M816 302l-10 12"/><path class="dm" d="M870 172V302M860 172h20M860 302h20"/></svg>

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 960" width="440" height="960" class="bp portrait" data-kind="washer_top"><style>svg{--line:#DCE8F5;--dimc:#8FA5C7;--acc:#FF8A3D}
+.m{fill:none;stroke:var(--line);stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+.d{fill:none;stroke:var(--line);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;opacity:.55}
+.dd{fill:none;stroke:var(--line);stroke-width:2.5;stroke-linecap:round;stroke-dasharray:8 8;opacity:.6}
+.dot{fill:none;stroke:var(--line);stroke-width:4;stroke-linecap:round;stroke-dasharray:0 14;opacity:.55}
+.a{fill:none;stroke:var(--acc);stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+.af{fill:var(--acc);stroke:none}
+.c{fill:none;stroke:var(--acc);stroke-width:3;stroke-dasharray:10 10;stroke-linecap:round}
+.dm{fill:none;stroke:var(--dimc);stroke-width:2;stroke-linecap:round}
+text{font-family:"IBM Plex Mono","Pretendard Variable",monospace;font-size:21px;font-weight:600;letter-spacing:.06em}
+.lb{fill:var(--acc)} .tx{fill:var(--dimc)}
+</style><rect class="dd" x="70" y="165" width="240" height="220" rx="16"/>
+<rect class="m" x="30" y="385" width="320" height="55" rx="12"/>
+<rect class="d" x="140" y="398" width="100" height="26" rx="5"/><circle class="d" cx="310" cy="412" r="14"/>
+<rect class="m" x="30" y="440" width="320" height="450" rx="18"/>
+<path class="m" d="M56 890v10M324 890v10"/>
+<path class="d" d="M30 850H350M70 470H310"/>
+<path class="a" d="M335 445C420 380 420 220 330 165M330 165l20 -2M330 165l8 18"/>
+<text class="lb" x="436" y="136" text-anchor="end">TOP-LOAD</text>
+<path class="dm" d="M20 900H420M40 900l-10 12M68 900l-10 12M96 900l-10 12M124 900l-10 12M152 900l-10 12M180 900l-10 12M208 900l-10 12M236 900l-10 12M264 900l-10 12M292 900l-10 12M320 900l-10 12M348 900l-10 12M376 900l-10 12M404 900l-10 12"/><path class="dm" d="M12 385V900M2 385h20M2 900h20"/><path class="dm" d="M30 945H350M30 935v20M350 935v20"/></svg>
