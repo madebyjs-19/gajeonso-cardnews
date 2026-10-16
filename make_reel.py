@@ -1,14 +1,18 @@
-# 사용: python3.13 make_reel.py out/YYYYMMDD [1,2,3,5]
-# 카드 JPG 로 1080x1920 릴스(mp4, 약 14초)를 만든다. 결과: <dir>/reel.mp4
-# - 상단 띠에 훅 자막(deck.json 의 reel_hook, 없으면 1장 제목)을 처음부터 끝까지 고정
+# 사용: python3.13 make_reel.py out/YYYYMMDD [1,2,3,5] [결과.mp4]
+# 카드 JPG 로 1080x1920 릴스(mp4, 약 14초)를 만든다. 결과: <dir>/reel.mp4 (세 번째 인자로 바꿀 수 있음)
+# Actions 는 Flow 영상이 없는 날 이것으로 카드 슬라이드 릴스를 만들어 대신 발행한다(approval_publish.py).
+# - 상단 띠에 훅 자막(deck.json 의 reel_hook, 없으면 1장 제목, deck.json 이 없으면 <dir>/ig.txt 첫 줄)을 처음부터 끝까지 고정
 # - 각 장에 느린 줌인 모션, 마지막에 1장으로 되돌아가 반복 재생을 유도
 # - 하단 띠에 마지막 장부터 "저장" 유도 자막(deck.json 의 reel_cta 로 변경 가능)
 # - 합성 BGM(저작권 없음, 저음량)
 import sys, subprocess, os, json
 from PIL import Image, ImageDraw, ImageFont
+import reel_overlay
 
 d = sys.argv[1]
 pick = [int(x) for x in (sys.argv[2] if len(sys.argv) > 2 else "1,2,3,5").split(",")]
+out = sys.argv[3] if len(sys.argv) > 3 else os.path.join(d, "reel.mp4")
+reel_overlay.ensure_fonts()  # fonts/ 는 커밋하지 않으므로 없으면 내려받는다(DoHyeon·Pretendard-Bold)
 HOLD, FADE, LOOP_HOLD = 3.0, 0.5, 2.0
 FPS = 30
 NAVY, WHITE, ICE, ORANGE = (0x1A, 0x2A, 0x4A), (0xF7, 0xF8, 0xFA), (0xDC, 0xE8, 0xF5), (0xFF, 0x8A, 0x3D)
@@ -21,6 +25,10 @@ for p in (os.path.join(HERE, "deck.json"), "deck.json"):
         hook = deck.get("reel_hook") or " ".join(str(deck["cards"][0].get("title", "")).split("\n"))
         cta = deck.get("reel_cta", cta)
         break
+else:
+    ig = os.path.join(d, "ig.txt")
+    if os.path.exists(ig):
+        hook = next((ln.strip() for ln in open(ig, encoding="utf-8") if ln.strip()), "")
 
 def fnt(name, px):
     return ImageFont.truetype(os.path.join(HERE, "fonts", name), px)
@@ -38,6 +46,8 @@ def strip_png(text, path, w, h, font_file, px, fill, align_top=False):
             else:
                 cur = t
         lines.append(cur)
+        if len(lines) > 2 and px > 44:  # 두 줄에 안 들어가면 글자를 줄여 다시 나눈다
+            return strip_png(text, path, w, h, font_file, px - 6, fill)
         lines = lines[:2]
         lh = int(px * 1.25)
         y = (h - lh * len(lines)) // 2
@@ -48,7 +58,7 @@ def strip_png(text, path, w, h, font_file, px, fill, align_top=False):
 
 top_png, bot_png = os.path.join(d, "_reel_top.png"), os.path.join(d, "_reel_bot.png")
 strip_png(hook, top_png, 1080, 285, "DoHyeon-Regular.ttf", 66, WHITE)
-strip_png(cta, bot_png, 1080, 285, "Pretendard-SemiBold.otf", 42, ICE)
+strip_png(cta, bot_png, 1080, 285, "Pretendard-Bold.otf", 42, ICE)
 
 seq = pick + [pick[0]]                      # 마지막에 1장으로 복귀(반복 재생 유도)
 holds = [HOLD] * len(pick) + [LOOP_HOLD]
@@ -72,7 +82,6 @@ filt.append(f"[o1][{b_i}:v]overlay=0:1635:format=auto:enable='gte(t,{cta_start})
 inputs += ["-f", "lavfi", "-t", str(total),
            "-i", "aevalsrc=0.5*(sin(2*PI*220*t)+0.8*sin(2*PI*277.18*t)+0.7*sin(2*PI*329.63*t))*(0.6+0.4*sin(2*PI*0.25*t)):s=44100:c=stereo"]
 filt.append(f"[{a_i}:a]volume=0.12,afade=t=in:d=0.8,afade=t=out:st={total-1.2:.2f}:d=1.2[a]")
-out = os.path.join(d, "reel.mp4")
 cmd = ["ffmpeg", "-y", *inputs, "-filter_complex", ";".join(filt), "-map", "[ov]", "-map", "[a]",
        "-t", str(total), "-c:v", "libx264", "-pix_fmt", "yuv420p", "-r", str(FPS), "-c:a", "aac", "-shortest",
        "-movflags", "+faststart", out]
