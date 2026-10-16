@@ -3,7 +3,7 @@
 #   python3.13 reel_overlay.py 원본.mp4 결과.mp4 [reel_captions.txt] [card1.jpg] [bgm.mp3]
 #       영상 정리(1080x1920) + 앞에 타이틀 카드 2초(자연스러운 전환) + 한글 팝업 자막 + 마지막 2초 상담 QR 패널 + (있으면) BGM
 #   python3.13 reel_overlay.py --end-card 결과.png       마지막 2초에 얹는 상담 QR 패널만 그려 본다(확인용)
-# 한글 깨짐 방지: AI 영상 안에는 글자를 넣지 않고, 자막은 여기서 Do Hyeon 폰트로 직접 그려 얹는다.
+# 한글 깨짐 방지: AI 영상 안에는 글자를 넣지 않고, 자막은 여기서 Pretendard(연구소 리포트 디자인과 같은 글꼴)로 직접 그려 얹는다.
 # reel_captions.txt 형식: 한 줄에 하나, "시작초-끝초|자막문구"  예) 2.5-4.5|계산식/포기 수×2L÷0.8  (시간은 최종 영상 기준, 앞 2초는 타이틀 카드)
 # 마지막 2초(본 영상 6~8초 = 최종 7.5~9.5초)는 진행자가 화면 오른쪽 위를 가리키는 고정 엔딩이고, 그 자리에 상담 QR 패널을 얹는다.
 import os, sys, re, subprocess, urllib.request
@@ -11,9 +11,11 @@ from PIL import Image, ImageDraw, ImageFont
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 FONT_DIR = os.path.join(HERE, "fonts")
-FONTS = {
-    "DoHyeon-Regular.ttf": "https://raw.githubusercontent.com/google/fonts/main/ofl/dohyeon/DoHyeon-Regular.ttf",
-    "Pretendard-Bold.otf": "https://raw.githubusercontent.com/orioncactus/pretendard/main/packages/pretendard/dist/public/static/Pretendard-Bold.otf",
+PRETENDARD = "https://raw.githubusercontent.com/orioncactus/pretendard/main/packages/pretendard/dist/public/static/"
+FONTS = {  # 연구소 리포트 디자인과 같은 글꼴(제목·자막 Pretendard, 라벨 IBM Plex Mono)
+    "Pretendard-Bold.otf": PRETENDARD + "Pretendard-Bold.otf",
+    "Pretendard-ExtraBold.otf": PRETENDARD + "Pretendard-ExtraBold.otf",
+    "IBMPlexMono-SemiBold.ttf": "https://raw.githubusercontent.com/google/fonts/main/ofl/ibmplexmono/IBMPlexMono-SemiBold.ttf",
 }
 MAX_SEC = 10.0       # 최종 영상 길이 상한
 TITLE_SEC = 2.0      # 맨 앞 카드뉴스 표지(타이틀 카드) 노출 시간(전환 구간 포함)
@@ -29,7 +31,8 @@ MAX_LINE = 12        # 자막 한 줄 최대 글자 수(공백 제외하지 않�
 MAX_LINES = 2
 W, H = 1080, 1920
 NAVY, WHITE = (0x1A, 0x2A, 0x4A), (0xF7, 0xF8, 0xFA)
-GRAY = (0x6B, 0x75, 0x86)
+GRAY, ORANGE, ICE = (0x6B, 0x76, 0x88), (0xFF, 0x8A, 0x3D), (0xDC, 0xE8, 0xF5)
+CAP_FONT = "Pretendard-ExtraBold.otf"
 ALLOWED = re.compile(r"^[0-9A-Za-z가-힣 .,%!?~:·()\-+/↓↑→×÷=≈]+$")
 
 
@@ -70,7 +73,7 @@ def parse(path):
 def check(path, title=True):
     """문제 목록을 돌려준다(빈 목록이면 통과). title=True 면 앞 TITLE_SEC 초는 타이틀 카드 구간이라 자막을 둘 수 없다."""
     ensure_fonts()
-    font = load_font("DoHyeon-Regular.ttf", 60)
+    font = load_font(CAP_FONT, 60)
     errs = []
     try:
         caps = parse(path)
@@ -104,15 +107,16 @@ def check(path, title=True):
 
 def caption_png(text, path):
     lines = [x.strip() for x in text.split("/")]
-    f = load_font("DoHyeon-Regular.ttf", 84)
+    f = load_font(CAP_FONT, 76)
     probe = ImageDraw.Draw(Image.new("RGBA", (10, 10)))
-    lh = 108
-    bw = int(max(probe.textlength(x, font=f) for x in lines)) + 90
-    bh = lh * len(lines) + 50
+    lh = 100
+    bw = int(max(probe.textlength(x, font=f) for x in lines)) + 96
+    bh = lh * len(lines) + 56
     im = Image.new("RGBA", (bw, bh), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
-    d.rounded_rectangle([0, 0, bw - 1, bh - 1], radius=36, fill=NAVY + (215,))
-    y = 25
+    d.rounded_rectangle([0, 0, bw - 1, bh - 1], radius=14, fill=NAVY + (225,), outline=ICE + (255,), width=3)
+    d.rectangle([28, 0, 92, 6], fill=ORANGE)  # 연구소 카드의 오렌지 포인트
+    y = 30
     for x in lines:
         d.text((bw // 2, y), x, font=f, fill=WHITE, anchor="ma")
         y += lh
@@ -125,13 +129,18 @@ def end_card_png(path):
     bw, bh, qs = 460, 640, 360
     im = Image.new("RGBA", (bw, bh), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
-    d.rounded_rectangle([0, 0, bw - 1, bh - 1], radius=40, fill=(255, 255, 255, 250), outline=NAVY, width=6)
-    d.rounded_rectangle([0, 0, bw - 1, 92], radius=40, fill=NAVY)
-    d.rectangle([0, 52, bw - 1, 92], fill=NAVY)
-    d.text((bw // 2, 46), "추가 정보·상담 문의", font=load_font("Pretendard-Bold.otf", 40), fill=WHITE, anchor="mm")
+    d.rounded_rectangle([0, 0, bw - 1, bh - 1], radius=16, fill=(255, 255, 255, 250), outline=NAVY, width=5)
+    d.rounded_rectangle([0, 0, bw - 1, 92], radius=16, fill=NAVY)
+    d.rectangle([0, 60, bw - 1, 92], fill=NAVY)
+    mf = load_font("IBMPlexMono-SemiBold.ttf", 20)
+    x = 28
+    for ch in "CONSULT TICKET":  # 연구소 카드 5장 '상담 접수증' 라벨과 같은 모양
+        d.text((x, 14), ch, font=mf, fill=ORANGE)
+        x += d.textlength(ch, font=mf) + 2
+    d.text((28, 70), "추가 정보·상담 문의", font=load_font("Pretendard-Bold.otf", 34), fill=WHITE, anchor="ls")
     q = Image.open(QR_IMG).convert("RGB").resize((qs, qs), Image.NEAREST)
     im.paste(q, ((bw - qs) // 2, 92 + 28))
-    d.text((bw // 2, 92 + 28 + qs + 62), "가전소", font=load_font("DoHyeon-Regular.ttf", 76), fill=NAVY, anchor="mm")
+    d.text((bw // 2, 92 + 28 + qs + 62), "가전소", font=load_font("Pretendard-ExtraBold.otf", 66), fill=NAVY, anchor="mm")
     d.text((bw // 2, bh - 34), "카카오톡 채널로 바로 상담", font=load_font("Pretendard-Bold.otf", 28), fill=GRAY, anchor="mm")
     im.save(path)
     return bw, bh

@@ -82,7 +82,7 @@ def request_approval(d, folder):
             "\n   BGM: https://…/음원.mp3  → 음원 파일 직링크"
             "\n   또는 음원 파일(mp3 등)을 이 대화방에 함께 보내 주세요."
             "\n   ※ 인스타그램 음악 라이브러리의 곡 제목, 유튜브·스트리밍 링크는 사용할 수 없습니다(저작권·이용약관, 자동 발행에서는 인스타 음악 선택 불가)."
-            "\n5) 영상을 보내지 않으면 릴스는 올리지 않고 카드뉴스만 발행됩니다.")
+            "\n5) 영상을 보내지 않으면 카드 1·2·3·5장으로 만든 슬라이드 릴스가 자동으로 함께 발행됩니다.")
     kb = {"inline_keyboard": [[{"text": "✅ 발행 (Instagram + Facebook)", "callback_data": f"approve_{d}"},
                                {"text": "❌ 취소", "callback_data": f"cancel_{d}"}]]}
     r = tg("sendMessage", {"chat_id": CHAT, "reply_markup": json.dumps(kb),
@@ -327,9 +327,19 @@ def drive_fallback(d, folder):
         say(f"[{d}] 드라이브 영상 확인 실패, 릴스 없이 카드뉴스만 발행합니다: {type(e).__name__} {str(e)[:150]}")
 
 
-def push_reel(d, folder):
-    """Flow 영상을 cards/<회차>/reel.mp4 로 교체해 main 에 올리고 raw 주소에 반영될 때까지 기다린다."""
-    src = FLOW.get(d)
+def slide_reel(d, folder):
+    """Flow 영상이 없는 날: 카드 1·2·3·5장으로 슬라이드 릴스를 만든다. 실패하면 None."""
+    out = tmpdir() / f"{d}_slide_reel.mp4"
+    r = subprocess.run([sys.executable, "make_reel.py", str(folder), "1,2,3,5", str(out)], capture_output=True, text=True)
+    if r.returncode or not out.exists():
+        say(f"[{d}] 카드 슬라이드 릴스 생성 실패, 카드뉴스만 발행됩니다: {(r.stderr or r.stdout)[-200:]}")
+        return None
+    return out
+
+
+def push_reel(d, folder, src=None, label="Flow 영상"):
+    """릴스 영상(기본: Flow 영상)을 cards/<회차>/reel.mp4 로 교체해 main 에 올리고 raw 주소에 반영될 때까지 기다린다."""
+    src = src or FLOW.get(d)
     if not src or not src.exists():
         return ""
     dst = folder / "reel.mp4"
@@ -338,7 +348,7 @@ def push_reel(d, folder):
     sh("git", "config", "user.name", "github-actions[bot]")
     sh("git", "config", "user.email", "41898282+github-actions[bot]@users.noreply.github.com")
     sh("git", "add", str(dst))
-    sh("git", "commit", "-m", f"Flow 영상 릴스 반영: {d}")
+    sh("git", "commit", "-m", f"{label} 릴스 반영: {d}")
     pushed = False
     for _ in range(3):
         if sh("git", "pull", "--rebase", "--autostash", "origin", "main").returncode == 0 and \
@@ -347,17 +357,17 @@ def push_reel(d, folder):
             break
         time.sleep(5)
     if not pushed:
-        say(f"[{d}] Flow 영상 커밋·푸시 실패, 릴스 없이 카드뉴스만 발행됩니다.")
+        say(f"[{d}] {label} 커밋·푸시 실패, 릴스 없이 카드뉴스만 발행됩니다.")
         return ""
     size = dst.stat().st_size
     for _ in range(60):  # 최대 약 10분: raw 주소가 새 파일로 바뀔 때까지
         head = sh("curl", "-sSIL", "-m", "20", f"{REPO_RAW}/{d}/reel.mp4").stdout
         m = re.findall(r"(?im)^content-length:\s*(\d+)", head)
         if m and int(m[-1]) == size:
-            return " · Flow 영상 사용"
+            return f" · {label} 사용"
         time.sleep(10)
     say(f"[{d}] 새 영상이 아직 공개 주소에 반영되지 않아 릴스 발행이 실패할 수 있습니다.")
-    return " · Flow 영상 사용(반영 지연)"
+    return f" · {label} 사용(반영 지연)"
 
 
 def wait_decision(d, folder):
@@ -434,12 +444,15 @@ def process(d):
             if d not in FLOW:  # 텔레그램으로 영상이 안 왔으면 구글 드라이브 폴더에서 찾는다
                 drive_fallback(d, folder)
             flow_note = push_reel(d, folder)
+            if not flow_note:  # Flow 영상이 없으면 카드 슬라이드 릴스로 대신 발행한다(릴스가 새 사람에게 닿는 주 통로)
+                slide = slide_reel(d, folder)
+                flow_note = push_reel(d, folder, slide, "카드 슬라이드") if slide else ""
             out = run("publish.py", d, folder)
-            if flow_note:  # 카드뉴스만으로 만든 릴스는 올리지 않는다. Flow 영상이 있을 때만 릴스 발행
+            if flow_note:
                 out += run("publish_reel.py", d, folder)
                 result = summarize(out) + flow_note
             else:
-                result = summarize(out) + " · 릴스 미발행(Flow 영상 없음)"
+                result = summarize(out) + " · 릴스 미발행(영상 생성 실패)"
         elif decision == "cancel":
             say(f"[{d}] 취소됨, 발행 안 함")
             result = "승인 취소"
