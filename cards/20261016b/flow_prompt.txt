@@ -1,0 +1,8 @@
+[Google Flow 영상 프롬프트 - 시험 회차]
+Vertical 9:16, total length 8 seconds (never exceed 10 seconds), fast-paced 4-cut edit, energetic and curious tone, warm kitchen lighting.
+Cut 1 (0-2s): quick whip-pan to a smiling Korean home cook holding a huge napa cabbage, surprised look straight to camera, as if asking a question.
+Cut 2 (2-4.5s): fast montage of red kimchi containers being filled up to a marked line near the top, hands moving quickly.
+Cut 3 (4.5-7s): a generic kimchi refrigerator (no brand, no model) opens, containers slide in and it looks a bit tight.
+Cut 4 (7-8s): the cook points at the camera with a confident wink.
+Korean voice-over, fast and punchy (about 38 characters in total): "30포기면 김치통 몇 리터?" "포기 수 곱하기 2 나누기 0.8!" "300리터대는 빠듯해요." "저장해두세요."
+IMPORTANT: No text, no letters, no numbers, no logos, no brand names, no watermark, no on-screen captions anywhere in the video. All Korean captions are added afterwards by the pipeline.
