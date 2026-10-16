@@ -29,7 +29,12 @@ jobs:
         with:
           python-version: "3.13"
       - name: 영상 합성 의존성 설치
-        run: pip install pillow google-auth requests
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+          pip install pillow google-auth requests
+          ffmpeg -version > /dev/null
+          ffprobe -version > /dev/null
       - name: 대상 회차 찾기
         id: dates
         env:
