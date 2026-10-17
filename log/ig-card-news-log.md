@@ -23,3 +23,4 @@
 20261016 | 김장철 김치냉장고 용량: 포기 수로 계산 | B | ice | formula, compare, checklist | IG 발행 성공 · FB 발행 성공 · IG 릴스 성공 · FB 릴스 성공 (Actions)
 20261016c | [시험 회차] 타이틀 카드·팝업 자막·이미지 자료 안내 점검 | B | ice | formula, compare, checklist | IG 발행 성공 · FB 발행 성공 · IG 릴스 성공 · FB 릴스 성공 · Flow 영상 사용 (Actions)
 20261016d | [시험 회차] 타이틀 2초+본 영상 8초 전환·내레이션·릴스 조건 점검 | B | ice | formula, compare, checklist | IG 발행 성공 · FB 발행 성공 · IG 릴스 성공 · FB 릴스 성공 · Flow 영상 사용 (Actions)
+20261017 | (주제 미확정: 난방기 전기요금 등) | - | - | - | 중단 사유: 한전 요금표 등 1차 출처 수치를 확인하지 못함(한전 사이트 접속·수치 확인 실패), 최근 48시간 우선 이슈도 검색되지 않음
