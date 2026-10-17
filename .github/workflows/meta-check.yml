@@ -43,4 +43,10 @@ jobs:
                   need = {"instagram_content_publish", "instagram_basic"} if label == "Instagram" else {"pages_manage_posts"}
                   if miss := need - set(d.get("scopes", [])):
                       print(f"  권한 부족: {', '.join(sorted(miss))}"); bad = True
+                  if label == "Facebook" and d.get("type") != "PAGE":
+                      print("  페이지 토큰이 아님: 페이지 게시는 페이지 액세스 토큰이 필요합니다(그래프 API 탐색기에서 '페이지'를 골라 발급)"); bad = True
+                  if d.get("expires_at"):
+                      left = (d["expires_at"] - datetime.datetime.now(datetime.UTC).timestamp()) / 3600
+                      if left < 24 * 7:
+                          print(f"  곧 만료: {left:.1f}시간 남음(장기 토큰으로 교체 필요)"); bad = True
           sys.exit(1 if bad else 0)
