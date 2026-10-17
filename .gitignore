@@ -6,3 +6,4 @@ __pycache__/
 log/publish-state/*.lock
 log/.status.lock
 log/**/.state-*
+.claude/skills/cardnews-automation-builder/assets/template/

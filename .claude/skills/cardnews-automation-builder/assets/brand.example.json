@@ -1,0 +1,21 @@
+{
+  "brand_name": "뷰티소",
+  "brand_name_en": "BEAUTYSO",
+  "brand_slug": "beautyso",
+  "brand_alt": "",
+  "tagline": "화장품, 제대로 알고 사는 곳",
+  "domain": "화장품",
+  "consult_url": "http://pf.kakao.com/_xxxxxx/chat",
+  "consult_channel": "카카오톡",
+  "github_repo": "owner/beautyso-cardnews",
+  "drive_folder_id": "",
+  "logo_file": "logo.png",
+  "logo_medal_crop": null,
+  "host_image": "",
+  "palette": {
+    "navy": "#1A2A4A",
+    "blue": "#2E5EAA",
+    "ice": "#DCE8F5",
+    "orange": "#FF8A3D"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "design": "lab",
+  "cover_color": "navy",
+  "cards": [
+    {"type": "product_cover", "tag": "점검용 샘플", "title": "브랜드 점검 카드\n색·로고·글꼴 확인", "subtitle": "7장 구성이 모두 그려지는지 확인", "image": "illust:generic", "file_tag": "CHECK"},
+    {"type": "formula", "title": "핵심 계산식 예시", "kicker": "예시 계산", "big": "100 × 2 = 200", "tail": "단위·기준을 함께 씁니다", "example": "예: 기준값 100일 때 결과 200", "footnote": "출처: 점검용 샘플(example.com)"},
+    {"type": "table", "title": "기준별 수치 예시", "rows": [["항목 A", "10"], ["항목 B", "20"], ["항목 C", "30"]], "footnote": "출처: 점검용 샘플(example.com)"},
+    {"type": "compare", "title": "A와 B 비교 예시", "cols": ["A 방식", "B 방식"], "rows": [["비용", "낮음", "높음"], ["관리", "쉬움", "보통"], ["추천", "1인 가구", "다인 가구"]], "footnote": "출처: 점검용 샘플(example.com)"},
+    {"type": "steps", "title": "신청 절차 예시", "steps": [["확인", "대상 여부를 확인합니다"], ["준비", "서류를 준비합니다"], ["신청", "온라인으로 접수합니다"]], "footnote": "출처: 점검용 샘플(example.com)"},
+    {"type": "checklist", "title": "저장해 둘 체크리스트", "items": ["첫 번째 확인 항목", "두 번째 확인 항목", "세 번째 확인 항목"], "footnote": "출처: 점검용 샘플(example.com)"},
+    {"type": "cta", "question": "나중에 볼 수 있게\n저장해두세요", "dm": "주변에 고민 중인 분께\n보내주세요"}
+  ]
+}
