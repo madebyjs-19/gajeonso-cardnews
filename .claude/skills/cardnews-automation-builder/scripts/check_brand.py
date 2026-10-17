@@ -5,13 +5,14 @@
 
 점검: 옛 브랜드 표기 0개 · 파이썬 문법 · 필수 파일 · 샘플 카드 7장 생성 · 표지 로고 합성(LOGO_OK) ·
       릴스 자막 검사(CAPTIONS_OK) · 릴스 QR 엔딩 패널 · (ffmpeg 가 있으면) 카드 슬라이드 릴스.
-결과 이미지는 <repo>/out/_check/ 에 남는다(out/ 은 .gitignore 대상). 이미지를 직접 열어 눈으로도 확인한다.
+결과 이미지는 <repo>/out/_check/ 에 남는다(out/ 은 .gitignore 대상, 매번 새로 만든다 — 비교하려면 먼저 복사해 둔다).
+이미지를 직접 열어 눈으로도 확인한다.
 """
 import json, os, pathlib, re, shutil, subprocess, sys
 
 HERE = pathlib.Path(__file__).resolve().parent
 ASSETS = HERE.parent / "assets"
-OLD_TOKENS = ["가전소", "gajeonso", "GAJEONSO", "Gajeonso", "madebyjs", "PHwrX", "1KT9JGteGYQLhsHnVDmcU2xAhqZLI-lKl", "家電所"]
+OLD_TOKENS = ["가전소", "gajeonso", "GAJEONSO", "Gajeonso", "PHwrX", "1KT9JGteGYQLhsHnVDmcU2xAhqZLI-lKl", "家電所"]
 TEXT_EXT = {".py", ".md", ".yml", ".yaml", ".sh", ".html", ".txt", ".svg"}
 
 results = []
@@ -49,6 +50,8 @@ def main():
             "collect_metrics.py", "topic_request.py", "ROUTINE_PROMPT.md", "CLAUDE.md", f"{slug}_logo.png",
             "assets/reel/consult_qr.png", ".github/workflows/publish-on-approval.yml", ".github/workflows/meta-check.yml",
             "plan/content_plan.md", "log/ig-card-news-log.md"]
+    if "brand_mark.png" in (repo / "gen_cards.py").read_text(encoding="utf-8"):
+        need.append("assets/brand_mark.png")  # 콘센트 심볼 대신 브랜드 심볼을 쓰는 저장소
     miss = [n for n in need if not (repo / n).exists()]
     ok("필수 파일", not miss, ", ".join(miss))
     ok("진행자 기준 이미지(assets/reel_host/)", True if any((repo / "assets" / "reel_host").glob("host.*")) else None,
@@ -90,6 +93,17 @@ def main():
     else:
         ok("표지 로고 합성(LOGO_OK top-right)", False, "ROUTINE_PROMPT.md 에서 stamp_logo.py 코드를 찾지 못함" if not m else "카드 없음")
 
+    # 5-2. 밝은 표지(ice): 로고가 배지 없이 들어가는지
+    if m:
+        deck["cover_color"] = "ice"
+        (chk / "deck_ice.json").write_text(json.dumps(deck, ensure_ascii=False), encoding="utf-8")
+        (chk / "20990102").mkdir()
+        code, outp = run([py, "gen_cards.py", str(chk / "deck_ice.json"), str(chk / "20990102")], repo)
+        p = subprocess.run([py, str(chk / "stamp_logo.py"), str(chk / "20990102" / "card1.png")], cwd=repo,
+                           capture_output=True, text=True, env={**os.environ, "LOGO_SRC": str(repo / f"{slug}_logo.png")})
+        out = (p.stdout + p.stderr).strip()
+        ok("밝은 표지 로고(ice, 배지 없음)", code == 0 and "LOGO_OK top-right" in out, out[:120])
+
     # 6. 릴스 자막 검사 + QR 엔딩 패널
     code, outp = run([py, "reel_overlay.py", "--check", str(ASSETS / "sample_captions.txt")], repo)
     ok("릴스 자막 검사(CAPTIONS_OK)", "CAPTIONS_OK" in outp, outp.splitlines()[-1][:120] if outp else "")
@@ -106,7 +120,7 @@ def main():
 
     failed = [r for r in results if not r[1]]
     print()
-    print(f"결과: {len(results) - len(failed)}/{len(results)} 통과. 미리보기: {chk}/20990101/card1.jpg, card7.jpg, end_card.png")
+    print(f"결과: {len(results) - len(failed)}/{len(results)} 통과. 미리보기: {chk}/20990101/card1.jpg·card2.jpg·card7.jpg, {chk}/20990102/card1.jpg, {chk}/end_card.png")
     sys.exit(1 if failed else 0)
 
 

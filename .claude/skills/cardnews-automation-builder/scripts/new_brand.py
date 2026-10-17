@@ -29,12 +29,17 @@ OLD = {"navy": "1A2A4A", "blue": "2E5EAA", "ice": "DCE8F5", "orange": "FF8A3D"}
 # 기본색에서 파생된 보조색: 새 기본색에 맞춰 같은 관계(색상·명도·채도 차이)로 다시 계산한다
 DERIVED = {
     "6E86AC": "navy", "8FA5C7": "navy", "B8C7DB": "navy",      # 페이지 번호·주석·점선
+    "6B7688": "navy", "9AA6B2": "navy", "6A7C9A": "navy",      # 웜 그레이(부제·페이지 번호)·라이트 그레이·CTA 점선
+    "24385F": "navy", "405278": "navy",                        # 네이비 표지 줄무늬·옛 디자인 보조
     "185FA5": "blue", "3A6CBA": "blue",                        # 아이스 배경 글씨·블루 줄무늬
-    "EEF3FA": "ice",                                           # 표 줄무늬
+    "EEF3FA": "ice", "EAF1FA": "ice", "F7F8FA": "ice",         # 표 줄무늬·오프화이트
+    "C4D5EA": "ice", "A9C4E6": "ice", "8FB1DC": "ice",         # 옛 디자인 보조
     "C9561A": "orange", "FFE3C8": "orange", "FF9B5C": "orange",  # 특가 글씨·주황 배경 보조
 }
-OLD_TOKENS = ["가전소", "gajeonso", "GAJEONSO", "Gajeonso", "madebyjs", "PHwrX", "1KT9JGteGYQLhsHnVDmcU2xAhqZLI-lKl", "家電所"]
-DOMAIN_WORDS = r"가전|하이마트|롯데|한전|KEPCO|kepco|삼성|LG|애플|아이폰|김장|에어컨|냉장고|세탁기|건조기|청소기|TV|정왕"
+OLD_TOKENS = ["가전소", "gajeonso", "GAJEONSO", "Gajeonso", "PHwrX", "1KT9JGteGYQLhsHnVDmcU2xAhqZLI-lKl", "家電所"]
+DOMAIN_WORDS = (r"가전|하이마트|롯데|한전|KEPCO|kepco|삼성|LG|애플|아이폰|김장|에어컨|냉장고|세탁기|건조기|청소기|TV|정왕|"
+                r"kWh|kW|누진|콘센트|드럼|통돌이|설치|소비전력|AS센터|AS |매장|평수|인치|전기요금|Appliance|appliance|navy crew|navy lanyard")
+APPLIANCE = ("가전", "가전제품")
 
 
 def hexrgb(h):
@@ -52,7 +57,7 @@ def derive(old_derived, old_base, new_base):
     hb, lb, sb = colorsys.rgb_to_hls(*[v / 255 for v in hexrgb(old_base)])
     hn, ln, sn = colorsys.rgb_to_hls(*[v / 255 for v in hexrgb(new_base)])
     h = (hd + hn - hb) % 1.0
-    l = min(0.97, max(0.03, ld + (ln - lb)))
+    l = min(0.99, max(0.03, ld + (ln - lb)))
     s = min(1.0, sd * (sn / sb if sb else 1.0))
     return rgbhex([v * 255 for v in colorsys.hls_to_rgb(h, l, s)])
 
@@ -93,9 +98,10 @@ def replacements(b):
         ("카카오톡", b.get("consult_channel", "카카오톡")),
         ("가전, 제대로 알고 사는 곳", b["tagline"]),
         ("gajeonso_logo.png", f"{slug}_logo.png"),
-        ("gajeonso_brand_guide.pdf", f"{slug}_brand_guide.pdf"),
         ("GAJEONSO_FONT_DIR", f"{slug.upper()}_FONT_DIR"),
         ("log/reports/20261017.md", "docs/report_example.md"),
+        ("가전소 브랜드 가이드(Ver 1.1)를 따른다.", "아래 디자인 규칙을 따른다."),       # 가전소 전용 PDF 가이드라 새 브랜드에는 없다
+        ("가전소 카드뉴스 생성기 (브랜드 가이드 Ver 1.1 기준)", "가전소 카드뉴스 생성기"),
         ("--headless=new --disable-gpu", "--headless=new --no-sandbox --disable-gpu"),  # 리눅스·root 환경에서도 도면 렌더링
     ]
     pairs += [("家電所", alt)] if alt else [("(家電所, ", "("), ("家電所", b["brand_name"])]
@@ -109,6 +115,13 @@ def medal_line(text, crop):
     return re.sub(r"lg\.crop\(\(int\(w_ \* [0-9.]+\), int\(h_ \* [0-9.]+\), int\(w_ \* [0-9.]+\), int\(h_ \* [0-9.]+\)\)\)",
                   f"lg.crop((int(w_ * {l}), int(h_ * {t}), int(w_ * {r}), int(h_ * {btm})))", text)
 
+
+WEEKLY = [  # 새 저장소에는 리포트가 없으므로 첫 리포트 시점을 정해 준다
+    ("ROUTINE_PROMPT.md", "로부터 7일 이상 지난 날(지금 주기로는 매주 토요일)]",
+     "로부터 7일 이상 지난 날. 리포트가 아직 하나도 없으면 log/ig-card-news-log.md 의 첫 발행 성공일로부터 7일 이상 지난 날(그 전에는 쓰지 않는다)]"),
+    ("CLAUDE.md", "가장 최근 `log/reports/` 리포트로부터 7일이 지난 날은",
+     "가장 최근 `log/reports/` 리포트(없으면 첫 발행 성공일)로부터 7일이 지난 날은"),
+]
 
 STAMP_OLD = """        lw = round(base_logo.width * lh / base_logo.height)
 """
@@ -150,16 +163,89 @@ def prepare_logo(src, dst):
     return dst
 
 
-def auto_medal_crop(logo_path):
-    """로고에서 잉크가 있는 영역을 감싸는 정사각형(비율)을 구한다. 심볼만 쓰고 싶으면 brand.json 의 logo_medal_crop 으로 지정."""
+def symbol_box(logo_path):
+    """로고의 심볼 영역(px). 심볼과 글자(워드마크) 사이에 빈 줄 띠가 있으면 위쪽 심볼만, 없으면 잉크 전체."""
     from PIL import Image
     im = Image.open(logo_path).convert("L")
     w, h = im.size
-    box = im.point(lambda v: 255 if v < 200 else 0).getbbox() or (0, 0, w, h)
+    ink = im.point(lambda v: 255 if v < 200 else 0)
+    box = ink.getbbox() or (0, 0, w, h)
+    rows = [ink.crop((0, y, w, y + 1)).getbbox() is not None for y in range(box[1], box[3])]
+    segs, start = [], None
+    for i, r in enumerate(rows + [False]):
+        if r and start is None:
+            start = i
+        elif not r and start is not None:
+            segs.append((start, i)); start = None
+    total = box[3] - box[1]
+    merged = [list(segs[0])] if segs else []
+    for a, b in segs[1:]:  # 3% 미만의 작은 틈은 같은 덩어리로 본다
+        if a - merged[-1][1] < total * 0.03:
+            merged[-1][1] = b
+        else:
+            merged.append([a, b])
+    if len(merged) >= 2 and (merged[0][1] - merged[0][0]) >= total * 0.4:
+        top, bottom = box[1] + merged[0][0], box[1] + merged[0][1]
+        box = ink.crop((0, top, w, bottom)).getbbox()
+        box = (box[0], top, box[2], bottom)
+    return box, (w, h)
+
+
+def auto_medal_crop(logo_path):
+    """CTA 원형 로고 영역(비율): 심볼을 감싸는 정사각형 + 여백. 직접 정하려면 brand.json 의 logo_medal_crop."""
+    box, (w, h) = symbol_box(logo_path)
     cx, cy = (box[0] + box[2]) / 2, (box[1] + box[3]) / 2
-    half = max(box[2] - box[0], box[3] - box[1]) / 2 * 1.12
+    half = max(box[2] - box[0], box[3] - box[1]) / 2 * 1.3
     l, t, r, b = cx - half, cy - half, cx + half, cy + half
     return [round(max(0, l) / w, 4), round(max(0, t) / h, 4), round(min(w, r) / w, 4), round(min(h, b) / h, 4)]
+
+
+def make_mark(logo_path, dst):
+    """카드 오른쪽 위 작은 심볼(가전소의 콘센트 자리)용 마스크: 심볼 부분을 정사각형 L 이미지로(잉크=255)."""
+    from PIL import Image
+    box, _ = symbol_box(logo_path)
+    im = Image.open(logo_path).convert("L").crop(box)
+    side = max(im.size)
+    sq = Image.new("L", (side, side), 255)
+    sq.paste(im, ((side - im.width) // 2, (side - im.height) // 2))
+    sq.point(lambda v: max(0, min(255, int((245 - v) * 255 / 185)))).resize((256, 256), Image.LANCZOS).save(dst)
+
+
+PLUG_NEW = '''def lab_plug(c, cx=952, cy=114, size=76, color=None, dot=None):
+    """브랜드 심볼(assets/brand_mark.png)을 한 색으로 찍는다(원본 디자인의 콘센트 심볼 자리)."""
+    L = LAB[c.bg]; color = color or L["sym"]
+    m = Image.open(os.path.join(HERE, "assets", "brand_mark.png")).convert("L")
+    side = int(size * S); m = m.resize((side, side), Image.LANCZOS)
+    c.img.paste(Image.new("RGB", m.size, color), (int((cx - size / 2) * S), int((cy - size / 2) * S)), m)
+
+
+'''
+GENERIC_NEW = '''D["generic"] = ("공통 (상자형 포장)", P, f"""
+<rect class="m" x="90" y="600" width="240" height="300" rx="10"/>
+<path class="m" d="M90 600L122 540H298L330 600"/>
+<path class="d" d="M122 540L152 600M298 540L268 600"/>
+<path class="dd" d="M210 600V900"/>
+<rect class="d" x="130" y="700" width="160" height="90" rx="10"/>
+<path class="d" d="M150 730H270M150 760H240"/>
+<circle class="c" cx="210" cy="745" r="72"/>
+<text class="tx" x="90" y="520">GENERIC</text>
+{floor()}{vdim(540, 900, 50)}{hdim(90, 330)}
+""")
+
+'''
+
+
+def render_blueprints(out):
+    """도면 PNG 를 새 색·새 generic 으로 다시 그린다(크롬 필요). 성공하면 True."""
+    import subprocess
+    cands = [os.environ.get("CHROME"), "/opt/pw-browsers/chromium", shutil.which("google-chrome"), shutil.which("chromium"),
+             shutil.which("chromium-browser"), "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"]
+    ch = next((c for c in cands if c and os.path.exists(c)), None)
+    if not ch:
+        return False
+    r = subprocess.run(["bash", "design/blueprints/render_png.sh"], cwd=out, env={**os.environ, "CHROME": ch},
+                       capture_output=True, text=True, timeout=1800)
+    return r.returncode == 0
 
 
 def make_qr(url, dst):
@@ -270,6 +356,7 @@ def main():
             files.append(src / old_rel)
 
     pairs, cmap = replacements(b), color_map(b.get("palette", {}))
+    appliance = b.get("domain", "가전") in APPLIANCE
     logo_dst = out / f"{b['brand_slug']}_logo.png"
     prepare_logo(logo_src, logo_dst)
     crop = b.get("logo_medal_crop") or auto_medal_crop(logo_dst)
@@ -286,6 +373,19 @@ def main():
             text = apply_colors(text, cmap)
             if rel == "gen_cards.py":
                 text = medal_line(text, crop)
+                if not appliance:  # 콘센트 심볼 → 브랜드 심볼
+                    text, n = re.subn(r"def lab_plug\(.*?\n\n\n", lambda _: PLUG_NEW, text, count=1, flags=re.S)
+                    if not n:
+                        print("경고: gen_cards.py 의 lab_plug 를 찾지 못해 콘센트 심볼이 남습니다")
+            if rel == "design/blueprints/build.py" and not appliance:  # 가전 모양 generic 도면 → 상자형 포장
+                text, n = re.subn(r'D\["generic"\] = \(.*?"""\)\n\n', lambda _: GENERIC_NEW, text, count=1, flags=re.S)
+                if not n:
+                    print("경고: build.py 의 generic 도면을 찾지 못했습니다")
+            for fname, old, new in WEEKLY:
+                if rel == fname:
+                    if old not in text:
+                        print(f"경고: {fname} 의 주간 리포트 시작 조건 문장을 찾지 못했습니다")
+                    text = text.replace(old, new)
             if rel == "ROUTINE_PROMPT.md":
                 if STAMP_OLD not in text:
                     print("경고: ROUTINE_PROMPT.md 의 stamp_logo 코드 모양이 달라 가로 로고 보정을 넣지 못했습니다")
@@ -309,6 +409,11 @@ def main():
             shutil.copy2(hp, host_dir / ("host" + hp.suffix.lower()))
         else:
             print(f"경고: 진행자 이미지가 없습니다: {hp}")
+    if not appliance:
+        make_mark(logo_dst, out / "assets" / "brand_mark.png")
+    rendered = None
+    if cmap or not appliance:
+        rendered = render_blueprints(out)
     for d in ["cards", "log/reports", "topic_request"]:
         (out / d).mkdir(parents=True, exist_ok=True)
         (out / d / ".gitkeep").touch()
@@ -340,8 +445,8 @@ def main():
         body += ["## 남은 옛 브랜드 표기(반드시 0개)", *left, ""]
     if todo:
         body += [f"## 업종 문장 ({b.get('domain')} 에 맞게 다시 쓰기)", *todo, ""]
-    if cmap:
-        body += ["## 색을 바꿨습니다", "- assets/blueprints/*.png 는 옛 색으로 그려져 있습니다. 도면을 쓰려면 "
+    if (cmap or not appliance) and not rendered:
+        body += ["## 도면을 다시 그려야 합니다(크롬을 찾지 못함)", "- assets/blueprints/*.png 는 옛 색으로 그려져 있습니다. 도면을 쓰려면 "
                  "`CHROME=<크롬 실행 파일> bash design/blueprints/render_png.sh` 로 다시 그리세요"
                  "(예: CHROME=/opt/pw-browsers/chromium, macOS 는 기본값).", ""]
     (out / "REBRAND_TODO.md").write_text("\n".join(body) + "\n", encoding="utf-8")
@@ -349,6 +454,8 @@ def main():
     print(f"OK  {out}")
     print(f"    원본: {src}")
     print(f"    파일 {len(files)}개 복사, 색 변경 {len(cmap)}개, 원형 로고 영역 {crop}")
+    if rendered is not None:
+        print(f"    도면 다시 그리기: {'완료' if rendered else '실패/크롬 없음 → REBRAND_TODO.md 참고'}")
     print(f"    남은 옛 브랜드 표기 {len(left)}곳, 업종 문장 점검 {len(todo)}줄 → REBRAND_TODO.md")
     print(f"    다음: python3 {HERE / 'check_brand.py'} {out}")
 

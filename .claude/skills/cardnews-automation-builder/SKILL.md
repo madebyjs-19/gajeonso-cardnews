@@ -18,7 +18,8 @@ description: 가전소 카드뉴스 자동화(매일 Claude 루틴이 주제 조
 - 브랜드명(한글)·영문명, 업종과 주요 고객, 한 줄 슬로건(예: "화장품, 제대로 알고 사는 곳")
 - 로고 파일(단색 선 로고·심볼 권장 — 이유는 rebrand_guide 2번)
 - 상담 주소(카카오톡 채널 채팅 URL 등)와 채널 이름
-- 브랜드 색 4가지(진한 기본색·포인트 블루·옅은 배경색·강조색). 없으면 가전소 색으로 시작
+- 브랜드 색 4가지: 진한 기본색(코드 이름 navy)·포인트색(blue)·옅은 배경색(ice)·강조색(orange). 이름은 역할일 뿐 실제 색은 무엇이든 된다. 없으면 가전소 색으로 시작
+- 업종 규제 표현: 효능·효과 단정, 의학적 표현, 최저가 등 쓰면 안 되는 말(예: 화장품법·사료관리법·식품표시광고법). 모르면 업종 일반 기준을 제안하고 확인받는다
 - 새 GitHub 저장소 이름(공개 저장소여야 함), 발행 시각(기본 오전 11시)
 - 금지어·피해야 할 표현(예: 특정 매장명), 말투
 
@@ -33,12 +34,15 @@ python3.13 <스킬>/scripts/new_brand.py --config brand.json --out <새 폴더>
   `git clone --depth 1 https://github.com/madebyjs-19/gajeonso-cardnews <임시폴더>` 후 `--source <임시폴더>`.
 - 스크립트가 하는 일: 코드·워크플로·디자인 도면 복사, 브랜드명·영문명·저장소 주소·상담 URL·색 치환, 로고 정리(흰 배경 정사각형), 상담 QR 생성, 빈 계획·로그·README 생성, `REBRAND_TODO.md`(남은 일 목록) 작성.
 - 출력의 "남은 옛 브랜드 표기"가 0이 아니면 그 파일을 열어 고친다.
+- 가전이 아닌 업종이면 스크립트가 카드의 콘센트 심볼을 브랜드 심볼(`assets/brand_mark.png`)로, 기본 도면(generic)을 상자형 포장으로 바꾸고, 크롬이 있으면 도면을 새 색으로 다시 그린다.
+
+**바로 겉모습부터 확인한다** (규칙을 다시 쓰기 전에): `check_brand.py`(4단계 명령)를 한 번 돌리고 미리보기를 연다. 색·원형 로고(`logo_medal_crop`)·로고 크기를 바꿀 일이 있으면 지금 brand.json 을 고쳐 `--force` 로 다시 만든다. 3단계 이후에 다시 만들면 손으로 고친 규칙이 지워진다(그때는 `gen_cards.py` 의 `_medal` crop 줄이나 색 상수를 직접 고친다).
 
 ### 3단계. 업종에 맞게 규칙 다시 쓰기 (Claude 가 직접)
-`REBRAND_TODO.md` 의 줄과 `references/rebrand_guide.md` 3번 표를 따라 ROUTINE_PROMPT.md·CLAUDE.md 의 업종 문장을 다시 쓴다.
-- 바꾸는 것: 역할·톤, 우선 이슈 종류, 조사 출처·검색어, 사실 확인 순서, 예시, 제품 이미지 출처, 금지어, 진행자 묘사(원하면).
+`references/rebrand_guide.md` 3번 표를 따라 ROUTINE_PROMPT.md·CLAUDE.md 의 업종 문장을 다시 쓴다. `REBRAND_TODO.md` 는 키워드로 찾은 출발점일 뿐 빠진 줄이 있다 — 표에서 "다시 쓰기"인 구역은 **모든 줄을 읽고** 가전 예시·단위·출처가 남았는지 본다.
+- 바꾸는 것: 역할·톤, 우선 이슈 종류, 조사 출처·검색어, 사실 확인 순서, 예시·단위, 제품 이미지 출처, 금지어·규제 표현 규칙, 진행자 묘사(옷 색을 브랜드 색으로), 릴스 컨셉 설명.
 - 바꾸지 않는 것: step0·step3 생성 방법·카드 구조(7~9장)·step4 파일 계약과 한 커밋 푸시·approval.txt 마지막·게시 금지·토큰 비노출. 이 규칙들이 Actions 와 맞물려 있어서 고치면 발행이 깨진다.
-- 가전이 아닌 업종이면 일러스트(도면) 방침을 정한다(rebrand_guide 4번). 빠르게 시작하려면 "실물 사진 우선, 없으면 illust:generic".
+- 가전이 아닌 업종이면 일러스트 방침을 정한다(rebrand_guide 4번). 빠르게 시작하려면 "실물 사진 우선, 없으면 illust:generic(상자형 포장)" 으로 두고 step2_5·CLAUDE.md 의 가전 종류 목록을 지운다.
 - `plan/content_plan.md` 에 첫 4~6주 계획을 사용자와 함께 채운다(rebrand_guide 5번).
 - 끝나면 `REBRAND_TODO.md` 를 지운다.
 
@@ -46,16 +50,16 @@ python3.13 <스킬>/scripts/new_brand.py --config brand.json --out <새 폴더>
 ```bash
 python3.13 <스킬>/scripts/check_brand.py <새 폴더>
 ```
-옛 브랜드 표기·문법·필수 파일·샘플 카드 7장·표지 로고(LOGO_OK top-right)·릴스 자막·QR 엔딩·슬라이드 릴스를 점검한다(게시·전송 없음).
-- FAIL 이 있으면 고치고 다시 돌린다.
-- **미리보기를 직접 열어 본다**: `out/_check/20990101/card1.jpg`(표지 로고·색), `card7.jpg`(CTA 원형 로고·QR), `out/_check/end_card.png`(릴스 QR). 글씨가 배경에 묻히거나 원형 로고가 어색하면 palette·`logo_medal_crop` 을 고쳐 2단계부터 다시. 사용자에게도 이미지를 보여 주고 확인받는다.
-- 색을 바꿨고 도면을 쓸 거면 도면을 다시 그린다(rebrand_guide 4번).
+옛 브랜드 표기·문법·필수 파일·샘플 카드 7장·어두운/밝은 표지 로고(LOGO_OK top-right)·릴스 자막·QR 엔딩·슬라이드 릴스를 점검한다(게시·전송 없음).
+- FAIL 이 있으면 고치고 다시 돌린다. 규칙 문서에 쓴 자막 예시를 바꿨다면 `reel_overlay.py --check` 로 그 예시도 검사한다(한 줄 12자).
+- **미리보기를 직접 열어 본다**: `out/_check/20990101/card1.jpg`(어두운 표지), `card2.jpg`(내용 카드·오른쪽 위 심볼·페이지 번호 색), `card7.jpg`(CTA 원형 로고·QR), `20990102/card1.jpg`(밝은 표지), `end_card.png`(릴스 QR). 파란 회색 같은 옛 색이 남았거나 글씨가 묻히면 해당 색 상수를 고친다. 사용자에게도 이미지를 보여 주고 확인받는다.
 
 ### 5단계. 저장소 올리기
 새 GitHub 저장소(Public)에 main 으로 첫 푸시하고, Workflow permissions 를 Read and write 로 바꾼다(`references/accounts_setup.md` 1번). 이 세션이 그 저장소에 접근할 수 없으면 `add_repo`/`list_repos` 로 확인하고, 안 되면 사용자에게 로컬 푸시 방법을 안내한다.
 
 ### 6단계. 계정 연결 (사용자가 직접, Claude 는 안내·확인)
 `references/accounts_setup.md` 2~4번을 **한 단계씩** 안내한다: 텔레그램 봇 → Meta 앱·만료 없는 페이지 토큰 → GitHub Secrets.
+- 같은 사용자의 두 번째 브랜드라면: 텔레그램 봇은 **새로** 만든다(한 봇을 두 자동화가 쓰면 승인 버튼을 서로 가져간다). Meta 토큰 발급 팝업과 `me/accounts` 결과에서 **새 브랜드 페이지**를 고르는지 특히 확인시킨다.
 - 토큰 값을 대화창에 받지 않는다. Secrets 에 넣은 뒤 Actions "Meta 연결 점검"을 실행해 로그로 확인한다(GitHub 도구로 실행·로그 확인 가능).
 - 통과 기준: IG·FB 모두 "정상 … 유형 PAGE, 만료 없음". 사용자 토큰·만료 임박이면 accounts_setup 3번을 다시 안내한다(가전소에서 실제로 반복된 실수다).
 
