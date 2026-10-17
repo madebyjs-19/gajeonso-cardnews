@@ -24,3 +24,4 @@
 20261016c | [시험 회차] 타이틀 카드·팝업 자막·이미지 자료 안내 점검 | B | ice | formula, compare, checklist | IG 발행 성공 · FB 발행 성공 · IG 릴스 성공 · FB 릴스 성공 · Flow 영상 사용 (Actions)
 20261016d | [시험 회차] 타이틀 2초+본 영상 8초 전환·내레이션·릴스 조건 점검 | B | ice | formula, compare, checklist | IG 발행 성공 · FB 발행 성공 · IG 릴스 성공 · FB 릴스 성공 · Flow 영상 사용 (Actions)
 20261017 | (주제 미확정) | - | - | - | 중단 사유(재시도 2회차): 3개 주제 모두 1차 출처 확인 실패 — ①난방기 전기요금(한전 요금표 cyber.kepco.co.kr 503, 한전ON은 표 수치 미노출, 검색은 블로그뿐) ②으뜸효율 가전 환급(한국에너지공단 energy.or.kr 503, 2026년 진행 여부 확인 불가) ③최근 48시간 우선 이슈(삼성 뉴스룸 시간 초과, LG 보도자료 404, 검색에 10월 공식 발표 없음)
+20261017 | 난방기 1시간 전기요금: 사용량 구간별 단가 비교 | B | navy | 7장 formula, table, compare, steps, checklist | IG 실패(API access blocked.) · FB 실패(Cannot call API for app 1118398003996916 on behalf of user 1) · IG 릴스 실패(API access blocked.) · FB 릴스 실패(Cannot call API for app 1118398003996916 on behalf of user 1) · Flow 영상 사용 (Actions)
