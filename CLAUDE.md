@@ -46,3 +46,6 @@ Actions 가 카드 미리보기, Flow 프롬프트와 [발행]/[취소] 버튼�
 ## 발행
 - 카드 생성·로고 합성은 `python3.13` 으로 실행한다(Pillow·numpy·qrcode가 python3.13에 설치됨).
 - `deck.json`, `fonts/`, `out/`, `img/` 는 커밋하지 않는다(.gitignore 등록됨).
+
+## 주제를 못 정했을 때 (텔레그램 질문)
+주제 선정이 실패하거나 마땅한 주제가 없으면 모델은 텔레그램을 직접 보내지 않고 `topic_request/RUN.txt`(상황·시도한 주제와 이유·추천 후보 2~3개)를 main 에 푸시한다. Actions(`topic-request.yml`)가 텔레그램으로 질문을 보내고 120분 동안 사용자의 답장을 기다려 `plan/topic_override.txt` 에 저장한다. 다음 루틴 실행은 이 파일의 주제를 모든 규칙보다 우선해 진행하고(ROUTINE_PROMPT.md step1 -1번), 카드와 같은 커밋에서 파일을 삭제한다.

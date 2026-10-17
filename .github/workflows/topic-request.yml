@@ -1,0 +1,57 @@
+name: 텔레그램 주제 요청
+
+on:
+  push:
+    branches: [main]
+    paths: ["topic_request/*.txt"]
+  workflow_dispatch:
+    inputs:
+      file:
+        description: "요청 파일 (예: topic_request/20261018.txt)"
+        required: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: cardnews-publish
+  cancel-in-progress: false
+
+jobs:
+  ask:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: 대상 요청 파일 찾기
+        id: files
+        env:
+          INPUT_FILE: ${{ inputs.file }}
+          BEFORE: ${{ github.event.before }}
+        run: |
+          if [ -n "$INPUT_FILE" ]; then list="$INPUT_FILE"; else
+            git cat-file -e "$BEFORE^{commit}" 2>/dev/null || BEFORE=$(git rev-parse HEAD~1)
+            list=$(git diff --name-only --diff-filter=AM "$BEFORE" HEAD -- 'topic_request/*.txt' | tr '\n' ' ')
+          fi
+          echo "list=$list" >> "$GITHUB_OUTPUT"
+      - name: 답장 대기 후 주제 저장
+        if: steps.files.outputs.list != ''
+        env:
+          LIST: ${{ steps.files.outputs.list }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: for f in $LIST; do python topic_request.py "$f"; done
+      - name: 주제 파일 커밋
+        if: always() && steps.files.outputs.list != ''
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add plan/topic_override.txt
+          git diff --cached --quiet && exit 0
+          git commit -m "텔레그램 답장으로 주제 지정"
+          for i in 1 2 3; do git pull --rebase origin main && git push origin HEAD:main && break; sleep 5; done
