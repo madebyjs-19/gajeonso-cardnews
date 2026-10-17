@@ -1,7 +1,10 @@
 name: Meta 연결 점검
 
-# 토큰을 바꾼 뒤 GitHub Secrets 의 Instagram·Facebook 토큰이 Graph API 에서 통하는지 읽기 전용으로 확인한다(게시하지 않음).
+# GitHub Secrets 의 Instagram·Facebook 토큰이 Graph API 에서 통하는지 읽기 전용으로 확인한다(게시하지 않음).
+# 매일 루틴(11시경) 전에 돌려서, 문제가 있으면 텔레그램으로 알린다.
 on:
+  schedule:
+    - cron: "30 0 * * *"   # 매일 09:30 KST
   workflow_dispatch:
   push:
     paths: [".github/workflows/meta-check.yml"]
@@ -20,10 +23,13 @@ jobs:
           IG_USER_ID: ${{ secrets.IG_USER_ID }}
           FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
           FB_PAGE_ACCESS_TOKEN: ${{ secrets.FB_PAGE_ACCESS_TOKEN }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         shell: python
         run: |
           import os, sys, json, datetime, urllib.request, urllib.parse, urllib.error
-          G, E, bad = "https://graph.facebook.com/v26.0", os.environ, False
+          G, E, bad, out = "https://graph.facebook.com/v26.0", os.environ, False, []
+          print = lambda m, _p=print: (out.append(m), _p(m))
           def call(path, **p):
               try:
                   return json.load(urllib.request.urlopen(G + path + "?" + urllib.parse.urlencode(p), timeout=30))
@@ -49,4 +55,9 @@ jobs:
                       left = (d["expires_at"] - datetime.datetime.now(datetime.UTC).timestamp()) / 3600
                       if left < 24 * 7:
                           print(f"  곧 만료: {left:.1f}시간 남음(장기 토큰으로 교체 필요)"); bad = True
+          if bad and E.get("TELEGRAM_BOT_TOKEN") and E.get("TELEGRAM_CHAT_ID"):
+              text = ("[가전소 Meta 연결 점검] ⚠️ 문제가 있어 오늘 발행이 실패할 수 있습니다.\n" + "\n".join(out)
+                      + "\n\n토큰을 페이지 토큰(만료 없음)으로 다시 발급해 GitHub Secrets 를 바꾼 뒤, Actions 의 'Meta 연결 점검'을 다시 실행해 확인하세요.")
+              urllib.request.urlopen(f"https://api.telegram.org/bot{E['TELEGRAM_BOT_TOKEN']}/sendMessage",
+                                     urllib.parse.urlencode({"chat_id": E["TELEGRAM_CHAT_ID"], "text": text}).encode(), timeout=30)
           sys.exit(1 if bad else 0)
