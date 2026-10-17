@@ -1,1 +1,1 @@
-IG 실패(API access blocked.) · FB 실패(Cannot call API for app 1118398003996916 on behalf of user 1) · IG 릴스 실패(API access blocked.) · FB 릴스 실패(Cannot call API for app 1118398003996916 on behalf of user 1) · Flow 영상 사용
+IG 발행 성공 · FB 발행 성공 · IG 릴스 성공 · FB 릴스 성공 · Flow 영상 사용
