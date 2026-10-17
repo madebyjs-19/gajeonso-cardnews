@@ -1,7 +1,7 @@
 # 사용(GitHub Actions 전용): python approval_publish.py YYYYMMDD [YYYYMMDD ...]
 # cards/YYYYMMDD/ 의 카드·릴스를 텔레그램으로 승인 요청하고, [발행]을 누른 경우에만 publish.py·publish_reel.py 를 실행한다.
 # 결과는 cards/YYYYMMDD/status.txt 와 log/ig-card-news-log.md 에 남긴다. 토큰은 환경변수(GitHub Secrets)로만 받는다.
-import os, re, sys, json, time, shutil, tempfile, subprocess, pathlib
+import os, re, sys, json, time, shutil, tempfile, subprocess, pathlib, urllib.request, urllib.parse, urllib.error
 
 import reel_overlay
 
@@ -405,6 +405,27 @@ def wait_decision(d, folder):
     return "expired"
 
 
+def meta_check():
+    """승인 요청 전에 Instagram·Facebook 토큰으로 Graph API 를 불러 본다. 막혀 있으면 사유 목록(정상이면 빈 목록)."""
+    probs = []
+    for label, tok, obj in (("Instagram", "IG_ACCESS_TOKEN", "IG_USER_ID"), ("Facebook", "FB_PAGE_ACCESS_TOKEN", "FB_PAGE_ID")):
+        if not E.get(tok) or not E.get(obj):
+            continue  # 설정 누락은 publish.py 가 '건너뜀'으로 처리한다
+        url = f"https://graph.facebook.com/v26.0/{E[obj]}?" + urllib.parse.urlencode({"fields": "id", "access_token": E[tok]})
+        try:
+            r = json.load(urllib.request.urlopen(url, timeout=30))
+        except urllib.error.HTTPError as e:
+            try:
+                r = json.loads(e.read())
+            except ValueError:
+                r = {"error": {"message": f"HTTP {e.code}"}}
+        except Exception:
+            continue  # 일시적인 네트워크 오류는 막힘으로 보지 않는다
+        if "error" in r:
+            probs.append(f"{label}: {r['error'].get('message', 'unknown error')}")
+    return probs
+
+
 def summarize(out):
     names = {"Instagram": "IG", "Facebook": "FB", "Instagram 릴스": "IG 릴스", "Facebook 릴스": "FB 릴스"}
     parts = []
@@ -417,7 +438,7 @@ def summarize(out):
             elif v.startswith("건너뜀"):
                 parts.append(f"{label} 설정 누락")
             else:
-                parts.append(f"{label} 실패({v.removeprefix('실패: ')[:60]})")
+                parts.append(f"{label} 실패({v.removeprefix('실패: ')[:120]})")
     return " · ".join(parts) or "결과 확인 불가"
 
 
@@ -438,15 +459,31 @@ def process(d):
         return
     folder = pathlib.Path("cards") / d
     status = folder / "status.txt"
-    if status.exists():
-        print(f"{d}: 이미 처리됨({status.read_text(encoding='utf-8').strip()}), 건너뜀")
-        return
+    prev = status.read_text(encoding="utf-8").strip() if status.exists() else ""
+    if "성공" in prev:  # 한 곳이라도 발행됐으면 중복 게시를 막는다. 전부 실패·취소·만료면 다시 승인 요청한다
+        print(f"{d}: 이미 처리됨({prev}), 건너뜀")
+        return True
     missing = [n for n in ["ig.txt", "fb.txt"] if not (folder / n).exists()]
     if len(card_files(folder)) < 5:
         missing.insert(0, f"카드(card1~ 이어진 것 {len(card_files(folder))}장, 5장 이상 필요)")
     if missing:
         say(f"[{d}] 승인 요청 불가: {', '.join(missing)} 없음")
-        return
+        return True
+    blocked = meta_check()
+    if blocked:  # 지금 [발행]을 눌러도 실패하므로 승인 요청을 보류하고, status.txt 를 남기지 않아 고친 뒤 다시 실행할 수 있게 한다
+        say(f"[{d}] ⚠️ Instagram·Facebook 연결이 막혀 있어 승인 요청을 보류합니다(지금 발행하면 실패).\n"
+            + "\n".join(blocked)
+            + "\n\n해결 방법\n"
+            "1) developers.facebook.com → 내 앱 → 앱 대시보드에서 제한·비활성·필수 조치(데이터 사용 확인, 인증 등) 알림을 처리합니다.\n"
+            "2) 페이스북 설정 → 비즈니스 통합(앱 및 웹사이트)에서 앱 연결이 해제됐으면 다시 연결합니다.\n"
+            "3) 그래프 API 탐색기에서 토큰을 새로 발급해 GitHub Secrets 의 IG_ACCESS_TOKEN·FB_PAGE_ACCESS_TOKEN 을 바꿉니다.\n"
+            f"4) GitHub Actions → '텔레그램 승인 후 발행' → Run workflow 에 {d} 를 넣어 다시 실행합니다.")
+        with LOG.open("a", encoding="utf-8") as f:
+            f.write(f"{d} | 승인 요청 보류: Meta 연결 오류({' / '.join(blocked)[:200]}) (Actions)\n")
+        print(f"{d}: 승인 요청 보류(Meta 연결 오류) {blocked}")
+        return False
+    if prev:
+        say(f"[{d}] 이전 결과({prev[:200]})에 발행된 곳이 없어 다시 승인 요청합니다.")
     if not request_approval(d, folder):
         say(f"[{d}] 승인 요청 전송 실패, 발행 안 함")
         result = "승인 요청 전송 실패"
@@ -455,6 +492,9 @@ def process(d):
         if decision == "approve":
             if d not in FLOW:  # 텔레그램으로 영상이 안 왔으면 구글 드라이브 폴더에서 찾는다
                 drive_fallback(d, folder)
+            if d not in FLOW and prev and (folder / "reel.mp4").exists():  # 재시도: 지난번에 올린 릴스 영상을 다시 쓴다
+                FLOW[d] = tmpdir() / f"{d}_prev_reel.mp4"
+                shutil.copyfile(folder / "reel.mp4", FLOW[d])
             flow_note = push_reel(d, folder)
             if not flow_note:  # Flow 영상이 없으면 카드 슬라이드 릴스로 대신 발행한다(릴스가 새 사람에게 닿는 주 통로)
                 slide = slide_reel(d, folder)
@@ -477,8 +517,9 @@ def process(d):
     with LOG.open("a", encoding="utf-8") as f:
         f.write(f"{head} | {result} (Actions)\n")
     print(f"{d}: {result}")
+    return True
 
 
 if __name__ == "__main__":
-    for d in sys.argv[1:]:
-        process(d)
+    ok = [process(d) for d in sys.argv[1:]]
+    sys.exit(0 if all(r is not False for r in ok) else 1)  # 보류된 회차가 있으면 Actions 실행을 실패로 표시해 알린다

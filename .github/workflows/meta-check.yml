@@ -1,0 +1,52 @@
+name: Meta 연결 점검
+
+# 토큰을 바꾼 뒤 GitHub Secrets 의 Instagram·Facebook 토큰이 Graph API 에서 통하는지 읽기 전용으로 확인한다(게시하지 않음).
+on:
+  workflow_dispatch:
+  push:
+    paths: [".github/workflows/meta-check.yml"]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: 토큰 점검
+        env:
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
+          FB_PAGE_ACCESS_TOKEN: ${{ secrets.FB_PAGE_ACCESS_TOKEN }}
+        shell: python
+        run: |
+          import os, sys, json, datetime, urllib.request, urllib.parse, urllib.error
+          G, E, bad = "https://graph.facebook.com/v26.0", os.environ, False
+          def call(path, **p):
+              try:
+                  return json.load(urllib.request.urlopen(G + path + "?" + urllib.parse.urlencode(p), timeout=30))
+              except urllib.error.HTTPError as e:
+                  return json.loads(e.read())
+          for label, tok, obj, fields in (("Instagram", "IG_ACCESS_TOKEN", "IG_USER_ID", "username"),
+                                          ("Facebook", "FB_PAGE_ACCESS_TOKEN", "FB_PAGE_ID", "name")):
+              if not E.get(tok) or not E.get(obj):
+                  print(f"{label}: Secrets 누락({tok} 또는 {obj})"); bad = True; continue
+              d = call("/debug_token", input_token=E[tok], access_token=E[tok]).get("data", {})
+              r = call(f"/{E[obj]}", fields=fields, access_token=E[tok])
+              ts = lambda k: datetime.datetime.fromtimestamp(d[k], datetime.UTC).strftime("%Y-%m-%d") if d.get(k) else "없음"
+              if "error" in r:
+                  print(f"{label}: 실패 - {r['error'].get('message')}"); bad = True
+              else:
+                  print(f"{label}: 정상 - {r.get(fields)} (발급 {ts('issued_at')}, 만료 {ts('expires_at')}, 유형 {d.get('type')})")
+                  need = {"instagram_content_publish", "instagram_basic"} if label == "Instagram" else {"pages_manage_posts"}
+                  if miss := need - set(d.get("scopes", [])):
+                      print(f"  권한 부족: {', '.join(sorted(miss))}"); bad = True
+                  if label == "Facebook" and d.get("type") != "PAGE":
+                      print("  페이지 토큰이 아님: 페이지 게시는 페이지 액세스 토큰이 필요합니다(그래프 API 탐색기에서 '페이지'를 골라 발급)"); bad = True
+                  if d.get("expires_at"):
+                      left = (d["expires_at"] - datetime.datetime.now(datetime.UTC).timestamp()) / 3600
+                      if left < 24 * 7:
+                          print(f"  곧 만료: {left:.1f}시간 남음(장기 토큰으로 교체 필요)"); bad = True
+          sys.exit(1 if bad else 0)
