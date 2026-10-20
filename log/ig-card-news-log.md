@@ -28,3 +28,4 @@
 20261017 | 난방기 1시간 전기요금: 사용량 구간별 단가 비교 | B | navy | 7장 formula, table, compare, steps, checklist | IG 발행 성공 · FB 발행 성공 · IG 릴스 성공 · FB 릴스 성공 · Flow 영상 사용 (Actions)
 20261018 | 에어컨 겨울 보관: 송풍 건조·필터·전원·실외기 덮개 | B | ice | 7장 table, steps, compare, table, checklist | 승인 만료 (Actions)
 20261019 | 가습기 방식별 유지비·가습량 비교 | B | navy | 7장 table, formula, compare, table, checklist | IG 발행 성공 · FB 발행 성공 · IG 릴스 성공 · FB 릴스 성공 · Flow 영상 사용 (Actions)
+20261020 | 승인 요청 보류: Meta 연결 오류(Instagram: Error validating access token: Sessions for the user are not allowed because the user is not a confirmed user. / Facebook: Error validating access token: Sessions for the user are not allow) (Actions)
