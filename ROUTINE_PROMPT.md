@@ -154,13 +154,14 @@
    - 금지: 물체가 떠다니거나 저절로 움직이기, 갑자기 나타나기·사라지기·순간이동, 모양·크기·개수가 컷 중간에 바뀌기(모핑), 사람이 작아지기·분신·벽 통과, 중력을 거스르는 물·김·천의 움직임, 실제 가전으로 불가능한 작동(문이 저절로 열림, 화면·빛이 튀어나옴 등), 과장된 슬로모션 점프·공중회전.
    - 손과 몸: 물건을 쥘 때 손가락이 물체에 닿아 있어야 하고, 손가락·팔 개수와 모양이 자연스러워야 한다. 진행자 얼굴·옷·소품은 모든 컷에서 그대로 유지한다.
    - 카메라: 한 컷 안에서 급격한 줌·회전·순간 전환을 하지 않는다. 컷 전환은 일반적인 컷 편집으로만 하고, 모든 컷은 같은 장소·조명 안에서 이어진다.
-   - 컨셉 연출도 이 규칙 안에서 한다(마술쇼는 '천을 걷으면 원래 있던 물건이 보이는' 수준, 내부 탐험은 진행자를 작게 만들지 않고 접사 카메라로 내부를 보여 주기, 모자 토론은 한 화면 두 인물 대신 같은 진행자가 모자를 바꿔 쓰며 번갈아 말하기, 시간 점프는 창밖 빛·계절 소품 변화로만 표현).
+   - 진행자 차림: 컨셉과 상관없이 HOST 문단의 차림 그대로다. 몸에 쓰거나 걸치는 소품(헤드셋·마이크·이어폰·모자·머리띠·장신구·시계·앞치마·코트 등)은 어떤 컨셉에서도 추가하지 않는다. 손에 드는 소품은 그 컷 설명에 적은 것만 쓴다. 컷 설명에도 'wearing …' 같은 착용 묘사를 쓰지 않는다.
+   - 컨셉 연출도 이 규칙 안에서 한다(마술쇼는 '천을 걷으면 원래 있던 물건이 보이는' 수준, 내부 탐험은 진행자를 작게 만들지 않고 접사 카메라로 내부를 보여 주기, 자리 바꾸기 토론은 한 화면 두 인물 대신 같은 진행자가 A 제품 옆·B 제품 옆으로 자리를 옮기며 번갈아 말하기, 시간 점프는 창밖 빛·계절 소품 변화로만 표현).
    - flow_prompt.txt 에 아래 REALISM 문단을 **글자 하나 바꾸지 않고** IMPORTANT 문단 바로 아래에 넣는다.
      REALISM: Everything must look like a real live-action shoot that obeys real-world physics. One simple, natural action per cut at normal human speed. Hands grip objects with correct finger contact; no extra, missing or bent fingers or limbs. Objects keep the same shape, size, color and count throughout; nothing floats, morphs, melts, teleports, appears or disappears. Liquids, steam, fabric and doors move naturally with gravity. Appliances open and work only the way real household appliances do. The host's face, hair, glasses and clothes stay identical in every cut. No sudden zooms, spins or warping of faces or backgrounds inside a cut. If an action could look unnatural, choose a simpler, calmer action instead.
 
    [고정 진행자] 모든 릴스에 같은 인물이 나온다. 아래 HOST 문단을 매번 **글자 하나 바꾸지 않고** 프롬프트에 넣는다.
    assets/reel_host/ 에 기준 이미지가 있으면 Actions 가 텔레그램으로 같이 보내 주고, 사용자는 그 이미지를 Flow '재료(Ingredients)'로 넣는다(만드는 법: docs/reel_host.md).
-   HOST: The same host appears in every Hamajunsu video and must match the attached host reference image exactly: a Korean woman in her early 30s, chin-length straight black bob with blunt bangs, round thin black-rimmed glasses, warm bright smile, natural makeup. She wears a crisp white lab coat over a navy crew-neck top, a small orange pen clipped to the chest pocket, and a plain blank badge on a navy lanyard. Slim, medium height. Quick, witty, expressive gestures; she speaks Korean fast, clearly and cheerfully, with accurate lip-sync. Concept props (hat, headset, magnifying glass, etc.) may be added on top, but her face, hair, glasses and lab coat never change.
+   HOST: The same host appears in every Hamajunsu video and must match the attached host reference image exactly: a Korean woman in her early 30s, chin-length straight black bob with blunt bangs, round thin black-rimmed glasses, warm bright smile, natural makeup. She wears a crisp white lab coat over a navy crew-neck top, a small orange pen clipped to the chest pocket, and a plain blank badge on a navy lanyard. Slim, medium height. Quick, witty, expressive gestures; she speaks Korean fast, clearly and cheerfully, with accurate lip-sync. She wears exactly this outfit and nothing else in every cut, whatever the concept: no headset, no microphone, no earphones, no hat or cap, no headband, no earrings, necklace, bracelet, ring or watch, no scarf, apron or extra clothing. Her face, hair, glasses and outfit never change; she only holds a prop in her hand when a cut explicitly describes it.
 
    [컨셉 — 매 회차 다르게, 창의적으로] 아래 12가지 중 하나를 고른다.
    - 직전 5회차의 cards/*/flow_prompt.txt 두 번째 줄 "Concept: ..." 을 읽고, 그 5개와 겹치지 않는 것 중 이번 주제에 가장 잘 맞는 것을 고른다(같은 컨셉 연속 금지). 장소·조명·카메라 움직임도 직전 회차와 다르게 한다.
@@ -168,15 +169,15 @@
    - 고른 컨셉을 approval.txt 에 "릴스 컨셉: 이름(고른 이유 한 줄)" 으로 적는다.
      ① Lab Test 실험실 검증 — 용량·성능·효율 주제. 하얀 실험실, 비커·계량컵·저울·모래시계로 직접 재고 비교하는 미니 실험.
      ② Nature Documentary 자연 다큐 패러디 — 관리법·사용 습관. 진행자가 화분 뒤에 숨어 속삭이며 '서식지 속 가전'을 관찰, 접사·망원 샷.
-     ③ Detective 탐정 수사 — 숨은 비용·전기요금·고장 원인. 탐정 모자와 돋보기, 어두운 조명 속 단서 추적, 마지막에 범인(원인) 지목.
-     ④ Sports Broadcast 스포츠 중계 — 두 제품·두 방식 비교. 헤드셋 마이크를 쓴 진행자가 열띤 중계, 두 가전의 '경기'와 슬로모션 리플레이.
+     ③ Detective 탐정 수사 — 숨은 비용·전기요금·고장 원인. 손에 든 돋보기로 어두운 조명 속 단서를 살피고 마지막에 범인(원인) 지목(모자·코트 등 의상 추가 없음).
+     ④ Sports Broadcast 스포츠 중계 — 두 제품·두 방식 비교. 진행자가 중계하듯 열띤 말투로 두 가전의 '경기'를 설명, 같은 장면을 다른 각도에서 다시 보여 주는 리플레이 컷(헤드셋·마이크 없음).
      ⑤ O/X Quiz Show 퀴즈쇼 — 흔한 오해 바로잡기. 화려한 조명의 스튜디오, 진행자가 팔로 크게 O·X 를 만들며 정답 공개(화면·전광판 금지).
      ⑥ Magic Show 마술쇼 — 의외의 사실·숨은 기능. 진행자가 덮어 둔 천을 걷으면 원래 그 자리에 있던 정답 소품이 보이는 무대 마술 연출(갑자기 나타나기·사라지기 없음).
      ⑦ Inside Tour 내부 탐험 — 내부 구조·작동 원리. 진행자가 문·덮개를 열고 접사 카메라가 드럼 안·선반 사이·필터 옆을 천천히 비추며 안내(진행자를 작게 만들지 않음).
      ⑧ Time Jump 시간 점프 — 장기 비용·수명·계절 준비. 컷마다 창밖 빛과 계절 소품(선풍기→담요 등)이 바뀌고 진행자는 같은 자리에서 설명(모핑 없이 컷 전환으로만).
-     ⑨ Hat Debate 모자 토론 — 선택 고민(A냐 B냐). 같은 진행자가 컷마다 캡 모자를 썼다 벗으며 A편·B편을 번갈아 말하다 결론(한 화면에 두 명 등장 금지).
+     ⑨ Side Switch 자리 바꾸기 토론 — 선택 고민(A냐 B냐). 같은 진행자가 컷마다 A 제품 옆·B 제품 옆으로 자리를 옮겨 서며 A편·B편을 번갈아 말하다 결론(한 화면에 두 명 등장 금지, 모자 등 소품 착용 없음).
      ⑩ Appliance POV 가전 시점 — 사용법·설치·배치. 냉장고 안·세탁기 안·로봇청소기 높이에서 바라본 시점, 진행자가 문을 열고 들여다봄.
-     ⑪ Cooking Show 요리쇼 — 주방가전·김장·식재료 보관. 셰프 모자를 얹은 진행자의 빠른 요리 프로그램 진행.
+     ⑪ Cooking Show 요리쇼 — 주방가전·김장·식재료 보관. 주방 조리대 앞에서 진행자가 재료를 들어 보이며 빠르게 진행하는 요리 프로그램 톤(셰프 모자·앞치마 없음).
      ⑫ Movie Trailer 영화 예고편 — 제도 변경·시즌 이슈·지원금. 웅장한 슬로모션, 역광과 렌즈 플레어, 진지한 척하는 예고편 톤.
 
    - cards/RUN/flow_prompt.txt: 15초 한 편의 영상 설명(영어 장면 묘사 + 한국어 대사). 영상 엔진은 Google Flow 의 **Omni Flash 1.2**(한 번에 3~15초 생성, 소리 포함, 참고 이미지 사용 가능)이며 길이는 15초로 설정한다. **프롬프트 본문만** 쓴다(제목·머리글·설명 줄을 넣지 않는다. 텔레그램에서 이 파일 내용이 그대로 복사용 메시지로 전송된다). 아래 순서를 지킨다.
@@ -199,7 +200,7 @@
      · 한 줄 12자 이내, 최대 2줄('/' 로 줄바꿈), 이모지 금지(허용: 한글·영문·숫자·. , % ! ? ~ : · ( ) - + / ↓ ↑ → × ÷ = ≈). 수치는 카드와 일치하고 출처가 확인된 값만 쓴다.
    - cards/RUN/flow_assets.txt(선택): 사용자가 Flow 에 직접 넣으면 좋은 이미지 자료 목록. 한 줄에 하나, "파일명 또는 URL | 용도"(예: `https://... | 김치냉장고 일반 외형 참고`). 필요 없으면 만들지 않는다. 저장소에 올릴 수 있는 이미지(사용권 문제 없는 것)는 cards/RUN/flow_ref/ 에 넣으면 Actions 가 텔레그램으로 같이 보내 준다. 표지(card1)와 고정 진행자 이미지는 항상 자동으로 전송된다(표지는 색감 참고용).
    - 반드시 검사한다: python3.13 reel_overlay.py --check cards/RUN/reel_captions.txt 가 CAPTIONS_OK 를 출력해야 한다. 오류가 나면 문구를 고쳐 다시 검사한다(폰트에 없는 글자·너무 긴 줄·허용되지 않는 문자·시간 오류는 모두 오류).
-   - flow_prompt.txt 를 다시 읽고 확인한다: 1·2줄 Topic·Concept, HOST·FINAL SHOT·IMPORTANT·REALISM 문단이 위와 글자까지 같은지, 15초 한 편(나눔·연장 없음)인지, 첫 대사(훅)만 듣고도 대상과 주제를 알 수 있는지(대상 이름+기준+궁금증), 훅이 확인된 사실에서 나왔고 8~12.5초에 그 답이 나오는지, 대사가 훅 → 핵심 포인트 → 엔딩 순서이고 글자 수 제한을 지키는지, 마무리 대사가 "추가 정보와 문의는 하마준수에서!" 인지, 컨셉이 직전 5회차와 겹치지 않는지, 컷마다 동작이 한 가지의 평범한 동작인지(떠다님·모핑·순간이동·분신·불가능한 가전 작동이 없는지).
+   - flow_prompt.txt 를 다시 읽고 확인한다: 1·2줄 Topic·Concept, HOST·FINAL SHOT·IMPORTANT·REALISM 문단이 위와 글자까지 같은지, 15초 한 편(나눔·연장 없음)인지, 첫 대사(훅)만 듣고도 대상과 주제를 알 수 있는지(대상 이름+기준+궁금증), 훅이 확인된 사실에서 나왔고 8~12.5초에 그 답이 나오는지, 대사가 훅 → 핵심 포인트 → 엔딩 순서이고 글자 수 제한을 지키는지, 마무리 대사가 "추가 정보와 문의는 하마준수에서!" 인지, 컨셉이 직전 5회차와 겹치지 않는지, 컷마다 동작이 한 가지의 평범한 동작인지(떠다님·모핑·순간이동·분신·불가능한 가전 작동이 없는지), 진행자에게 헤드셋·마이크·모자 같은 착용 소품 묘사가 없는지.
 
 [표지 콘텐츠 규칙: 매 게시물 필수 — "보고 싶어지는 표지"]
 - 표지는 게시물의 핵심 요약이다. 제목 1줄=대상, 2줄=가장 중요한 결론 또는 핵심 수치(예: "누진 400kWh 넘으면 단가 2.5배")로, 넘겨 보기 전에도 핵심 정보 한 가지를 얻게 한다. 막연한 표현("확인하세요", "가이드")만으로 제목을 채우지 않는다.
