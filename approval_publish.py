@@ -52,7 +52,7 @@ def request_approval(d, folder):
     tg("sendMediaGroup", {"chat_id": CHAT, "media": json.dumps(media)},
        {f"c{i}": f for i, f in enumerate(cards, 1)}, timeout=240)
     note = folder / "approval.txt"
-    say(note.read_text(encoding="utf-8") if note.exists() else f"[가전소 카드뉴스 승인 요청 {d}]")
+    say(note.read_text(encoding="utf-8") if note.exists() else f"[하마준수 카드뉴스 승인 요청 {d}]")
     say("[Instagram 캡션]\n" + (folder / "ig.txt").read_text(encoding="utf-8"))
     fp, rc = folder / "flow_prompt.txt", folder / "reel_captions.txt"
     if fp.exists():

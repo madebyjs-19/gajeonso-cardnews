@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""가전소 카드뉴스 생성기 (브랜드 가이드 Ver 1.1 기준)
+"""하마준수 카드뉴스 생성기 (브랜드 가이드 Ver 1.1 기준)
 
 사용법:
   python3 gen_cards.py deck.json OUTDIR
@@ -15,13 +15,13 @@ import qrcode
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 FONT_DIR = os.environ.get("GAJEONSO_FONT_DIR", os.path.join(HERE, "fonts"))
-LOGO = os.path.join(HERE, "gajeonso_logo.png")
+LOGO = os.path.join(HERE, "hamajunsu_logo.png")
 QR_URL = "http://pf.kakao.com/_PHwrX/chat"
-CONSULT_TEXT = "상담문의 · 가전소"
+CONSULT_TEXT = "상담문의 · 하마준수"
 
 W, H, S = 1080, 1350, 2  # S: 슈퍼샘플링 배율(부드러운 선·글자)
 
-NAVY = (0x1A, 0x2A, 0x4A); BLUE = (0x2E, 0x5E, 0xAA); ICE = (0xDC, 0xE8, 0xF5)
+NAVY = (0x1A, 0x2A, 0x4A); BLUE = (0x2F, 0x60, 0xAF); ICE = (0xDC, 0xE8, 0xF5)
 WHITE = (0xFD, 0xFE, 0xFE); OFFWHITE = (0xF7, 0xF8, 0xFA)
 GRAY = (0x6B, 0x76, 0x88); LGRAY = (0x9A, 0xA6, 0xB2); ORANGE = (0xFF, 0x8A, 0x3D)
 ICE_TEXT = (0x18, 0x5F, 0xA5); NAVY_PAGE = (0x6E, 0x86, 0xAC); NAVY_NOTE = (0x8F, 0xA5, 0xC7)
@@ -549,7 +549,7 @@ def illustration(kind):
         rr(130, 470, w - 130, h - 120, 28, fill=SHADE, ow=LW - 3)
     elif kind == "tv":
         rr(m, m, w - m, 600, 26, fill=MID)
-        rr(m + 22, m + 22, w - m - 22, 578, 14, fill=(0x2E, 0x5E, 0xAA))
+        rr(m + 22, m + 22, w - m - 22, 578, 14, fill=(0x2F, 0x60, 0xAF))
         d.polygon([(130 * K, 578 * K), (420 * K, 578 * K), (240 * K, m * K + 22 * K), (130 * K, m * K + 22 * K)], fill=(0x3A, 0x6C, 0xBA))
         ov(w - 90, 580, 6, fill=ORANGE, outline=ORANGE, ow=0)
         rr(w / 2 - 40, 600, w / 2 + 40, 650, 4, fill=SHADE); rr(w / 2 - 190, 650, w / 2 + 190, 700, 22)
@@ -953,7 +953,7 @@ def lab_consult(c):
     q = qr.make_image(fill_color="black", back_color="white").convert("RGB").resize((96 * S, 96 * S), Image.NEAREST)
     c.img.paste(q, ((x1 + 12) * S, (y1 + 12) * S))
     mtext(c, x1 + 126, y1 + 50, "CONSULT", 18, BLUE, 0.12)
-    c.text(x1 + 126, y1 + 86, "상담문의 · 가전소", font("bold", 22), NAVY, "ls")
+    c.text(x1 + 126, y1 + 86, "상담문의 · 하마준수", font("bold", 22), NAVY, "ls")
     c.consult = True
 
 
@@ -1065,7 +1065,7 @@ def lab_cover(c, spec, ctx):
     vis = list(spec.get("visuals") or ([spec["image"]] if spec.get("image") else []))[:2]
     kinds = [k for k in map(_visual_kind, vis) if k]
     tag = spec.get("file_tag") or (LAB_KIND_TAG.get(kinds[0]) if kinds else "REPORT")
-    lab_file(c, [("가전소 LAB · ", False), (f"FILE {ctx['run']}", True), (f" · {tag}", False)])
+    lab_file(c, [("하마준수 LAB · ", False), (f"FILE {ctx['run']}", True), (f" · {tag}", False)])
     land = len(vis) == 1 and _is_landscape(vis[0])
 
     if len(vis) == 1 and land:
@@ -1370,7 +1370,7 @@ def lab_review(c, spec, top, bottom):
             c.d.ellipse((96 * S, (cy - r) * S, (96 + 2 * r) * S, (cy + r) * S), fill=ICE)
             c.text(96 + r, cy, spec.get("initial", "고"), font("extrabold", 34), BLUE, "mm")
             c.text(200, cy - 6, spec.get("name", "고객님"), font("extrabold", 30), NAVY, "ls")
-            c.text(200, cy + 30, "가전소 상담 고객", font("medium", 24), GRAY, "ls")
+            c.text(200, cy + 30, "하마준수 상담 고객", font("medium", 24), GRAY, "ls")
         y += 84
         return y - y0
     k, ex, h = _fit(b, top, bottom, rows=3, cap=50)
@@ -1439,7 +1439,7 @@ def lab_cta(c, spec, n, ctx):
         ImageDraw.Draw(m).ellipse(((nx - r) * S, (ny - r) * S, (nx + r) * S, (ny + r) * S), fill=255)
         c.img.paste(snap, (0, 0), m)
     mtext(c, x1 + 60, y1 + 80, "CONSULT TICKET", 24, NAVY_NOTE, 0.12)
-    c.text(x2 - 60, y1 + 80, "가전소", font("bold", 26), ORANGE, "rs")
+    c.text(x2 - 60, y1 + 80, "하마준수", font("bold", 26), ORANGE, "rs")
     q = spec.get("question", "").split("\n")
     lines, idx = [], []
     for px in (104, 96, 88, 80, 72, 64):
@@ -1469,7 +1469,7 @@ def lab_cta(c, spec, n, ctx):
     lg, m = _medal(104)
     c.d.ellipse(((x1 - 3) * S, (1150 - 3) * S, (x1 + 107) * S, (1257) * S), fill=NAVY)
     c.img.paste(lg, (x1 * S, 1150 * S), m)
-    c.text(x1 + 130, 1196, "가전소", font("extrabold", 28), NAVY, "ls")
+    c.text(x1 + 130, 1196, "하마준수", font("extrabold", 28), NAVY, "ls")
     c.text(x1 + 130, 1232, "가전, 제대로 알고 사는 곳", font("medium", 22), GRAY, "ls")
     mtext(c, x2, 1232, f"{n:02d}/{ctx['total']:02d}", 26, LGRAY, 0.04, "rs")
 
@@ -1530,7 +1530,7 @@ def lab_poster(c, spec, n, ctx):
     L = LAB[c.bg]; mode = spec.get("mode", "headline")
     first = n == 1
     lab_grid(c, clear=LOGO_BOX if first else None, crops=("tl", "bl", "br") if first else ("tl", "tr", "bl", "br"))
-    lab_file(c, [("가전소 LAB · ", False), (f"FILE {ctx['run']}", True), (" · NOTICE", False)] if first else [(f"NOTICE · {n:02d}", False)])
+    lab_file(c, [("하마준수 LAB · ", False), (f"FILE {ctx['run']}", True), (" · NOTICE", False)] if first else [(f"NOTICE · {n:02d}", False)])
     if not first:
         lab_plug(c); lab_consult(c)
     if mode == "headline":

@@ -1,4 +1,4 @@
-"""가전소 연구소 리포트 스타일 - 제품별 도면 세트 생성기.
+"""하마준수 연구소 리포트 스타일 - 제품별 도면 세트 생성기.
 
 python3 design/blueprints/build.py 를 실행하면
   - design/blueprints/catalog.html : 전체 도면 카탈로그 (배경 4종 전환, 클릭하면 크게 보기)

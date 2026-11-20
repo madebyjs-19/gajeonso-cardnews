@@ -2,7 +2,7 @@
 # 카드 JPG 로 1080x1920 릴스(mp4, 약 14.5초)를 만든다. 결과: <dir>/reel.mp4 (세 번째 인자로 바꿀 수 있음)
 # Actions 는 Flow 영상이 없는 날 이것으로 카드 슬라이드 릴스를 만들어 대신 발행한다(approval_publish.py).
 # 연구소 리포트 디자인 틀: 모눈 배경·모서리 크롭 마크·IBM Plex Mono 라벨·Pretendard 제목(카드 design "lab" 과 같은 색).
-# - 상단에 "GAJEONSO LAB · REEL" 라벨과 훅 자막(deck.json 의 reel_hook, 없으면 1장 제목, deck.json 이 없으면 <dir>/ig.txt 첫 줄)
+# - 상단에 "HAMAJUNSU LAB · REEL" 라벨과 훅 자막(deck.json 의 reel_hook, 없으면 1장 제목, deck.json 이 없으면 <dir>/ig.txt 첫 줄)
 # - 가운데 카드(느린 줌인, 장 사이 전환), 마지막에 1장으로 되돌아가 반복 재생을 유도
 # - 하단에 마지막 장부터 "SAVE" 저장 유도 자막(deck.json 의 reel_cta 로 변경 가능)
 # - 합성 BGM(저작권 없음, 저음량)
@@ -21,7 +21,7 @@ HOLD, FADE, LOOP_HOLD = 3.0, 0.5, 2.0
 FPS = 30
 W, H = 1080, 1920
 CARD_X, CARD_Y, CARD_W, CARD_H = 60, 400, 960, 1200   # 카드 자리(원본 1080x1350 을 같은 비율로 축소)
-NAVY, BLUE, ORANGE, GRAY = (0x1A, 0x2A, 0x4A), (0x2E, 0x5E, 0xAA), (0xFF, 0x8A, 0x3D), (0x6B, 0x76, 0x88)
+NAVY, BLUE, ORANGE, GRAY = (0x1A, 0x2A, 0x4A), (0x2F, 0x60, 0xAF), (0xFF, 0x8A, 0x3D), (0x6B, 0x76, 0x88)
 PAPER = (0xFD, 0xFE, 0xFE)
 GRID = tuple(round(PAPER[i] * 0.94 + NAVY[i] * 0.06) for i in range(3))  # gen_cards.py LAB["white"]["grid"] 와 같은 값
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -78,7 +78,7 @@ def frame_png(path):
             sx = 1 if cx == "l" else -1; sy = 1 if cy == "t" else -1
             dr.rectangle((min(x, x + sx * ln), min(y, y + sy * wd), max(x, x + sx * ln), max(y, y + sy * wd)), fill=NAVY)
             dr.rectangle((min(x, x + sx * wd), min(y, y + sy * ln), max(x, x + sx * wd), max(y, y + sy * ln)), fill=NAVY)
-    x = mono(dr, 96, 118, "GAJEONSO LAB", 26, BLUE)
+    x = mono(dr, 96, 118, "HAMAJUNSU LAB", 26, BLUE)
     x = mono(dr, x, 118, " · ", 26, BLUE)
     mono(dr, x, 118, "REEL", 26, ORANGE)
     if hook:

@@ -28,7 +28,7 @@ def main(path):
     old = tg("getUpdates", {"timeout": "0"}).get("result", [])
     offset = old[-1]["update_id"] + 1 if old else 0
     tg("sendMessage", {"chat_id": CHAT, "text": (
-        f"[가전소 주제 요청 {run}]\n{body}\n\n"
+        f"[하마준수 주제 요청 {run}]\n{body}\n\n"
         "이 메시지에 답장으로 오늘 다룰 주제를 보내 주세요(120분 안). "
         "답장이 오면 다음 루틴 실행이 그 주제로 카드를 만듭니다.")[:4000]})
     end = time.time() + WAIT

@@ -125,7 +125,7 @@ def caption_png(text, path):
 
 
 def end_card_png(path):
-    """마지막 2초에 얹는 상담 QR 패널(흰 카드 + 카카오톡 채널 QR + '추가 정보·상담 문의 / 가전소')."""
+    """마지막 2초에 얹는 상담 QR 패널(흰 카드 + 카카오톡 채널 QR + '추가 정보·상담 문의 / 하마준수')."""
     bw, bh, qs = 460, 640, 360
     im = Image.new("RGBA", (bw, bh), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
@@ -140,7 +140,7 @@ def end_card_png(path):
     d.text((28, 70), "추가 정보·상담 문의", font=load_font("Pretendard-Bold.otf", 34), fill=WHITE, anchor="ls")
     q = Image.open(QR_IMG).convert("RGB").resize((qs, qs), Image.NEAREST)
     im.paste(q, ((bw - qs) // 2, 92 + 28))
-    d.text((bw // 2, 92 + 28 + qs + 62), "가전소", font=load_font("Pretendard-ExtraBold.otf", 66), fill=NAVY, anchor="mm")
+    d.text((bw // 2, 92 + 28 + qs + 62), "하마준수", font=load_font("Pretendard-ExtraBold.otf", 66), fill=NAVY, anchor="mm")
     d.text((bw // 2, bh - 34), "카카오톡 채널로 바로 상담", font=load_font("Pretendard-Bold.otf", 28), fill=GRAY, anchor="mm")
     im.save(path)
     return bw, bh
