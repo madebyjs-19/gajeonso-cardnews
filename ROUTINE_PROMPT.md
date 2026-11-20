@@ -133,6 +133,11 @@
    영상 구성: [맨 앞 2초 카드뉴스 표지(card1) — Actions 가 자동으로 붙이고 0.5초 크로스페이드] + [Flow 본 영상 정확히 8초] + [핵심 내용 팝업 자막] + [마지막 2초 상담 QR 패널 — Actions 가 자동 합성]. 전체 약 9.5초.
    최종 시간표: 0~2초 표지 → 2~7.5초 정보 설명(본 영상 0~6초, 팝업 자막 구간) → 7.5~9.5초 고정 엔딩(본 영상 6~8초, 진행자가 화면 오른쪽 위를 가리키며 "추가 정보와 문의는 하마준수에서!", 그 자리에 카드뉴스와 같은 카카오톡 상담 QR 패널이 뜬다).
    시청자가 영상만 봐도 "무엇에 대한 이야기인지, 핵심 수치·기준이 무엇인지" 알고, 마지막에 "더 궁금하면 하마준수 QR" 로 이어져야 한다.
+   [대본 구조 — 매 회차 필수] 릴스는 ① 주제 말하기 → ② 오늘 카드뉴스의 핵심 포인트 짧게 설명 → ③ 고정 엔딩, 이 순서로만 만든다.
+   - ① 주제(본 영상 0~2초): 진행자가 오늘 주제를 한 마디로 말한다. "오늘은 ○○!" 또는 질문형 "○○, 뭐가 더 쌀까?"처럼 15자 이내. 인사·자기소개·군더더기 없이 바로 주제.
+   - ② 핵심 포인트(본 영상 2~6초): 카드 2장(결론 요약)의 결론과 가장 중요한 수치·기준 1~2가지만, 1~2마디(합계 25자 이내)로 짧게 설명한다. 카드에 없는 정보·여러 수치 나열·배경 설명은 넣지 않는다.
+   - ③ 엔딩(본 영상 6~8초): "추가 정보와 문의는 하마준수에서!" (FINAL SHOT 그대로)
+   - 화면(컷)은 대사와 맞춘다: Cut 1 은 주제 대상(제품·상황)이 바로 보이는 장면, Cut 2·3 은 핵심 포인트를 소품·행동으로 보여 주는 장면.
 
    [고정 진행자] 모든 릴스에 같은 인물이 나온다. 아래 HOST 문단을 매번 **글자 하나 바꾸지 않고** 프롬프트에 넣는다.
    assets/reel_host/ 에 기준 이미지가 있으면 Actions 가 텔레그램으로 같이 보내 주고, 사용자는 그 이미지를 Flow '재료(Ingredients)'로 넣는다(만드는 법: docs/reel_host.md).
@@ -169,20 +174,20 @@
      2줄 Concept: 컨셉 영어 이름 — 이번 회차에 맞춘 한 줄 설명
      3줄 Vertical 9:16, exactly 8 seconds, 4 cuts. 컨셉에 맞는 장소·조명·카메라 스타일. The video starts right at the topic (a 2-second title card is attached in front automatically).
      4줄 HOST: 위 HOST 문단 그대로
-     Cut 1 (0-2s): 첫 1초 안에 주제가 보이는 강한 후킹 장면(컨셉 세계로 바로 시작)
-     Cut 2 (2-4s), Cut 3 (4-6s): 카드뉴스의 핵심 수치·기준을 소품·행동으로 보여 준다
+     Cut 1 (0-2s): 진행자가 오늘 주제를 말하는 장면. 주제 대상(제품·상황)이 첫 1초 안에 화면에 보인다(컨셉 세계로 바로 시작)
+     Cut 2 (2-4s), Cut 3 (4-6s): 오늘 핵심 포인트(카드 2장 결론과 핵심 수치·기준 1~2가지)를 진행자가 짧게 설명하며 소품·행동 한 가지씩으로 보여 준다
      FINAL SHOT (6-8s): 아래 문단 그대로(장소·소품은 이번 컨셉 세계를 유지)
        FINAL SHOT (6-8s, always the same composition): the host stands on the LEFT side of the frame, waist-up, filling the left 45% of the frame, facing the camera, still inside this video's world. The upper-right area of the frame (right half, from about 25% to 60% of the frame height) is a plain, uncluttered, evenly lit background with nothing in it. The host points clearly toward that empty upper-right area (the viewer's right), then looks back at the camera with a confident smile and says the closing line. Do NOT draw any QR code, sign, board, screen or object in that area; it must stay empty because a real QR panel is added afterwards.
-     Korean dialogue (spoken by the host, lip-synced): 0~6초 대사 1~3마디(합계 35자 이내, 수치·기준은 카드와 같은 값만) + 6~8초 마무리 대사는 항상 "추가 정보와 문의는 하마준수에서!"
+     Korean dialogue (spoken by the host, lip-synced): 0~2초 주제 한 마디(15자 이내) → 2~6초 핵심 포인트 1~2마디(합계 25자 이내, 수치·기준은 카드와 같은 값만) → 6~8초 마무리 대사는 항상 "추가 정보와 문의는 하마준수에서!". 대사는 Korean dialogue 줄에 "0-2s: …", "2-6s: …", "6-8s: …" 형식으로 시간별로 적는다.
      IMPORTANT: No text, no letters, no numbers, no logos, no brand names, no watermark, no QR code, no on-screen captions anywhere in the video. All Korean captions and the QR panel are added afterwards by the pipeline.
      REALISM: 위 [동작·물리 현실성]의 REALISM 문단 그대로
      · 제품은 실존 모델을 흉내 내지 않고 일반적인 형태로 묘사한다(모델명·로고·고유 디자인 금지). 사실과 다른 기능을 보여주지 않는다.
    - cards/RUN/reel_captions.txt: 핵심 내용 팝업 자막(정보성 강화). 한 줄에 하나, "시작초-끝초|자막" 형식. 시간은 최종 영상 기준으로 **2초~7.5초 안**에 둔다(앞 2초는 표지, 7.5초 이후는 상담 QR 엔딩이라 자막을 둘 수 없다).
-     · 2~4개. 카드뉴스의 핵심 수치·기준·결론을 순서대로 한 팝업에 한 가지씩(예: `2.5-4|김장 30포기 =/김치통 75L`, `4-5.8|계산식/포기 수×2L÷0.8`, `5.8-7.5|3도어 300L대/22~23포기`). 저장·공유 유도 자막은 넣지 않는다(마지막은 QR 엔딩).
+     · 2~3개. 대사 순서와 맞춘다: 첫 팝업(2~3.5초)은 오늘 주제(예: `2-3.5|건조기 vs 제습기/전기요금`), 다음 1~2개는 핵심 포인트 수치·결론(예: `3.5-5.5|건조기 1회/250~410원`, `5.5-7.5|제습기 1시간/42~58원`). 저장·공유 유도 자막은 넣지 않는다(마지막은 QR 엔딩).
      · 한 줄 12자 이내, 최대 2줄('/' 로 줄바꿈), 이모지 금지(허용: 한글·영문·숫자·. , % ! ? ~ : · ( ) - + / ↓ ↑ → × ÷ = ≈). 수치는 카드와 일치하고 출처가 확인된 값만 쓴다.
    - cards/RUN/flow_assets.txt(선택): 사용자가 Flow 에 직접 넣으면 좋은 이미지 자료 목록. 한 줄에 하나, "파일명 또는 URL | 용도"(예: `https://... | 김치냉장고 일반 외형 참고`). 필요 없으면 만들지 않는다. 저장소에 올릴 수 있는 이미지(사용권 문제 없는 것)는 cards/RUN/flow_ref/ 에 넣으면 Actions 가 텔레그램으로 같이 보내 준다. 표지(card1)와 고정 진행자 이미지는 항상 자동으로 전송된다.
    - 반드시 검사한다: python3.13 reel_overlay.py --check cards/RUN/reel_captions.txt 가 CAPTIONS_OK 를 출력해야 한다. 오류가 나면 문구를 고쳐 다시 검사한다(폰트에 없는 글자·너무 긴 줄·허용되지 않는 문자·시간 오류는 모두 오류).
-   - flow_prompt.txt 를 다시 읽고 확인한다: 1·2줄 Topic·Concept, HOST·FINAL SHOT 문단이 위와 글자까지 같은지, 마무리 대사가 "추가 정보와 문의는 하마준수에서!" 인지, 컨셉이 직전 5회차와 겹치지 않는지, REALISM 문단이 그대로 들어갔고 컷마다 동작이 한 가지의 평범한 동작인지(떠다님·모핑·순간이동·분신·불가능한 가전 작동이 없는지).
+   - flow_prompt.txt 를 다시 읽고 확인한다: 1·2줄 Topic·Concept, HOST·FINAL SHOT 문단이 위와 글자까지 같은지, 마무리 대사가 "추가 정보와 문의는 하마준수에서!" 인지, 컨셉이 직전 5회차와 겹치지 않는지, 대사가 주제 한 마디 → 핵심 포인트 1~2마디 → 엔딩 순서인지, REALISM 문단이 그대로 들어갔고 컷마다 동작이 한 가지의 평범한 동작인지(떠다님·모핑·순간이동·분신·불가능한 가전 작동이 없는지).
 
 [표지 콘텐츠 규칙: 매 게시물 필수 — "보고 싶어지는 표지"]
 - 표지는 게시물의 핵심 요약이다. 제목 1줄=대상, 2줄=가장 중요한 결론 또는 핵심 수치(예: "누진 400kWh 넘으면 단가 2.5배")로, 넘겨 보기 전에도 핵심 정보 한 가지를 얻게 한다. 막연한 표현("확인하세요", "가이드")만으로 제목을 채우지 않는다.
