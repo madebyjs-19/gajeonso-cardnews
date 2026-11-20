@@ -130,13 +130,15 @@
 5. 생성이 끝나면 곧바로 [대표 로고] 규칙대로 card1 에 로고를 넣고 확인한다. 이 단계가 끝나기 전에는 step4 로 가지 않는다.
 6. 릴스는 매 회차 올라간다. 사용자가 Flow 영상을 보내면 그 영상으로, 보내지 않으면 Actions 가 승인 후 card1·2·3·5 와 ig.txt 첫 줄(상단 훅 자막)로 카드 슬라이드 릴스(make_reel.py)를 만들어 대신 발행한다. 그래서 ig.txt 첫 줄은 릴스 상단 자막으로도 읽히게 짧고 분명하게 쓴다. 이 루틴은 reel.mp4 를 만들거나 푸시하지 않는다.
 7. Flow 영상 프롬프트·팝업 자막·이미지 자료 (사용자가 Google Flow 에서 영상을 만들어 텔레그램으로 보내면 Actions 가 그 영상으로 릴스를 발행한다. 보내지 않으면 6번의 카드 슬라이드 릴스가 발행된다.)
-   영상 길이·구성: **총 15초.** 카드뉴스 표지는 앞에 붙이지 않는다. 첫 프레임부터 Flow 영상이 나오고, 그 첫 장면이 '핵심 훅'이다.
-   Flow 의 Omni Flash 1.2 로 프롬프트 하나를 넣어 15초 영상을 한 번에 만든다(나누거나 연장하지 않는다). Actions 가 팝업 자막과 마지막 2.5초 상담 QR 패널을 합성한다.
-   최종 시간표: 0~3초 주제가 담긴 핵심 훅 → 3~12.5초 핵심 포인트(팝업 자막 구간 0~12.5초) → 12.5~15초 고정 엔딩(진행자가 화면 오른쪽 위를 가리키며 "추가 정보와 문의는 하마준수에서!", 그 자리에 카드뉴스와 같은 카카오톡 상담 QR 패널이 뜬다).
+   영상 길이·구성: **총 15초 = 요약 타이틀 이미지 1.5초 + Flow 영상 14초(0.5초 전환 겹침).**
+   - 맨 앞 1.5초: 이 루틴이 만든 요약 타이틀 이미지(cards/RUN/reel_title.jpg). Actions 가 자연스러운 전환으로 붙이고, 같은 이미지를 Instagram·Facebook 릴스 썸네일(커버)로 지정한다. 아래 [릴스 요약 타이틀·썸네일] 참고.
+   - 이어서 Flow 영상: Flow 의 Omni Flash 1.2 로 프롬프트 하나를 넣어 14초 영상을 한 번에 만든다(나누거나 연장하지 않는다). 그 첫 장면이 '핵심 훅'이다.
+   - Actions 가 팝업 자막과 마지막 2.5초 상담 QR 패널을 합성한다.
+   최종 시간표: 0~1.5초 요약 타이틀 → 1~4초 주제가 담긴 핵심 훅(Flow 0~3초) → 4~12.5초 핵심 포인트(Flow 3~11.5초, 팝업 자막 구간 1.5~12.5초) → 12.5~15초 고정 엔딩(Flow 11.5~14초)(진행자가 화면 오른쪽 위를 가리키며 "추가 정보와 문의는 하마준수에서!", 그 자리에 카드뉴스와 같은 카카오톡 상담 QR 패널이 뜬다).
    목표: 첫 3초 안에 무엇에 대한 이야기인지 바로 알리면서 답이 궁금해 멈추게 만들고, 끝까지 보면 무엇에 대한 이야기인지와 핵심 수치·기준을 알게 하고, 마지막에 "더 궁금하면 하마준수 QR" 로 이어지게 한다.
 
    [대본 구조 — 매 회차 필수] ① 주제가 담긴 핵심 훅 → ② 핵심 포인트 → ③ 고정 엔딩, 이 순서로만 만든다.
-   - ① 주제가 담긴 핵심 훅(0~3초): 영상의 첫 대사이자 첫 장면. **이 한 문장만 들어도 무엇에 대한 영상인지 알 수 있어야 하고**, 동시에 답이 궁금해서 계속 보고 싶어야 한다(공백 제외 25자 이내, 3초 안에 말할 수 있는 길이).
+   - ① 주제가 담긴 핵심 훅(Flow 0~3초): 영상의 첫 대사이자 첫 장면. **이 한 문장만 들어도 무엇에 대한 영상인지 알 수 있어야 하고**, 동시에 답이 궁금해서 계속 보고 싶어야 한다(공백 제외 25자 이내, 3초 안에 말할 수 있는 길이).
      · 반드시 넣는 것: 대상(제품·제도 이름 그대로, 예: 건조기·제습기·김치냉장고·에너지 지원금) + 상황이나 기준(예: 빨래 말릴 때, 전기요금, 용량, 신청 기한) + 궁금증·반전·손익 한 가지.
      · 좋은 예: "빨래 말릴 때 건조기 vs 제습기, 전기요금 뭐가 더 쌀까?", "제습기로 빨래 말리면 건조기보다 싸다? 아닐 수도 있어요", "김장 30포기, 김치냉장고 몇 리터 필요할까?"
      · 나쁜 예: "건조기 한 번, 제습기 몇 시간?"(무슨 기준인지 모름), "이거 모르면 손해!"(대상 없음), "오늘 꿀팁!"(내용 없음)
@@ -145,8 +147,8 @@
      · 금지: 인사·자기소개("안녕하세요"), 채널 소개, 대상이 빠진 막연한 말, 줄임말·은어로 주제를 숨기기, 확인되지 않은 수치·과장·낚시(영상에서 답을 주지 않는 훅).
      · 검사: 카드뉴스를 안 본 사람이 이 대사만 듣고 "○○의 ○○에 대한 이야기구나"라고 말할 수 있는지 확인하고, 안 되면 다시 쓴다.
      · 화면: 첫 프레임부터 진행자와 주제 대상(제품·상황)이 함께 보이는 가까운 샷. 진행자가 카메라를 정면으로 보며 제품을 가리키거나 들어 보이는 한 가지 동작으로 바로 말을 시작한다(검은 화면·풍경·빈 화면으로 시작하지 않는다).
-   - ② 핵심 포인트(3~12.5초): 카드 2장 결론과 핵심 수치·기준 2~3가지를 한 마디씩 짧게(합계 45자 이내). 훅에서 던진 질문의 답이 반드시 여기서 나온다. 카드에 없는 정보·배경 설명·수치 나열은 넣지 않는다.
-   - ③ 엔딩(12.5~15초): "추가 정보와 문의는 하마준수에서!" (FINAL SHOT 그대로)
+   - ② 핵심 포인트(Flow 3~11.5초): 카드 2장 결론과 핵심 수치·기준 2~3가지를 한 마디씩 짧게(합계 45자 이내). 훅에서 던진 질문의 답이 반드시 여기서 나온다. 카드에 없는 정보·배경 설명·수치 나열은 넣지 않는다.
+   - ③ 엔딩(Flow 11.5~14초): "추가 정보와 문의는 하마준수에서!" (FINAL SHOT 그대로)
    - 고른 훅 문구와 형태를 approval.txt 에 "릴스 훅: 문구(형태)" 로 적는다.
 
    [동작·물리 현실성 — 매 회차 필수] 릴스는 실제 촬영처럼 보여야 한다. 비상식적이거나 어색한 동작·물리 현상은 쓰지 않는다.
@@ -180,27 +182,34 @@
      ⑪ Cooking Show 요리쇼 — 주방가전·김장·식재료 보관. 주방 조리대 앞에서 진행자가 재료를 들어 보이며 빠르게 진행하는 요리 프로그램 톤(셰프 모자·앞치마 없음).
      ⑫ Movie Trailer 영화 예고편 — 제도 변경·시즌 이슈·지원금. 웅장한 슬로모션, 역광과 렌즈 플레어, 진지한 척하는 예고편 톤.
 
-   - cards/RUN/flow_prompt.txt: 15초 한 편의 영상 설명(영어 장면 묘사 + 한국어 대사). 영상 엔진은 Google Flow 의 **Omni Flash 1.2**(한 번에 3~15초 생성, 소리 포함, 참고 이미지 사용 가능)이며 길이는 15초로 설정한다. **프롬프트 본문만** 쓴다(제목·머리글·설명 줄을 넣지 않는다. 텔레그램에서 이 파일 내용이 그대로 복사용 메시지로 전송된다). 아래 순서를 지킨다.
+   - cards/RUN/flow_prompt.txt: 14초 한 편의 영상 설명(영어 장면 묘사 + 한국어 대사). 영상 엔진은 Google Flow 의 **Omni Flash 1.2**(한 번에 3~15초 생성, 소리 포함, 참고 이미지 사용 가능)이며 길이는 14초로 설정한다(앞에 요약 타이틀 1.5초가 붙어 최종 15초). **프롬프트 본문만** 쓴다(제목·머리글·설명 줄을 넣지 않는다. 텔레그램에서 이 파일 내용이 그대로 복사용 메시지로 전송된다). 아래 순서를 지킨다.
      1줄 Topic: 무엇에 대한 영상인지 한 줄(영어)
      2줄 Concept: 컨셉 영어 이름 — 이번 회차에 맞춘 한 줄 설명
-     3줄 Vertical 9:16, exactly 15 seconds, one continuous video with 4 cuts in the same location, lighting and camera style. 컨셉에 맞는 장소·조명·카메라 스타일. The very first frame is the hook: the host and the topic object are already on screen in a close shot and the host starts talking immediately (no intro, no title card, no empty establishing shot).
+     3줄 Vertical 9:16, exactly 14 seconds, one continuous video with 4 cuts in the same location, lighting and camera style. 컨셉에 맞는 장소·조명·카메라 스타일. The very first frame is the hook: the host and the topic object are already on screen in a close shot and the host starts talking immediately (no intro, no title card, no empty establishing shot).
      4줄 HOST: 위 HOST 문단 그대로
      HOOK Cut 1 (0-3s): 주제가 담긴 훅 장면(가까운 샷, 비교 대상이 둘이면 둘 다 화면에 보이게, 진행자가 카메라를 보며 주제 대상을 가리키거나 들어 보이는 한 가지 동작, 궁금함·확신 같은 분명한 표정)
-     Cut 2 (3-8s): 핵심 포인트 1을 소품·행동 한 가지로 보여 주는 장면
-     Cut 3 (8-12.5s): 핵심 포인트 2(·3)과 훅에 대한 답을 소품·행동 한 가지로 보여 주는 장면
+     Cut 2 (3-7s): 핵심 포인트 1을 소품·행동 한 가지로 보여 주는 장면
+     Cut 3 (7-11.5s): 핵심 포인트 2(·3)과 훅에 대한 답을 소품·행동 한 가지로 보여 주는 장면
      FINAL SHOT 문단 그대로:
-       FINAL SHOT (12.5-15s, always the same composition): the host stands on the LEFT side of the frame, waist-up, filling the left 45% of the frame, facing the camera, still inside this video's world. The upper-right area of the frame (right half, from about 25% to 60% of the frame height) is a plain, uncluttered, evenly lit background with nothing in it. The host points clearly toward that empty upper-right area (the viewer's right), then looks back at the camera with a confident smile and says the closing line. Do NOT draw any QR code, sign, board, screen or object in that area; it must stay empty because a real QR panel is added afterwards.
-     Korean dialogue (spoken by the host, lip-synced): 0-3s: "주제가 담긴 훅(공백 제외 25자 이내, 대상+기준+궁금증)" / 3-8s: "핵심 포인트 1(20자 이내)" / 8-12.5s: "핵심 포인트 2(·3), 훅의 답(25자 이내)" / 12.5-15s: "추가 정보와 문의는 하마준수에서!"
+       FINAL SHOT (11.5-14s, always the same composition): the host stands on the LEFT side of the frame, waist-up, filling the left 45% of the frame, facing the camera, still inside this video's world. The upper-right area of the frame (right half, from about 25% to 60% of the frame height) is a plain, uncluttered, evenly lit background with nothing in it. The host points clearly toward that empty upper-right area (the viewer's right), then looks back at the camera with a confident smile and says the closing line. Do NOT draw any QR code, sign, board, screen or object in that area; it must stay empty because a real QR panel is added afterwards.
+     Korean dialogue (spoken by the host, lip-synced): 0-3s: "주제가 담긴 훅(공백 제외 25자 이내, 대상+기준+궁금증)" / 3-7s: "핵심 포인트 1(20자 이내)" / 7-11.5s: "핵심 포인트 2(·3), 훅의 답(25자 이내)" / 11.5-14s: "추가 정보와 문의는 하마준수에서!"
      IMPORTANT 문단 그대로: IMPORTANT: No text, no letters, no numbers, no logos, no brand names, no watermark, no QR code, no on-screen captions anywhere in the video. All Korean captions and the QR panel are added afterwards by the pipeline.
      REALISM 문단 그대로
      · 제품은 실존 모델을 흉내 내지 않고 일반적인 형태로 묘사한다(모델명·로고·고유 디자인 금지). 사실과 다른 기능을 보여주지 않는다. 수치·기준은 카드와 같은 값만 말한다.
-   - cards/RUN/reel_captions.txt: 팝업 자막(훅·정보성 강화). 한 줄에 하나, "시작초-끝초|자막" 형식. 시간은 최종 영상 기준으로 **0초~12.5초 안**에 둔다(12.5초 이후는 상담 QR 엔딩이라 자막을 둘 수 없다).
-     · 3~4개, 대사 순서와 맞춘다: 첫 팝업(0~3초)은 주제가 드러나는 훅(예: `0-3|건조기 vs 제습기/전기요금 승자는?`), 그다음 2~3개는 핵심 포인트 수치·결론(예: `3-8|건조기 1회/250~410원`, `8-12.5|제습기 1시간 42원/4~10시간이면 비슷`). 저장·공유 유도 자막은 넣지 않는다(마지막은 QR 엔딩).
+   - cards/RUN/reel_captions.txt: 팝업 자막(훅·정보성 강화). 한 줄에 하나, "시작초-끝초|자막" 형식. 시간은 최종 영상 기준으로 **1.5초~12.5초 안**에 둔다(앞 1.5초는 요약 타이틀, 12.5초 이후는 상담 QR 엔딩이라 자막을 둘 수 없다).
+     · 3~4개, 대사 순서와 맞춘다: 첫 팝업(1.5~4초)은 주제가 드러나는 훅(예: `1.5-4|건조기 vs 제습기/전기요금 승자는?`), 그다음 2~3개는 핵심 포인트 수치·결론(예: `4-8.5|건조기 1회/250~410원`, `8.5-12.5|제습기 1시간 42원/4~10시간이면 비슷`). 저장·공유 유도 자막은 넣지 않는다(마지막은 QR 엔딩).
      · 팝업 디자인은 Actions 가 자동으로 입힌다: 카드뉴스 표지와 같은 Do Hyeon 글씨, 네이비 카드 + 오렌지 라벨 칩(첫 팝업 'Q.', 이후 'POINT 01'…), 두 줄이면 둘째 줄(핵심 수치)을 크게 오렌지로, 아래에서 살짝 올라오는 팝 효과. 그래서 두 줄로 쓸 때는 첫 줄에 대상·조건, 둘째 줄에 핵심 수치·결론을 둔다.
      · 한 줄 12자 이내, 최대 2줄('/' 로 줄바꿈), 이모지 금지(허용: 한글·영문·숫자·. , % ! ? ~ : · ( ) - + / ↓ ↑ → × ÷ = ≈). 수치는 카드와 일치하고 출처가 확인된 값만 쓴다.
    - cards/RUN/flow_assets.txt(선택): 사용자가 Flow 에 직접 넣으면 좋은 이미지 자료 목록. 한 줄에 하나, "파일명 또는 URL | 용도"(예: `https://... | 김치냉장고 일반 외형 참고`). 필요 없으면 만들지 않는다. 저장소에 올릴 수 있는 이미지(사용권 문제 없는 것)는 cards/RUN/flow_ref/ 에 넣으면 Actions 가 텔레그램으로 같이 보내 준다. 표지(card1)와 고정 진행자 이미지는 항상 자동으로 전송된다(표지는 색감 참고용).
+   - [릴스 요약 타이틀·썸네일] cards/RUN/reel_title.txt 를 쓰고 `python3.13 make_reel_title.py cards/RUN` 로 cards/RUN/reel_title.jpg(1080×1920)를 만든다(REEL_TITLE_OK 출력). 이 이미지가 릴스 맨 앞 1.5초와 릴스 썸네일이 된다. 카드뉴스 표지(card1)와 다른, 릴스 전용 요약 이미지다.
+     reel_title.txt 형식(줄 단위):
+       1줄 태그(짧은 주제 분류, 15자 이내, 예: 겨울 빨래 · 전기요금)
+       2줄 제목 1줄(대상, 10자 안팎, 예: 건조기 vs 제습기)
+       3줄 제목 2줄(결론·궁금증, 10자 안팎, 예: 전기요금 승자는?)
+       4줄~ "- " 로 시작하는 요약 2~3줄(카드뉴스 핵심 수치·결론, 줄마다 22자 이내, 카드와 같은 값만. 예: - 소형 건조기 1회 약 250~410원)
+     만든 reel_title.jpg 를 직접 열어 글자가 잘리거나 겹치지 않는지, 수치가 카드와 같은지 확인한다. 제목은 릴스 훅과 같은 주제를 보는 순간 알 수 있게 쓴다.
    - 반드시 검사한다: python3.13 reel_overlay.py --check cards/RUN/reel_captions.txt 가 CAPTIONS_OK 를 출력해야 한다. 오류가 나면 문구를 고쳐 다시 검사한다(폰트에 없는 글자·너무 긴 줄·허용되지 않는 문자·시간 오류는 모두 오류).
-   - flow_prompt.txt 를 다시 읽고 확인한다: 1·2줄 Topic·Concept, HOST·FINAL SHOT·IMPORTANT·REALISM 문단이 위와 글자까지 같은지, 15초 한 편(나눔·연장 없음)인지, 첫 대사(훅)만 듣고도 대상과 주제를 알 수 있는지(대상 이름+기준+궁금증), 훅이 확인된 사실에서 나왔고 8~12.5초에 그 답이 나오는지, 대사가 훅 → 핵심 포인트 → 엔딩 순서이고 글자 수 제한을 지키는지, 마무리 대사가 "추가 정보와 문의는 하마준수에서!" 인지, 컨셉이 직전 5회차와 겹치지 않는지, 컷마다 동작이 한 가지의 평범한 동작인지(떠다님·모핑·순간이동·분신·불가능한 가전 작동이 없는지), 진행자에게 헤드셋·마이크·모자 같은 착용 소품 묘사가 없는지.
+   - flow_prompt.txt 를 다시 읽고 확인한다: 1·2줄 Topic·Concept, HOST·FINAL SHOT·IMPORTANT·REALISM 문단이 위와 글자까지 같은지, 14초 한 편(나눔·연장 없음)인지, 첫 대사(훅)만 듣고도 대상과 주제를 알 수 있는지(대상 이름+기준+궁금증), 훅이 확인된 사실에서 나왔고 7~11.5초에 그 답이 나오는지, 대사가 훅 → 핵심 포인트 → 엔딩 순서이고 글자 수 제한을 지키는지, 마무리 대사가 "추가 정보와 문의는 하마준수에서!" 인지, 컨셉이 직전 5회차와 겹치지 않는지, 컷마다 동작이 한 가지의 평범한 동작인지(떠다님·모핑·순간이동·분신·불가능한 가전 작동이 없는지), 진행자에게 헤드셋·마이크·모자 같은 착용 소품 묘사가 없는지.
 
 [표지 콘텐츠 규칙: 매 게시물 필수 — "보고 싶어지는 표지"]
 - 표지는 게시물의 핵심 요약이다. 제목 1줄=대상, 2줄=가장 중요한 결론 또는 핵심 수치(예: "누진 400kWh 넘으면 단가 2.5배")로, 넘겨 보기 전에도 핵심 정보 한 가지를 얻게 한다. 막연한 표현("확인하세요", "가이드")만으로 제목을 채우지 않는다.
@@ -393,6 +402,7 @@ if __name__ == "__main__":
        ⑥ "상담문의 · 하마준수"
        ⑦ 해시태그 5~7개(#하마준수 포함, 주제 특화 태그 우선, 범용 태그 남발 금지), 맨 끝
    - fb.txt : Facebook 캡션. ig.txt 의 ①~⑥(참고자료 링크 포함) + "카카오톡 상담: http://pf.kakao.com/_PHwrX/chat" 한 줄 + 해시태그 3~5개(#하마준수 포함), 맨 끝
+   - reel_title.txt, reel_title.jpg : step3 7번의 릴스 요약 타이틀(릴스 맨 앞 1.5초·썸네일)
    - reel.txt : 릴스 본문(Instagram 릴스·Facebook 릴스에 공통으로 올라가는 글, 600자 이내). 카드뉴스 내용을 목차 형식으로 간단히 요약한다. 아래 순서 그대로, 이모지·과장 없이 쓴다.
        ① 첫 줄: 릴스 훅과 같은 주제의 한 문장(대상 이름+궁금증 또는 결론, 예: "빨래 말릴 때 건조기 vs 제습기, 전기요금은 어떻게 다를까요?")
        ② 빈 줄 다음 "오늘 정리" 한 줄, 이어서 목차 3~6줄: "1. ", "2. " … 형식으로 내용 카드(2장 ~ CTA 앞 장) 순서대로 한 줄씩, 각 줄에 그 장의 핵심 수치·기준을 한 가지만(카드와 같은 값, 한 줄 30자 안팎)

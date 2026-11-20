@@ -54,6 +54,9 @@ def request_approval(d, folder):
     note = folder / "approval.txt"
     say(note.read_text(encoding="utf-8") if note.exists() else f"[하마준수 카드뉴스 승인 요청 {d}]")
     say("[Instagram 캡션]\n" + (folder / "ig.txt").read_text(encoding="utf-8"))
+    if (folder / "reel_title.jpg").exists():
+        tg("sendPhoto", {"chat_id": CHAT, "caption": "[릴스 타이틀·썸네일] 릴스 맨 앞 1.5초에 붙고, 인스타·페이스북 릴스 썸네일로 지정됩니다."},
+           {"photo": folder / "reel_title.jpg"}, timeout=120)
     if (folder / "reel.txt").exists():
         say("[릴스 본문] Instagram·Facebook 릴스에 함께 올라갑니다.\n" + (folder / "reel.txt").read_text(encoding="utf-8"))
     fp, rc = folder / "flow_prompt.txt", folder / "reel_captions.txt"
@@ -67,7 +70,7 @@ def request_approval(d, folder):
         refs = [folder / "card1.jpg"] + sorted((folder / "flow_ref").glob("*"))[:5] if (folder / "flow_ref").exists() \
             else [folder / "card1.jpg"]
         for i, f in enumerate(r for r in refs if r.is_file()):
-            cap = "[Flow 참고 이미지] 카드뉴스 표지(영상에는 붙지 않고 분위기·색감 참고용. 릴스는 첫 화면부터 훅으로 시작합니다)" if i == 0 \
+            cap = "[Flow 참고 이미지] 카드뉴스 표지(분위기·색감 참고용. 릴스 맨 앞 1.5초에는 요약 타이틀 이미지가 자동으로 붙고 썸네일로 지정됩니다)" if i == 0 \
                 else f"[Flow 참고 이미지] {f.name}"
             tg("sendDocument", {"chat_id": CHAT, "caption": cap}, {"document": f}, timeout=120)
         fa = folder / "flow_assets.txt"
@@ -80,13 +83,13 @@ def request_approval(d, folder):
         if fa.exists():
             say("[Flow에 넣을 이미지 자료] 직접 준비해서 Flow에 올려 주세요.\n" + fa.read_text(encoding="utf-8").strip())
         if rc.exists():
-            say("[팝업 자막 목록] 핵심 내용이 영상에 자동 합성됩니다(0초부터 영상, 마지막 2.5초는 상담 QR). 영상 속에는 글자를 넣지 마세요.\n" + rc.read_text(encoding="utf-8").strip())
+            say("[팝업 자막 목록] 핵심 내용이 영상에 자동 합성됩니다(맨 앞 1.5초는 요약 타이틀, 마지막 2.5초는 상담 QR). 영상 속에는 글자를 넣지 마세요.\n" + rc.read_text(encoding="utf-8").strip())
         say("[영상 보내는 방법]"
-            "\n1) 릴스는 총 15초이고 첫 화면부터 Flow 영상의 훅으로 시작합니다(표지는 붙지 않음). 팝업 자막은 0초부터 자동으로 얹힙니다."
-            "\n   Flow에서 모델 Omni Flash 1.2, 길이 15초, 세로 9:16으로 두고 프롬프트 전체를 한 번에 넣어 만들어 주세요. 진행자 기준 이미지는 참고 이미지로 넣습니다."
+            "\n1) 릴스는 총 15초입니다. 맨 앞 1.5초에 요약 타이틀 이미지(썸네일)가 자연스러운 전환과 함께 붙고, 이어서 Flow 영상의 훅이 나옵니다. 팝업 자막은 자동으로 얹힙니다."
+            "\n   Flow에서 모델 Omni Flash 1.2, 길이 14초, 세로 9:16으로 두고 프롬프트 전체를 한 번에 넣어 만들어 주세요. 진행자 기준 이미지는 참고 이미지로 넣습니다."
             "\n   어색한 장면이 있으면 처음부터 다시 만들지 말고 Flow의 대화형 수정으로 그 컷만 고쳐 달라고 하면 됩니다."
             "\n   마지막 2.5초는 진행자가 화면 오른쪽 위를 가리키는 장면이고, 그 자리에 카드뉴스와 같은 상담 QR이 자동으로 얹힙니다(Flow에서 QR을 그리지 마세요)."
-            "\n   16.2초까지는 잘라내지 않고 속도만 살짝 맞추며, 그보다 길면 뒷부분이 잘립니다."
+            "\n   15.2초까지는 잘라내지 않고 속도만 살짝 맞추며(15초로 만들어도 됨), 그보다 길면 뒷부분이 잘립니다."
             "\n2) 만든 영상(20MB 이하)을 이 대화방에 보내 주세요. [발행] 버튼을 누르기 전에 보내야 반영됩니다. 대기 시간 최대 120분."
             f"\n   용량이 커서 못 보내면 구글 드라이브 '릴스영상/{d[2:]}' 폴더에 올려 두세요. 텔레그램 영상이 없으면 그 폴더의 가장 최근 영상을 씁니다."
             "\n3) 내레이션이 있는 영상은 BGM이 없어도 소리가 그대로 들립니다."
@@ -261,7 +264,7 @@ def make_flow(d, folder, raw, bgm=None):
         return None
     out = tmpdir() / f"{d}_flow_reel.mp4"
     caps = folder / "reel_captions.txt"
-    card = str(folder / "card1.jpg")
+    card = str(folder / "reel_title.jpg") if (folder / "reel_title.jpg").exists() else str(folder / "card1.jpg")
     bgm = str(bgm) if bgm else None
     warn = ""
     try:

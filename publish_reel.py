@@ -5,6 +5,9 @@ E = os.environ
 G = "https://graph.facebook.com/v26.0"
 date, ig_cap, fb_cap = sys.argv[1], open(sys.argv[2], encoding="utf-8").read(), open(sys.argv[3], encoding="utf-8").read()
 VID = f"https://raw.githubusercontent.com/madebyjs-19/gajeonso-cardnews/main/cards/{date}/reel.mp4"
+# 릴스 썸네일(커버): cards/RUN/reel_title.jpg(요약 타이틀 이미지)가 있으면 Instagram cover_url·Facebook 썸네일로 지정한다
+TITLE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cards", date, "reel_title.jpg")
+COVER = f"https://raw.githubusercontent.com/madebyjs-19/gajeonso-cardnews/main/cards/{date}/reel_title.jpg" if os.path.exists(TITLE_PATH) else None
 
 
 def call(method, path, headers=None, **p):
@@ -32,7 +35,9 @@ def tg(text):
 res = {}
 try:
     t, u = E["IG_ACCESS_TOKEN"], E["IG_USER_ID"]
-    c = need(call("POST", f"/{u}/media", media_type="REELS", video_url=VID, caption=ig_cap, share_to_feed="true", access_token=t))["id"]
+    extra = {"cover_url": COVER} if COVER else {"thumb_offset": "0"}
+    c = need(call("POST", f"/{u}/media", media_type="REELS", video_url=VID, caption=ig_cap, share_to_feed="true",
+                  access_token=t, **extra))["id"]
     for _ in range(60):
         s = need(call("GET", f"/{c}", fields="status_code", access_token=t))["status_code"]
         if s == "FINISHED":
@@ -43,7 +48,7 @@ try:
     else:
         raise RuntimeError("container timeout")
     mid = need(call("POST", f"/{u}/media_publish", creation_id=c, access_token=t))["id"]
-    res["Instagram 릴스"] = "발행 완료 " + call("GET", f"/{mid}", fields="permalink", access_token=t).get("permalink", "")
+    res["Instagram 릴스"] = "발행 완료 " + call("GET", f"/{mid}", fields="permalink", access_token=t).get("permalink", "") + (" (요약 타이틀 썸네일)" if COVER else "")
 except KeyError as e:
     res["Instagram 릴스"] = f"건너뜀: {e} 설정 필요"
 except Exception as e:
@@ -57,6 +62,12 @@ try:
     need(call("POST", f"/{p}/video_reels", upload_phase="finish", video_id=vid, video_state="PUBLISHED",
               description=fb_cap, access_token=t))
     res["Facebook 릴스"] = "발행 요청 완료 https://www.facebook.com/reel/" + vid
+    if COVER:  # 썸네일 지정(실패해도 발행은 유지)
+        import subprocess
+        r = subprocess.run(["curl", "-sS", "-m", "60", "-F", f"source=@{TITLE_PATH}", "--form-string", "is_preferred=true",
+                            "--form-string", f"access_token={t}", f"{G}/{vid}/thumbnails"], capture_output=True, text=True)
+        if '"success":true' not in r.stdout.replace(" ", "") and '"id"' not in r.stdout:
+            res["Facebook 릴스"] += " (썸네일 지정 실패: 첫 장면이 썸네일)"
 except KeyError as e:
     res["Facebook 릴스"] = f"건너뜀: {e} 설정 필요"
 except Exception as e:
