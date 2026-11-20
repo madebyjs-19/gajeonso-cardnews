@@ -131,7 +131,7 @@
 6. 릴스는 매 회차 올라간다. 사용자가 Flow 영상을 보내면 그 영상으로, 보내지 않으면 Actions 가 승인 후 card1·2·3·5 와 ig.txt 첫 줄(상단 훅 자막)로 카드 슬라이드 릴스(make_reel.py)를 만들어 대신 발행한다. 그래서 ig.txt 첫 줄은 릴스 상단 자막으로도 읽히게 짧고 분명하게 쓴다. 이 루틴은 reel.mp4 를 만들거나 푸시하지 않는다.
 7. Flow 영상 프롬프트·팝업 자막·이미지 자료 (사용자가 Google Flow 에서 영상을 만들어 텔레그램으로 보내면 Actions 가 그 영상으로 릴스를 발행한다. 보내지 않으면 6번의 카드 슬라이드 릴스가 발행된다.)
    영상 길이·구성: **총 15초.** 카드뉴스 표지는 앞에 붙이지 않는다. 첫 프레임부터 Flow 영상이 나오고, 그 첫 장면이 '핵심 훅'이다.
-   Flow 에서는 PART 1(8초)을 만든 뒤 '연장(Extend)'으로 PART 2(7초)를 이어 붙여 한 영상(약 15초)으로 만든다. Actions 가 팝업 자막과 마지막 2.5초 상담 QR 패널을 합성한다.
+   Flow 의 Omni Flash 1.2 로 프롬프트 하나를 넣어 15초 영상을 한 번에 만든다(나누거나 연장하지 않는다). Actions 가 팝업 자막과 마지막 2.5초 상담 QR 패널을 합성한다.
    최종 시간표: 0~3초 주제가 담긴 핵심 훅 → 3~12.5초 핵심 포인트(팝업 자막 구간 0~12.5초) → 12.5~15초 고정 엔딩(진행자가 화면 오른쪽 위를 가리키며 "추가 정보와 문의는 하마준수에서!", 그 자리에 카드뉴스와 같은 카카오톡 상담 QR 패널이 뜬다).
    목표: 첫 3초 안에 무엇에 대한 이야기인지 바로 알리면서 답이 궁금해 멈추게 만들고, 끝까지 보면 무엇에 대한 이야기인지와 핵심 수치·기준을 알게 하고, 마지막에 "더 궁금하면 하마준수 QR" 로 이어지게 한다.
 
@@ -152,13 +152,13 @@
    [동작·물리 현실성 — 매 회차 필수] 릴스는 실제 촬영처럼 보여야 한다. 비상식적이거나 어색한 동작·물리 현상은 쓰지 않는다.
    - 컷마다 동작은 한 가지만, 사람이 실제로 하는 평범한 속도의 동작으로 쓴다(가리키기·들어 보이기·문 열기·저울에 올리기·고개 끄덕이기 등). 한 컷에 동작을 여러 개 몰아넣지 않는다. 훅의 강렬함은 동작이 아니라 첫 대사·표정·가까운 구도로 만든다.
    - 금지: 물체가 떠다니거나 저절로 움직이기, 갑자기 나타나기·사라지기·순간이동, 모양·크기·개수가 컷 중간에 바뀌기(모핑), 사람이 작아지기·분신·벽 통과, 중력을 거스르는 물·김·천의 움직임, 실제 가전으로 불가능한 작동(문이 저절로 열림, 화면·빛이 튀어나옴 등), 과장된 슬로모션 점프·공중회전.
-   - 손과 몸: 물건을 쥘 때 손가락이 물체에 닿아 있어야 하고, 손가락·팔 개수와 모양이 자연스러워야 한다. 진행자 얼굴·옷·소품은 컷 사이와 PART 1·2 사이에도 그대로 유지한다.
-   - 카메라: 한 컷 안에서 급격한 줌·회전·순간 전환을 하지 않는다. 컷 전환은 일반적인 컷 편집으로만 한다. PART 2 는 PART 1 마지막 장면과 같은 장소·조명에서 자연스럽게 이어진다.
+   - 손과 몸: 물건을 쥘 때 손가락이 물체에 닿아 있어야 하고, 손가락·팔 개수와 모양이 자연스러워야 한다. 진행자 얼굴·옷·소품은 모든 컷에서 그대로 유지한다.
+   - 카메라: 한 컷 안에서 급격한 줌·회전·순간 전환을 하지 않는다. 컷 전환은 일반적인 컷 편집으로만 하고, 모든 컷은 같은 장소·조명 안에서 이어진다.
    - 컨셉 연출도 이 규칙 안에서 한다(마술쇼는 '천을 걷으면 원래 있던 물건이 보이는' 수준, 내부 탐험은 진행자를 작게 만들지 않고 접사 카메라로 내부를 보여 주기, 모자 토론은 한 화면 두 인물 대신 같은 진행자가 모자를 바꿔 쓰며 번갈아 말하기, 시간 점프는 창밖 빛·계절 소품 변화로만 표현).
-   - flow_prompt.txt 의 PART 1·PART 2 에 아래 REALISM 문단을 **글자 하나 바꾸지 않고** 각각 넣는다.
+   - flow_prompt.txt 에 아래 REALISM 문단을 **글자 하나 바꾸지 않고** IMPORTANT 문단 바로 아래에 넣는다.
      REALISM: Everything must look like a real live-action shoot that obeys real-world physics. One simple, natural action per cut at normal human speed. Hands grip objects with correct finger contact; no extra, missing or bent fingers or limbs. Objects keep the same shape, size, color and count throughout; nothing floats, morphs, melts, teleports, appears or disappears. Liquids, steam, fabric and doors move naturally with gravity. Appliances open and work only the way real household appliances do. The host's face, hair, glasses and clothes stay identical in every cut. No sudden zooms, spins or warping of faces or backgrounds inside a cut. If an action could look unnatural, choose a simpler, calmer action instead.
 
-   [고정 진행자] 모든 릴스에 같은 인물이 나온다. 아래 HOST 문단을 매번 **글자 하나 바꾸지 않고** 프롬프트(PART 1·PART 2 모두)에 넣는다.
+   [고정 진행자] 모든 릴스에 같은 인물이 나온다. 아래 HOST 문단을 매번 **글자 하나 바꾸지 않고** 프롬프트에 넣는다.
    assets/reel_host/ 에 기준 이미지가 있으면 Actions 가 텔레그램으로 같이 보내 주고, 사용자는 그 이미지를 Flow '재료(Ingredients)'로 넣는다(만드는 법: docs/reel_host.md).
    HOST: The same host appears in every Hamajunsu video and must match the attached host reference image exactly: a Korean woman in her early 30s, chin-length straight black bob with blunt bangs, round thin black-rimmed glasses, warm bright smile, natural makeup. She wears a crisp white lab coat over a navy crew-neck top, a small orange pen clipped to the chest pocket, and a plain blank badge on a navy lanyard. Slim, medium height. Quick, witty, expressive gestures; she speaks Korean fast, clearly and cheerfully, with accurate lip-sync. Concept props (hat, headset, magnifying glass, etc.) may be added on top, but her face, hair, glasses and lab coat never change.
 
@@ -179,35 +179,26 @@
      ⑪ Cooking Show 요리쇼 — 주방가전·김장·식재료 보관. 셰프 모자를 얹은 진행자의 빠른 요리 프로그램 진행.
      ⑫ Movie Trailer 영화 예고편 — 제도 변경·시즌 이슈·지원금. 웅장한 슬로모션, 역광과 렌즈 플레어, 진지한 척하는 예고편 톤.
 
-   - cards/RUN/flow_prompt.txt: PART 1(8초)과 PART 2(연장 7초) 두 덩어리의 영상 설명(영어 장면 묘사 + 한국어 대사). **프롬프트 본문만** 쓴다(제목·머리글·설명 줄을 넣지 않는다. 텔레그램에서 이 파일 내용이 그대로 복사용 메시지로 전송된다). 아래 순서를 지킨다.
+   - cards/RUN/flow_prompt.txt: 15초 한 편의 영상 설명(영어 장면 묘사 + 한국어 대사). 영상 엔진은 Google Flow 의 **Omni Flash 1.2**(한 번에 3~15초 생성, 소리 포함, 참고 이미지 사용 가능)이며 길이는 15초로 설정한다. **프롬프트 본문만** 쓴다(제목·머리글·설명 줄을 넣지 않는다. 텔레그램에서 이 파일 내용이 그대로 복사용 메시지로 전송된다). 아래 순서를 지킨다.
      1줄 Topic: 무엇에 대한 영상인지 한 줄(영어)
      2줄 Concept: 컨셉 영어 이름 — 이번 회차에 맞춘 한 줄 설명
-     3줄 Total 15 seconds, vertical 9:16, made as PART 1 (8 seconds) + PART 2 (Flow Extend, 7 seconds) in the same location, lighting and camera style. 컨셉에 맞는 장소·조명·카메라 스타일. The very first frame is the hook: the host and the topic object are already on screen in a close shot and the host starts talking immediately (no intro, no title card, no empty establishing shot).
+     3줄 Vertical 9:16, exactly 15 seconds, one continuous video with 4 cuts in the same location, lighting and camera style. 컨셉에 맞는 장소·조명·카메라 스타일. The very first frame is the hook: the host and the topic object are already on screen in a close shot and the host starts talking immediately (no intro, no title card, no empty establishing shot).
      4줄 HOST: 위 HOST 문단 그대로
-     빈 줄
-     === PART 1 (0-8s) ===
      HOOK Cut 1 (0-3s): 주제가 담긴 훅 장면(가까운 샷, 비교 대상이 둘이면 둘 다 화면에 보이게, 진행자가 카메라를 보며 주제 대상을 가리키거나 들어 보이는 한 가지 동작, 궁금함·확신 같은 분명한 표정)
      Cut 2 (3-8s): 핵심 포인트 1을 소품·행동 한 가지로 보여 주는 장면
-     Korean dialogue (spoken by the host, lip-synced): 0-3s: "주제가 담긴 훅(공백 제외 25자 이내, 대상+기준+궁금증)" / 3-8s: "핵심 포인트 1(20자 이내)"
-     IMPORTANT 문단 그대로
-     REALISM 문단 그대로
-     빈 줄
-     === PART 2 (Extend, 8-15s) ===
-     Continue seamlessly from the last frame of PART 1: same host, same outfit, same location, same lighting.
-     Cut 4 (8-12.5s): 핵심 포인트 2(·3)과 훅에 대한 답을 소품·행동 한 가지로 보여 주는 장면
-     FINAL SHOT 문단 그대로(아래)
+     Cut 3 (8-12.5s): 핵심 포인트 2(·3)과 훅에 대한 답을 소품·행동 한 가지로 보여 주는 장면
+     FINAL SHOT 문단 그대로:
        FINAL SHOT (12.5-15s, always the same composition): the host stands on the LEFT side of the frame, waist-up, filling the left 45% of the frame, facing the camera, still inside this video's world. The upper-right area of the frame (right half, from about 25% to 60% of the frame height) is a plain, uncluttered, evenly lit background with nothing in it. The host points clearly toward that empty upper-right area (the viewer's right), then looks back at the camera with a confident smile and says the closing line. Do NOT draw any QR code, sign, board, screen or object in that area; it must stay empty because a real QR panel is added afterwards.
-     Korean dialogue (spoken by the host, lip-synced): 8-12.5s: "핵심 포인트 2(·3), 훅의 답(25자 이내)" / 12.5-15s: "추가 정보와 문의는 하마준수에서!"
-     IMPORTANT 문단 그대로
+     Korean dialogue (spoken by the host, lip-synced): 0-3s: "주제가 담긴 훅(공백 제외 25자 이내, 대상+기준+궁금증)" / 3-8s: "핵심 포인트 1(20자 이내)" / 8-12.5s: "핵심 포인트 2(·3), 훅의 답(25자 이내)" / 12.5-15s: "추가 정보와 문의는 하마준수에서!"
+     IMPORTANT 문단 그대로: IMPORTANT: No text, no letters, no numbers, no logos, no brand names, no watermark, no QR code, no on-screen captions anywhere in the video. All Korean captions and the QR panel are added afterwards by the pipeline.
      REALISM 문단 그대로
-     IMPORTANT 문단: IMPORTANT: No text, no letters, no numbers, no logos, no brand names, no watermark, no QR code, no on-screen captions anywhere in the video. All Korean captions and the QR panel are added afterwards by the pipeline.
      · 제품은 실존 모델을 흉내 내지 않고 일반적인 형태로 묘사한다(모델명·로고·고유 디자인 금지). 사실과 다른 기능을 보여주지 않는다. 수치·기준은 카드와 같은 값만 말한다.
    - cards/RUN/reel_captions.txt: 팝업 자막(훅·정보성 강화). 한 줄에 하나, "시작초-끝초|자막" 형식. 시간은 최종 영상 기준으로 **0초~12.5초 안**에 둔다(12.5초 이후는 상담 QR 엔딩이라 자막을 둘 수 없다).
      · 3~4개, 대사 순서와 맞춘다: 첫 팝업(0~3초)은 주제가 드러나는 훅(예: `0-3|건조기 vs 제습기/전기요금 승자는?`), 그다음 2~3개는 핵심 포인트 수치·결론(예: `3-8|건조기 1회/250~410원`, `8-12.5|제습기 1시간 42원/4~10시간이면 비슷`). 저장·공유 유도 자막은 넣지 않는다(마지막은 QR 엔딩).
      · 한 줄 12자 이내, 최대 2줄('/' 로 줄바꿈), 이모지 금지(허용: 한글·영문·숫자·. , % ! ? ~ : · ( ) - + / ↓ ↑ → × ÷ = ≈). 수치는 카드와 일치하고 출처가 확인된 값만 쓴다.
    - cards/RUN/flow_assets.txt(선택): 사용자가 Flow 에 직접 넣으면 좋은 이미지 자료 목록. 한 줄에 하나, "파일명 또는 URL | 용도"(예: `https://... | 김치냉장고 일반 외형 참고`). 필요 없으면 만들지 않는다. 저장소에 올릴 수 있는 이미지(사용권 문제 없는 것)는 cards/RUN/flow_ref/ 에 넣으면 Actions 가 텔레그램으로 같이 보내 준다. 표지(card1)와 고정 진행자 이미지는 항상 자동으로 전송된다(표지는 색감 참고용).
    - 반드시 검사한다: python3.13 reel_overlay.py --check cards/RUN/reel_captions.txt 가 CAPTIONS_OK 를 출력해야 한다. 오류가 나면 문구를 고쳐 다시 검사한다(폰트에 없는 글자·너무 긴 줄·허용되지 않는 문자·시간 오류는 모두 오류).
-   - flow_prompt.txt 를 다시 읽고 확인한다: 1·2줄 Topic·Concept, HOST·FINAL SHOT·IMPORTANT·REALISM 문단이 위와 글자까지 같은지(PART 1·2 모두), 첫 대사(훅)만 듣고도 대상과 주제를 알 수 있는지(대상 이름+기준+궁금증), 훅이 확인된 사실에서 나왔고 PART 2 에서 그 답이 나오는지, 대사가 훅 → 핵심 포인트 → 엔딩 순서이고 글자 수 제한을 지키는지, 마무리 대사가 "추가 정보와 문의는 하마준수에서!" 인지, 컨셉이 직전 5회차와 겹치지 않는지, 컷마다 동작이 한 가지의 평범한 동작인지(떠다님·모핑·순간이동·분신·불가능한 가전 작동이 없는지).
+   - flow_prompt.txt 를 다시 읽고 확인한다: 1·2줄 Topic·Concept, HOST·FINAL SHOT·IMPORTANT·REALISM 문단이 위와 글자까지 같은지, 15초 한 편(나눔·연장 없음)인지, 첫 대사(훅)만 듣고도 대상과 주제를 알 수 있는지(대상 이름+기준+궁금증), 훅이 확인된 사실에서 나왔고 8~12.5초에 그 답이 나오는지, 대사가 훅 → 핵심 포인트 → 엔딩 순서이고 글자 수 제한을 지키는지, 마무리 대사가 "추가 정보와 문의는 하마준수에서!" 인지, 컨셉이 직전 5회차와 겹치지 않는지, 컷마다 동작이 한 가지의 평범한 동작인지(떠다님·모핑·순간이동·분신·불가능한 가전 작동이 없는지).
 
 [표지 콘텐츠 규칙: 매 게시물 필수 — "보고 싶어지는 표지"]
 - 표지는 게시물의 핵심 요약이다. 제목 1줄=대상, 2줄=가장 중요한 결론 또는 핵심 수치(예: "누진 400kWh 넘으면 단가 2.5배")로, 넘겨 보기 전에도 핵심 정보 한 가지를 얻게 한다. 막연한 표현("확인하세요", "가이드")만으로 제목을 채우지 않는다.

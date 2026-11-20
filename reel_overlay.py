@@ -20,8 +20,8 @@ FONTS = {  # 연구소 리포트 디자인과 같은 글꼴(제목·자막 Prete
 }
 MAX_SEC = 15.5       # 최종 영상 길이 상한
 TITLE_SEC = 0.0      # 맨 앞 카드뉴스 표지(타이틀 카드) 노출 시간. 0 이면 붙이지 않고 첫 프레임부터 훅 영상(2.0 으로 바꾸면 다시 붙음)
-CLIP_SEC = 15.0      # 본 영상(Flow) 길이(PART 1 8초 + 연장 PART 2 7초). 이 길이를 넘는 영상만 줄인다(앞부분을 자르지 않고 약간 빠르게) → 최종 15초
-CLIP_TOL = 1.2       # 본 영상이 15초를 이만큼까지(16.2초, 8초+연장 8초까지) 넘으면 잘라내지 않고 속도를 맞춘다
+CLIP_SEC = 15.0      # 본 영상(Flow Omni Flash 1.2, 한 번에 15초) 길이. 이 길이를 넘는 영상만 줄인다(앞부분을 자르지 않고 약간 빠르게) → 최종 15초
+CLIP_TOL = 1.2       # 본 영상이 15초를 이만큼까지(16.2초까지) 넘으면 잘라내지 않고 속도를 맞춘다
 FADE_SEC = 0.5       # 타이틀 카드 → 본 영상 전환(크로스페이드) 길이
 NARRATION_DB = -45.0 # 본 영상 평균 음량이 이보다 크면 내레이션이 있는 것으로 본다
 END_SEC = 2.5        # 본 영상 마지막 이만큼은 고정 엔딩(진행자가 QR 을 가리킴). 팝업 자막은 이 구간 전에 끝나야 한다
@@ -262,7 +262,7 @@ def build(src, dst, captions_path=None, title_card=None, bgm=None):
     if speed != 1.0:
         note += f", 원본 {dur:.1f}초를 {CLIP_SEC:g}초로 맞춤(잘라내지 않음)"
     if cut:
-        note += f", ⚠ 원본 {dur:.1f}초 중 뒷부분 {dur - CLIP_SEC:.1f}초가 잘렸습니다(8초+연장 7초, 약 15초 영상으로 다시 만들어 주세요)"
+        note += f", ⚠ 원본 {dur:.1f}초 중 뒷부분 {dur - CLIP_SEC:.1f}초가 잘렸습니다(15초 영상으로 다시 만들어 주세요)"
     note += ", 내레이션 유지" if narration else (", 본 영상 소리 없음" if not has_audio or mv is None else ", 본 영상 소리 매우 작음")
     if bgm:
         note += ", BGM 삽입"

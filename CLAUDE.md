@@ -23,9 +23,9 @@
 
 ## 릴스 (매 회차 발행)
 - 사용자가 Google Flow 에서 만든 영상을 텔레그램(또는 드라이브 `릴스영상/YYMMDD`)으로 보내면 그 영상으로 릴스를 발행한다. 영상이 없으면 Actions 가 승인 후 `make_reel.py` 로 카드 표지·2·3장과 마지막 장 슬라이드 릴스(상단 훅 = ig.txt 첫 줄)를 만들어 대신 발행한다. 모델 세션은 `reel.mp4` 를 만들거나 푸시하지 않는다.
-- 영상 길이·구성: **총 15초.** 카드뉴스 표지는 앞에 붙이지 않고 첫 프레임부터 Flow 영상의 '핵심 훅'으로 시작한다. Flow 에서 PART 1(8초) + 연장 PART 2(7초)로 만든다. 팝업 자막(0~12.5초)과 마지막 2.5초 상담 QR 패널은 `reel_overlay.py` 가 합성한다. 내레이션은 BGM 없이도 들리고, BGM 은 사용자가 텔레그램에서 지정한다.
+- 영상 길이·구성: **총 15초.** 카드뉴스 표지는 앞에 붙이지 않고 첫 프레임부터 Flow 영상의 '핵심 훅'으로 시작한다. Flow 의 Omni Flash 1.2 로 프롬프트 하나를 넣어 15초를 한 번에 만든다(나누거나 연장하지 않음). 팝업 자막(0~12.5초)과 마지막 2.5초 상담 QR 패널은 `reel_overlay.py` 가 합성한다. 내레이션은 BGM 없이도 들리고, BGM 은 사용자가 텔레그램에서 지정한다.
 - 대본 구조: ① 주제가 담긴 핵심 훅(0~3초, 공백 제외 25자 이내 — 이 한 문장만 들어도 무엇에 대한 영상인지 알아야 한다. 대상 이름+상황·기준+궁금증을 반드시 넣는다. 예: "빨래 말릴 때 건조기 vs 제습기, 전기요금 뭐가 더 쌀까?" / 나쁜 예: "건조기 한 번, 제습기 몇 시간?". 확인된 사실로만, 인사·과장·낚시 금지) → ② 핵심 포인트 2~3가지(3~12.5초, 합계 45자 이내, 훅의 답이 반드시 나옴) → ③ 고정 엔딩(12.5~15초): 진행자가 화면 오른쪽 위를 가리키며 "추가 정보와 문의는 하마준수에서!", 그 자리에 카카오톡 상담 QR. 팝업 자막도 같은 순서(첫 팝업 = 주제가 드러나는 훅, 다음 = 핵심 수치). approval.txt 에 "릴스 훅: 문구(형태)"를 적는다. 자세한 규칙은 ROUTINE_PROMPT.md step3 7번.
-- 동작·물리 현실성: 실제 촬영처럼 보여야 한다. 컷마다 평범한 동작 한 가지만 쓰고(훅의 강렬함은 첫 대사·표정·가까운 구도로), 물체가 떠다니거나 갑자기 나타나기·사라지기·모핑·순간이동·분신·사람이 작아지기·중력을 거스르는 움직임·실제 가전으로 불가능한 작동 같은 비상식적 동작과 물리 현상은 쓰지 않는다. flow_prompt.txt 의 PART 1·2 에 REALISM 문단을 그대로 넣는다.
+- 동작·물리 현실성: 실제 촬영처럼 보여야 한다. 컷마다 평범한 동작 한 가지만 쓰고(훅의 강렬함은 첫 대사·표정·가까운 구도로), 물체가 떠다니거나 갑자기 나타나기·사라지기·모핑·순간이동·분신·사람이 작아지기·중력을 거스르는 움직임·실제 가전으로 불가능한 작동 같은 비상식적 동작과 물리 현상은 쓰지 않는다. flow_prompt.txt 에 REALISM 문단을 그대로 넣는다.
 - 모든 릴스에 같은 진행자(흰 가운·둥근 안경·단발의 하마준수 연구원)가 나온다. ROUTINE_PROMPT.md step3 7번의 HOST 문단을 그대로 넣고, 기준 이미지는 `assets/reel_host/`(만드는 법 `docs/reel_host.md`).
 - 컨셉은 12가지 목록에서 직전 5회차와 겹치지 않게 고른다.
 
@@ -38,7 +38,7 @@
 대신 카드 완성 후 아래 파일을 `cards/YYYYMMDD/` 에 만들어 **한 커밋으로 main 에 푸시**하면 끝이다.
 - `card1~N.jpg` 전부(N=7~9, 번호가 끊기지 않게. 슬라이드 릴스 `reel.mp4` 는 만들지 않는다). Actions 는 card1 부터 이어진 장수만큼 텔레그램 미리보기·Instagram 캐러셀·Facebook 게시물로 올린다(5장 미만이면 승인 요청을 보내지 않는다).
 - `ig.txt`, `fb.txt` : Instagram·Facebook 캡션 전문
-- `flow_prompt.txt`, `reel_captions.txt`, (선택) `flow_assets.txt`·`flow_ref/` : Google Flow 영상 프롬프트(PART 1 8초 + 연장 PART 2 7초, 총 15초, 첫 장면이 핵심 훅)와 팝업 자막(3~5개, 0~12.5초 구간, 첫 팝업은 훅. 12.5초 이후는 상담 QR 엔딩), Flow에 넣을 이미지 자료 목록. `python3.13 reel_overlay.py --check cards/YYYYMMDD/reel_captions.txt` 가 CAPTIONS_OK 여야 한다(자세한 규칙은 ROUTINE_PROMPT.md step3 의 7번). 사용자가 Flow 영상을 텔레그램으로 보내면 Actions 가 한글 자막을 합성해 릴스를 교체한다. 승인 대기는 최대 120분.
+- `flow_prompt.txt`, `reel_captions.txt`, (선택) `flow_assets.txt`·`flow_ref/` : Google Flow(Omni Flash 1.2) 영상 프롬프트(15초 한 편, 첫 장면이 핵심 훅)와 팝업 자막(3~5개, 0~12.5초 구간, 첫 팝업은 훅. 12.5초 이후는 상담 QR 엔딩), Flow에 넣을 이미지 자료 목록. `python3.13 reel_overlay.py --check cards/YYYYMMDD/reel_captions.txt` 가 CAPTIONS_OK 여야 한다(자세한 규칙은 ROUTINE_PROMPT.md step3 의 7번). 사용자가 Flow 영상을 텔레그램으로 보내면 Actions 가 한글 자막을 합성해 릴스를 교체한다. 승인 대기는 최대 120분.
 - `meta.txt` : 로그 앞부분 한 줄 `YYYYMMDD | 주제 | 유형 | 표지색 | 총 장수 + 내용 카드 유형`(예: `7장 formula, table, compare, steps, checklist`)
 - `approval.txt` : 승인 메시지 본문(주제 요약, 표지색·총 장수·카드 유형과 이유, 수치·출처, 이미지 출처·사용권, 연구소 디자인 적용 여부, 미확인 항목). **이 파일이 푸시되면 Actions(`.github/workflows/publish-on-approval.yml`)가 시작되므로 반드시 마지막에, 다른 파일과 같은 커밋으로 올린다.**
 Actions 가 카드 미리보기, Flow 프롬프트와 [발행]/[취소] 버튼을 텔레그램으로 보내고 120분 기다린 뒤, [발행]일 때만 `publish.py`·`publish_reel.py` 를 실행한다. 결과는 `cards/YYYYMMDD/status.txt` 와 `log/ig-card-news-log.md` 에 Actions 가 기록한다. 모델은 결과 로그 줄을 따로 쓰지 않는다.
