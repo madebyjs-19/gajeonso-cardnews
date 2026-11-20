@@ -54,6 +54,8 @@ def request_approval(d, folder):
     note = folder / "approval.txt"
     say(note.read_text(encoding="utf-8") if note.exists() else f"[하마준수 카드뉴스 승인 요청 {d}]")
     say("[Instagram 캡션]\n" + (folder / "ig.txt").read_text(encoding="utf-8"))
+    if (folder / "reel.txt").exists():
+        say("[릴스 본문] Instagram·Facebook 릴스에 함께 올라갑니다.\n" + (folder / "reel.txt").read_text(encoding="utf-8"))
     fp, rc = folder / "flow_prompt.txt", folder / "reel_captions.txt"
     if fp.exists():
         # 고정 진행자 기준 이미지(assets/reel_host/): 매 회차 같은 인물이 나오도록 Flow 의 재료(Ingredients)로 넣는다
@@ -445,7 +447,10 @@ def summarize(out):
 
 
 def run(script, d, folder):
-    p = subprocess.run([sys.executable, script, d, str(folder / "ig.txt"), str(folder / "fb.txt")],
+    caps = [folder / "ig.txt", folder / "fb.txt"]
+    if "reel" in script and (folder / "reel.txt").exists():
+        caps = [folder / "reel.txt", folder / "reel.txt"]  # 릴스는 목차형 요약 본문(reel.txt)을 IG·FB 공통으로 쓴다
+    p = subprocess.run([sys.executable, script, d, str(caps[0]), str(caps[1])],
                        capture_output=True, text=True, timeout=1200)
     print(p.stdout)
     if p.returncode != 0:

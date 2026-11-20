@@ -39,6 +39,7 @@
 - `card1~N.jpg` 전부(N=7~9, 번호가 끊기지 않게. 슬라이드 릴스 `reel.mp4` 는 만들지 않는다). Actions 는 card1 부터 이어진 장수만큼 텔레그램 미리보기·Instagram 캐러셀·Facebook 게시물로 올린다(5장 미만이면 승인 요청을 보내지 않는다).
 - `ig.txt`, `fb.txt` : Instagram·Facebook 캡션 전문
 - `flow_prompt.txt`, `reel_captions.txt`, (선택) `flow_assets.txt`·`flow_ref/` : Google Flow(Omni Flash 1.2) 영상 프롬프트(15초 한 편, 첫 장면이 핵심 훅)와 팝업 자막(3~5개, 0~12.5초 구간, 첫 팝업은 훅. 12.5초 이후는 상담 QR 엔딩), Flow에 넣을 이미지 자료 목록. `python3.13 reel_overlay.py --check cards/YYYYMMDD/reel_captions.txt` 가 CAPTIONS_OK 여야 한다(자세한 규칙은 ROUTINE_PROMPT.md step3 의 7번). 사용자가 Flow 영상을 텔레그램으로 보내면 Actions 가 한글 자막을 합성해 릴스를 교체한다. 승인 대기는 최대 120분.
+- `reel.txt` : 릴스 본문(IG·FB 릴스 공통, 600자 이내). ① 훅과 같은 주제 한 문장 → ② "오늘 정리" + 카드뉴스 내용을 "1. 2. …" 목차 형식으로 3~6줄 요약(줄마다 핵심 수치 한 가지) → ③ "자세한 내용은 카드뉴스 게시물에서 확인하세요." → ④ "추가 문의는 댓글이나 DM으로 남겨 주세요."(고정) → ⑤ 해시태그 5~8개(#하마준수 포함). 자세한 형식은 ROUTINE_PROMPT.md step4. 없으면 ig.txt·fb.txt 가 릴스 본문으로 쓰인다.
 - `meta.txt` : 로그 앞부분 한 줄 `YYYYMMDD | 주제 | 유형 | 표지색 | 총 장수 + 내용 카드 유형`(예: `7장 formula, table, compare, steps, checklist`)
 - `approval.txt` : 승인 메시지 본문(주제 요약, 표지색·총 장수·카드 유형과 이유, 수치·출처, 이미지 출처·사용권, 연구소 디자인 적용 여부, 미확인 항목). **이 파일이 푸시되면 Actions(`.github/workflows/publish-on-approval.yml`)가 시작되므로 반드시 마지막에, 다른 파일과 같은 커밋으로 올린다.**
 Actions 가 카드 미리보기, Flow 프롬프트와 [발행]/[취소] 버튼을 텔레그램으로 보내고 120분 기다린 뒤, [발행]일 때만 `publish.py`·`publish_reel.py` 를 실행한다. 결과는 `cards/YYYYMMDD/status.txt` 와 `log/ig-card-news-log.md` 에 Actions 가 기록한다. 모델은 결과 로그 줄을 따로 쓰지 않는다.
