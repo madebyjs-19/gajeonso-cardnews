@@ -1,11 +1,12 @@
 # 사용:
 #   python3.13 reel_overlay.py --check out_or_cards/RUN/reel_captions.txt        자막 파일 검사(글자 지원·길이·시간)
 #   python3.13 reel_overlay.py 원본.mp4 결과.mp4 [reel_captions.txt] [card1.jpg] [bgm.mp3]
-#       영상 정리(1080x1920) + 앞에 타이틀 카드 2초(자연스러운 전환) + 한글 팝업 자막 + 마지막 2초 상담 QR 패널 + (있으면) BGM
-#   python3.13 reel_overlay.py --end-card 결과.png       마지막 2초에 얹는 상담 QR 패널만 그려 본다(확인용)
+#       영상 정리(1080x1920) + 한글 팝업 자막 + 마지막 2.5초 상담 QR 패널 + (있으면) BGM. 최종 15초.
+#       첫 화면부터 Flow 영상의 훅이 나오도록 타이틀 카드는 기본으로 붙이지 않는다(TITLE_SEC=0). 다시 붙이려면 TITLE_SEC=2.0
+#   python3.13 reel_overlay.py --end-card 결과.png       마지막 2.5초에 얹는 상담 QR 패널만 그려 본다(확인용)
 # 한글 깨짐 방지: AI 영상 안에는 글자를 넣지 않고, 자막은 여기서 Pretendard(연구소 리포트 디자인과 같은 글꼴)로 직접 그려 얹는다.
-# reel_captions.txt 형식: 한 줄에 하나, "시작초-끝초|자막문구"  예) 2.5-4.5|계산식/포기 수×2L÷0.8  (시간은 최종 영상 기준, 앞 2초는 타이틀 카드)
-# 마지막 2초(본 영상 6~8초 = 최종 7.5~9.5초)는 진행자가 화면 오른쪽 위를 가리키는 고정 엔딩이고, 그 자리에 상담 QR 패널을 얹는다.
+# reel_captions.txt 형식: 한 줄에 하나, "시작초-끝초|자막문구"  예) 2.5-4.5|계산식/포기 수×2L÷0.8  (시간은 최종 영상 기준, 0초부터 Flow 영상)
+# 마지막 2.5초(최종 12.5~15초)는 진행자가 화면 오른쪽 위를 가리키는 고정 엔딩이고, 그 자리에 상담 QR 패널을 얹는다.
 import os, sys, re, subprocess, urllib.request
 from PIL import Image, ImageDraw, ImageFont
 
@@ -17,13 +18,13 @@ FONTS = {  # 연구소 리포트 디자인과 같은 글꼴(제목·자막 Prete
     "Pretendard-ExtraBold.otf": PRETENDARD + "Pretendard-ExtraBold.otf",
     "IBMPlexMono-SemiBold.ttf": "https://raw.githubusercontent.com/google/fonts/main/ofl/ibmplexmono/IBMPlexMono-SemiBold.ttf",
 }
-MAX_SEC = 10.0       # 최종 영상 길이 상한
-TITLE_SEC = 2.0      # 맨 앞 카드뉴스 표지(타이틀 카드) 노출 시간(전환 구간 포함)
-CLIP_SEC = 8.0       # 본 영상(Flow) 길이. 이 길이를 넘는 영상만 줄인다(앞부분을 자르지 않고 약간 빠르게)
-CLIP_TOL = 0.3       # 본 영상이 8초를 이만큼까지 넘으면 잘라내지 않고 속도를 맞춘다
+MAX_SEC = 15.5       # 최종 영상 길이 상한
+TITLE_SEC = 0.0      # 맨 앞 카드뉴스 표지(타이틀 카드) 노출 시간. 0 이면 붙이지 않고 첫 프레임부터 훅 영상(2.0 으로 바꾸면 다시 붙음)
+CLIP_SEC = 15.0      # 본 영상(Flow) 길이(PART 1 8초 + 연장 PART 2 7초). 이 길이를 넘는 영상만 줄인다(앞부분을 자르지 않고 약간 빠르게) → 최종 15초
+CLIP_TOL = 1.2       # 본 영상이 15초를 이만큼까지(16.2초, 8초+연장 8초까지) 넘으면 잘라내지 않고 속도를 맞춘다
 FADE_SEC = 0.5       # 타이틀 카드 → 본 영상 전환(크로스페이드) 길이
 NARRATION_DB = -45.0 # 본 영상 평균 음량이 이보다 크면 내레이션이 있는 것으로 본다
-END_SEC = 2.0        # 본 영상 마지막 이만큼은 고정 엔딩(진행자가 QR 을 가리킴). 팝업 자막은 이 구간 전에 끝나야 한다
+END_SEC = 2.5        # 본 영상 마지막 이만큼은 고정 엔딩(진행자가 QR 을 가리킴). 팝업 자막은 이 구간 전에 끝나야 한다
 END_BOX = (560, 540)  # 상담 QR 패널 왼쪽 위 위치(진행자가 가리키는 화면 오른쪽 위)
 QR_IMG = os.path.join(HERE, "assets", "reel", "kakao_qr.png")  # 카카오톡 채널 상담 QR(카드 5장의 QR 과 같은 주소)
 MAX_CAPS = 6
@@ -83,6 +84,7 @@ def check(path, title=True):
         errs.append("자막이 한 줄도 없습니다")
     if len(caps) > MAX_CAPS:
         errs.append(f"자막은 최대 {MAX_CAPS}개입니다(현재 {len(caps)}개)")
+    title = title and TITLE_SEC > 0
     lo = TITLE_SEC if title else 0
     hi = (TITLE_SEC - FADE_SEC if title else 0) + CLIP_SEC - END_SEC
     for s, e, text, n in caps:
@@ -125,7 +127,7 @@ def caption_png(text, path):
 
 
 def end_card_png(path):
-    """마지막 2초에 얹는 상담 QR 패널(흰 카드 + 카카오톡 채널 QR + '추가 정보·상담 문의 / 하마준수')."""
+    """마지막 2.5초에 얹는 상담 QR 패널(흰 카드 + 카카오톡 채널 QR + '추가 정보·상담 문의 / 하마준수')."""
     bw, bh, qs = 460, 640, 360
     im = Image.new("RGBA", (bw, bh), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
@@ -165,10 +167,10 @@ def mean_volume(src):
 def build(src, dst, captions_path=None, title_card=None, bgm=None):
     """영상을 1080x1920·30fps로 정리하고, 맨 앞에 타이틀 카드(card1)를 TITLE_SEC 초 붙여(크로스페이드 전환)
     팝업 자막을 얹고, 본 영상 마지막 END_SEC 초(진행자가 화면 오른쪽 위를 가리키는 엔딩)에 상담 QR 패널을 얹는다.
-    본 영상은 CLIP_SEC(8초) 기준으로 앞부분을 자르지 않는다.
+    본 영상은 CLIP_SEC(15초) 기준으로 앞부분을 자르지 않는다.
     오디오: 본 영상에 내레이션이 있으면 항상 들리게 유지하고, bgm 이 있으면 그 아래에 깐다. 결과 설명 문자열을 돌려준다."""
     ensure_fonts()
-    use_title = bool(title_card and os.path.exists(title_card))
+    use_title = TITLE_SEC > 0 and bool(title_card and os.path.exists(title_card))
     caps = []
     if captions_path and os.path.exists(captions_path):
         errs = check(captions_path, title=use_title)
@@ -179,7 +181,7 @@ def build(src, dst, captions_path=None, title_card=None, bgm=None):
     has_audio = bool(probe(src, "stream=codec_type", "-select_streams", "a"))
     mv = mean_volume(src) if has_audio else None
     narration = mv is not None and mv > NARRATION_DB
-    # 본 영상 길이: 8초 이하는 그대로, 8.3초까지는 잘라내지 않고 속도만 맞추고, 그보다 길면 8초까지만 사용
+    # 본 영상 길이: 15초 이하는 그대로, 16.2초까지는 잘라내지 않고 속도만 맞추고, 그보다 길면 15초까지만 사용
     cut = dur > CLIP_SEC + CLIP_TOL
     speed = dur / CLIP_SEC if (CLIP_SEC < dur <= CLIP_SEC + CLIP_TOL) else 1.0
     clip_len = CLIP_SEC if (cut or speed != 1.0) else dur
@@ -258,9 +260,9 @@ def build(src, dst, captions_path=None, title_card=None, bgm=None):
     if use_title:
         note += f"(타이틀 카드 {head:g}초 + 본 영상 {clip_len:.1f}초, 전환 {FADE_SEC:g}초)"
     if speed != 1.0:
-        note += f", 원본 {dur:.1f}초를 8초로 맞춤(잘라내지 않음)"
+        note += f", 원본 {dur:.1f}초를 {CLIP_SEC:g}초로 맞춤(잘라내지 않음)"
     if cut:
-        note += f", ⚠ 원본 {dur:.1f}초 중 뒷부분 {dur - CLIP_SEC:.1f}초가 잘렸습니다(8초 영상으로 다시 만들어 주세요)"
+        note += f", ⚠ 원본 {dur:.1f}초 중 뒷부분 {dur - CLIP_SEC:.1f}초가 잘렸습니다(8초+연장 7초, 약 15초 영상으로 다시 만들어 주세요)"
     note += ", 내레이션 유지" if narration else (", 본 영상 소리 없음" if not has_audio or mv is None else ", 본 영상 소리 매우 작음")
     if bgm:
         note += ", BGM 삽입"

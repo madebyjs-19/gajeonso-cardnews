@@ -1,5 +1,5 @@
 # 사용: python3.13 make_reel.py out/YYYYMMDD [1,2,3,마지막장] [결과.mp4]   (기본: 1,2,3 과 마지막 장)
-# 카드 JPG 로 1080x1920 릴스(mp4, 약 14.5초)를 만든다. 결과: <dir>/reel.mp4 (세 번째 인자로 바꿀 수 있음)
+# 카드 JPG 로 1080x1920 릴스(mp4, 15초)를 만든다. 결과: <dir>/reel.mp4 (세 번째 인자로 바꿀 수 있음)
 # Actions 는 Flow 영상이 없는 날 이것으로 카드 슬라이드 릴스를 만들어 대신 발행한다(approval_publish.py).
 # 연구소 리포트 디자인 틀: 모눈 배경·모서리 크롭 마크·IBM Plex Mono 라벨·Pretendard 제목(카드 design "lab" 과 같은 색).
 # - 상단에 "HAMAJUNSU LAB · REEL" 라벨과 훅 자막(deck.json 의 reel_hook, 없으면 1장 제목, deck.json 이 없으면 <dir>/ig.txt 첫 줄)
@@ -17,7 +17,7 @@ while os.path.exists(os.path.join(d, f"card{last + 1}.jpg")):
 pick = [int(x) for x in (sys.argv[2] if len(sys.argv) > 2 and sys.argv[2] else f"1,2,3,{last}").split(",")]
 out = sys.argv[3] if len(sys.argv) > 3 else os.path.join(d, "reel.mp4")
 reel_overlay.ensure_fonts()  # fonts/ 는 커밋하지 않으므로 없으면 내려받는다
-HOLD, FADE, LOOP_HOLD = 3.0, 0.5, 2.0
+HOLD, FADE, LOOP_HOLD = 3.0, 0.5, 2.5   # 4장×3초 + 되돌아가기 2.5초 + 전환 0.5초 = 15초
 FPS = 30
 W, H = 1080, 1920
 CARD_X, CARD_Y, CARD_W, CARD_H = 60, 400, 960, 1200   # 카드 자리(원본 1080x1350 을 같은 비율로 축소)

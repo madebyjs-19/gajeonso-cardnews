@@ -65,7 +65,7 @@ def request_approval(d, folder):
         refs = [folder / "card1.jpg"] + sorted((folder / "flow_ref").glob("*"))[:5] if (folder / "flow_ref").exists() \
             else [folder / "card1.jpg"]
         for i, f in enumerate(r for r in refs if r.is_file()):
-            cap = "[Flow 참고 이미지] 타이틀 카드(영상 맨 앞 2초에 자동으로 붙습니다. Flow에 따로 넣을 필요는 없고, 분위기 참고용)" if i == 0 \
+            cap = "[Flow 참고 이미지] 카드뉴스 표지(영상에는 붙지 않고 분위기·색감 참고용. 릴스는 첫 화면부터 훅으로 시작합니다)" if i == 0 \
                 else f"[Flow 참고 이미지] {f.name}"
             tg("sendDocument", {"chat_id": CHAT, "caption": cap}, {"document": f}, timeout=120)
         fa = folder / "flow_assets.txt"
@@ -78,11 +78,12 @@ def request_approval(d, folder):
         if fa.exists():
             say("[Flow에 넣을 이미지 자료] 직접 준비해서 Flow에 올려 주세요.\n" + fa.read_text(encoding="utf-8").strip())
         if rc.exists():
-            say("[팝업 자막 목록] 핵심 내용이 영상에 자동 합성됩니다(맨 앞 2초는 표지, 마지막 2초는 상담 QR). 영상 속에는 글자를 넣지 마세요.\n" + rc.read_text(encoding="utf-8").strip())
+            say("[팝업 자막 목록] 핵심 내용이 영상에 자동 합성됩니다(0초부터 영상, 마지막 2.5초는 상담 QR). 영상 속에는 글자를 넣지 마세요.\n" + rc.read_text(encoding="utf-8").strip())
         say("[영상 보내는 방법]"
-            "\n1) 영상 맨 앞에 카드뉴스 표지(타이틀 카드) 2초가 자연스러운 전환과 함께 자동으로 붙고, 팝업 자막은 그 뒤에 나옵니다. 본 영상은 정확히 8초로 만드세요(총 약 9.5초)."
-            "\n   마지막 2초는 진행자가 화면 오른쪽 위를 가리키는 장면이고, 그 자리에 카드뉴스와 같은 상담 QR이 자동으로 얹힙니다(Flow에서 QR을 그리지 마세요)."
-            "\n   8.3초까지는 잘라내지 않고 속도만 맞추며, 그보다 길면 뒷부분이 잘립니다."
+            "\n1) 릴스는 총 15초이고 첫 화면부터 Flow 영상의 훅으로 시작합니다(표지는 붙지 않음). 팝업 자막은 0초부터 자동으로 얹힙니다."
+            "\n   Flow에서 프롬프트의 PART 1로 8초 영상을 만든 뒤, '연장(Extend)'에 PART 2를 넣어 7초를 이어 붙여 약 15초 한 영상으로 내보내 주세요."
+            "\n   마지막 2.5초는 진행자가 화면 오른쪽 위를 가리키는 장면이고, 그 자리에 카드뉴스와 같은 상담 QR이 자동으로 얹힙니다(Flow에서 QR을 그리지 마세요)."
+            "\n   16.2초까지는 잘라내지 않고 속도만 살짝 맞추며, 그보다 길면 뒷부분이 잘립니다."
             "\n2) 만든 영상(20MB 이하)을 이 대화방에 보내 주세요. [발행] 버튼을 누르기 전에 보내야 반영됩니다. 대기 시간 최대 120분."
             f"\n   용량이 커서 못 보내면 구글 드라이브 '릴스영상/{d[2:]}' 폴더에 올려 두세요. 텔레그램 영상이 없으면 그 폴더의 가장 최근 영상을 씁니다."
             "\n3) 내레이션이 있는 영상은 BGM이 없어도 소리가 그대로 들립니다."
