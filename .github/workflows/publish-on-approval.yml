@@ -29,19 +29,22 @@ jobs:
         with:
           python-version: "3.13"
       - name: 영상 합성 의존성 설치
-        timeout-minutes: 12
+        timeout-minutes: 10
+        continue-on-error: true   # ffmpeg 를 못 깔아도 카드뉴스 승인·발행은 진행한다(릴스만 실패)
         run: |
-          # apt 가 멈추는 날이 있어 시간 제한 후 정적 빌드로 대체한다
-          if ! command -v ffmpeg > /dev/null; then
-            if ! (timeout 240 sudo apt-get update -qq && timeout 300 sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq --no-install-recommends ffmpeg); then
-              echo "apt 실패 → 정적 ffmpeg 사용"
-              curl -fsSL --retry 3 -o /tmp/ff.tar.xz https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz
-              mkdir -p /tmp/ff && tar -xJf /tmp/ff.tar.xz -C /tmp/ff --strip-components=1
-              sudo cp /tmp/ff/ffmpeg /tmp/ff/ffprobe /usr/local/bin/
-            fi
-          fi
           pip install pillow google-auth requests
-          ffmpeg -version > /dev/null
+          if command -v ffmpeg > /dev/null && command -v ffprobe > /dev/null; then exit 0; fi
+          # 1순위: GitHub 릴리스의 정적 빌드(Actions 에서 가장 안정적) → 2순위: apt(시간 제한)
+          if curl -fsSL --retry 3 --connect-timeout 20 --max-time 180 -o /tmp/ff.tar.xz \
+               https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-gpl.tar.xz; then
+            mkdir -p /tmp/ff && tar -xJf /tmp/ff.tar.xz -C /tmp/ff --strip-components=1
+            sudo cp /tmp/ff/bin/ffmpeg /tmp/ff/bin/ffprobe /usr/local/bin/
+          else
+            echo "GitHub 정적 빌드 실패 → apt"
+            timeout 180 sudo apt-get update -qq || true
+            timeout 240 sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq --no-install-recommends ffmpeg
+          fi
+          ffmpeg -version | head -1
           ffprobe -version > /dev/null
       - name: 대상 회차 찾기
         id: dates
