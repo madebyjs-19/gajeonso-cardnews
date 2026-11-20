@@ -17,6 +17,7 @@ FONTS = {  # 연구소 리포트 디자인과 같은 글꼴(제목·자막 Prete
     "Pretendard-Bold.otf": PRETENDARD + "Pretendard-Bold.otf",
     "Pretendard-ExtraBold.otf": PRETENDARD + "Pretendard-ExtraBold.otf",
     "IBMPlexMono-SemiBold.ttf": "https://raw.githubusercontent.com/google/fonts/main/ofl/ibmplexmono/IBMPlexMono-SemiBold.ttf",
+    "DoHyeon-Regular.ttf": "https://raw.githubusercontent.com/google/fonts/main/ofl/dohyeon/DoHyeon-Regular.ttf",  # 카드 표지 제목과 같은 디자인 폰트
 }
 MAX_SEC = 15.5       # 최종 영상 길이 상한
 TITLE_SEC = 0.0      # 맨 앞 카드뉴스 표지(타이틀 카드) 노출 시간. 0 이면 붙이지 않고 첫 프레임부터 훅 영상(2.0 으로 바꾸면 다시 붙음)
@@ -33,7 +34,9 @@ MAX_LINES = 2
 W, H = 1080, 1920
 NAVY, WHITE = (0x1A, 0x2A, 0x4A), (0xF7, 0xF8, 0xFA)
 GRAY, ORANGE, ICE = (0x6B, 0x76, 0x88), (0xFF, 0x8A, 0x3D), (0xDC, 0xE8, 0xF5)
-CAP_FONT = "Pretendard-ExtraBold.otf"
+CAP_FONT = "Pretendard-ExtraBold.otf"   # 검사·대체용(모든 허용 문자 지원)
+POP_FONT = "DoHyeon-Regular.ttf"        # 팝업 본문: 카드뉴스 표지 제목과 같은 Do Hyeon(없는 글자가 있는 줄만 Pretendard)
+TAG_FONT = "IBMPlexMono-SemiBold.ttf"   # 팝업 위 작은 라벨: 카드의 FILE 라벨과 같은 IBM Plex Mono
 ALLOWED = re.compile(r"^[0-9A-Za-z가-힣 .,%!?~:·()\-+/↓↑→×÷=≈]+$")
 
 
@@ -41,7 +44,7 @@ def ensure_fonts():
     os.makedirs(FONT_DIR, exist_ok=True)
     for name, url in FONTS.items():
         p = os.path.join(FONT_DIR, name)
-        if not os.path.exists(p) or os.path.getsize(p) < 100000:
+        if not os.path.exists(p) or os.path.getsize(p) < 50000:
             urllib.request.urlretrieve(url, p)
 
 
@@ -107,23 +110,61 @@ def check(path, title=True):
     return errs
 
 
-def caption_png(text, path):
-    lines = [x.strip() for x in text.split("/")]
-    f = load_font(CAP_FONT, 76)
+def _line_font(line, px):
+    """디자인 폰트(Do Hyeon)를 쓰고, 그 폰트에 없는 글자가 있는 줄만 Pretendard ExtraBold 로 그린다."""
+    try:
+        f = load_font(POP_FONT, px)
+        if all(has_glyph(f, c) for c in line):
+            return f, 0
+    except OSError:
+        pass
+    return load_font(CAP_FONT, int(px * 0.86)), -2
+
+
+def caption_png(text, path, idx=0, total=1):
+    """카드뉴스 연구소 디자인과 같은 톤의 팝업 스티커.
+    위: 오렌지 라벨 칩(첫 팝업 'Q.' 훅, 이후 'POINT 01'…), 아래: 네이비 카드에 Do Hyeon 글씨.
+    두 줄이면 첫 줄은 흰색, 둘째 줄(핵심 수치)은 크게 오렌지. 약간 기울여 손으로 붙인 느낌을 준다."""
+    lines = [x.strip() for x in text.split("/") if x.strip()]
+    hook = idx == 0
+    label = "Q." if hook else f"POINT {idx:02d}"
+    sizes = [96] if len(lines) == 1 else [72, 96]
     probe = ImageDraw.Draw(Image.new("RGBA", (10, 10)))
-    lh = 100
-    bw = int(max(probe.textlength(x, font=f) for x in lines)) + 96
-    bh = lh * len(lines) + 56
-    im = Image.new("RGBA", (bw, bh), (0, 0, 0, 0))
+    for _ in range(6):  # 화면 폭(1080) 안에 들어오도록 글자 크기를 줄인다
+        fonts = [_line_font(ln, px) for ln, px in zip(lines, sizes)]
+        widths = [probe.textlength(ln, font=f) for ln, (f, _) in zip(lines, fonts)]
+        if max(widths) + 128 <= 980:
+            break
+        sizes = [int(px * 0.9) for px in sizes]
+    colors = [WHITE] if len(lines) == 1 else [WHITE, ORANGE]
+    gaps = [int(px * 1.18) for px in sizes]
+    pad_x, pad_top, pad_bot = 64, 40, 44
+    bw = int(max(widths)) + pad_x * 2
+    bh = pad_top + sum(gaps) + pad_bot - int(sizes[-1] * 0.18)
+    tf = load_font(TAG_FONT, 30)
+    tw = int(probe.textlength(label, font=tf)) + 40
+    th, lift = 52, 30                      # 라벨 칩 높이, 카드 위로 튀어나온 정도
+    sh = 12                                 # 그림자 오프셋
+    cw, ch = bw + sh + 8, bh + lift + sh + 8
+    im = Image.new("RGBA", (cw, ch), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
-    d.rounded_rectangle([0, 0, bw - 1, bh - 1], radius=14, fill=NAVY + (225,), outline=ICE + (255,), width=3)
-    d.rectangle([28, 0, 92, 6], fill=ORANGE)  # 연구소 카드의 오렌지 포인트
-    y = 30
-    for x in lines:
-        d.text((bw // 2, y), x, font=f, fill=WHITE, anchor="ma")
-        y += lh
+    top = lift
+    d.rounded_rectangle([sh, top + sh, bw - 1 + sh, top + bh - 1 + sh], radius=26, fill=(0, 0, 0, 90))   # 그림자
+    d.rounded_rectangle([0, top, bw - 1, top + bh - 1], radius=26, fill=NAVY + (240,), outline=ICE + (255,), width=4)
+    if hook:  # 훅은 하단에 오렌지 밑줄 바를 깔아 시선을 잡는다
+        d.rounded_rectangle([pad_x - 8, top + bh - 22, bw - pad_x + 8, top + bh - 12], radius=5, fill=ORANGE + (255,))
+    # 라벨 칩(카드 왼쪽 위에 걸쳐 붙음)
+    cx = 36
+    d.rounded_rectangle([cx, 0, cx + tw, th], radius=14, fill=ORANGE + (255,))
+    d.text((cx + tw // 2, th // 2 + 1), label, font=tf, fill=NAVY, anchor="mm")
+    y = top + pad_top
+    for ln, (f, dy), col, gap, px in zip(lines, fonts, colors, gaps, sizes):
+        d.text((bw // 2, y + dy), ln, font=f, fill=col, anchor="ma")
+        y += gap
+    tilt = -2.0 if idx % 2 == 0 else 1.5    # 번갈아 살짝 기울임
+    im = im.rotate(tilt, resample=Image.BICUBIC, expand=True)
     im.save(path)
-    return bw, bh
+    return im.size
 
 
 def end_card_png(path):
@@ -230,10 +271,14 @@ def build(src, dst, captions_path=None, title_card=None, bgm=None):
     prev = "b0"
     for i, (s, e, text, _) in enumerate(caps):
         p = os.path.join(tmp, f"_cap{i}.png")
-        caption_png(text, p)
+        caption_png(text, p, i, len(caps))
         pngs.append(p)
-        inputs += ["-loop", "1", "-i", p]
-        filt.append(f"[{prev}][{idx}:v]overlay=(W-w)/2:1330:format=auto:enable='between(t,{s},{e})'[b{i + 1}]")
+        inputs += ["-loop", "1", "-t", f"{total:.3f}", "-i", p]
+        # 팝 효과: 0.25초 동안 아래에서 살짝 올라오며 나타나고, 끝나기 0.2초 전부터 사라진다
+        fo = max(e - 0.2, s + 0.25)
+        filt.append(f"[{idx}:v]format=rgba,fade=t=in:st={s}:d=0.2:alpha=1,fade=t=out:st={fo:.3f}:d=0.2:alpha=1[c{i}]")
+        filt.append(f"[{prev}][c{i}]overlay=x=(W-w)/2:y='1300+max(0,{s}+0.25-t)*240':eval=frame:format=auto:"
+                    f"enable='between(t,{s},{e})'[b{i + 1}]")
         idx += 1
         prev = f"b{i + 1}"
     # 고정 엔딩: 본 영상 마지막 END_SEC 초에 상담 QR 패널을 0.3초 동안 서서히 띄워 끝까지 둔다
