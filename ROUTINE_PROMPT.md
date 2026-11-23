@@ -138,16 +138,23 @@
    목표: 첫 3초 안에 무엇에 대한 이야기인지 바로 알리면서 답이 궁금해 멈추게 만들고, 끝까지 보면 무엇에 대한 이야기인지와 핵심 수치·기준을 알게 하고, 마지막에 "더 궁금하면 하마준수 QR" 로 이어지게 한다.
 
    [대본 구조 — 매 회차 필수] ① 주제가 담긴 핵심 훅 → ② 핵심 포인트 → ③ 고정 엔딩, 이 순서로만 만든다.
-   - ① 주제가 담긴 핵심 훅(Flow 0~3초): 영상의 첫 대사이자 첫 장면. **이 한 문장만 들어도 무엇에 대한 영상인지 알 수 있어야 하고**, 동시에 답이 궁금해서 계속 보고 싶어야 한다(공백 제외 25자 이내, 3초 안에 말할 수 있는 길이).
+   - ① 주제가 담긴 핵심 훅(Flow 0~3초): 영상의 첫 대사이자 첫 장면. **이 한 문장만 들어도 무엇에 대한 영상인지 알 수 있어야 하고**, 동시에 답이 궁금해서 계속 보고 싶어야 한다(공백 제외 18자 이내, 3초 안에 여유 있게 말할 수 있는 길이).
      · 반드시 넣는 것: 대상(제품·제도 이름 그대로, 예: 건조기·제습기·김치냉장고·에너지 지원금) + 상황이나 기준(예: 빨래 말릴 때, 전기요금, 용량, 신청 기한) + 궁금증·반전·손익 한 가지.
-     · 좋은 예: "빨래 말릴 때 건조기 vs 제습기, 전기요금 뭐가 더 쌀까?", "제습기로 빨래 말리면 건조기보다 싸다? 아닐 수도 있어요", "김장 30포기, 김치냉장고 몇 리터 필요할까?"
+     · 좋은 예: "건조기랑 제습기, 전기요금 뭐가 싸요?", "제습기로 빨래 말리면 더 쌀까요?", "김장 30포기면 김치냉장고 몇 리터요?"
      · 나쁜 예: "건조기 한 번, 제습기 몇 시간?"(무슨 기준인지 모름), "이거 모르면 손해!"(대상 없음), "오늘 꿀팁!"(내용 없음)
      · 형태는 질문형·반전형·손실형·숫자형 중 하나. 직전 회차와 다른 형태를 고른다.
      · 재료는 이번 카드뉴스에서 가장 의외이거나 손해·이득이 큰 확인된 사실(카드 2장 결론, 핵심 수치)에서만 뽑는다.
      · 금지: 인사·자기소개("안녕하세요"), 채널 소개, 대상이 빠진 막연한 말, 줄임말·은어로 주제를 숨기기, 확인되지 않은 수치·과장·낚시(영상에서 답을 주지 않는 훅).
      · 검사: 카드뉴스를 안 본 사람이 이 대사만 듣고 "○○의 ○○에 대한 이야기구나"라고 말할 수 있는지 확인하고, 안 되면 다시 쓴다.
      · 화면: 첫 프레임부터 진행자와 주제 대상(제품·상황)이 함께 보이는 가까운 샷. 진행자가 카메라를 정면으로 보며 제품을 가리키거나 들어 보이는 한 가지 동작으로 바로 말을 시작한다(검은 화면·풍경·빈 화면으로 시작하지 않는다).
-   - ② 핵심 포인트(Flow 3~11.5초): 카드 2장 결론과 핵심 수치·기준 2~3가지를 한 마디씩 짧게(합계 45자 이내). 훅에서 던진 질문의 답이 반드시 여기서 나온다. 카드에 없는 정보·배경 설명·수치 나열은 넣지 않는다.
+   - ② 핵심 포인트(Flow 3~11.5초): 카드 2장 결론과 핵심 수치·기준 **딱 2가지**만, 컷당 한 문장씩(Cut 2 공백 제외 16자 이내, Cut 3 18자 이내). 훅에서 던진 질문의 답이 반드시 여기서 나온다. 카드에 없는 정보·배경 설명·수치 나열은 넣지 않는다. 나머지 정보는 카드뉴스·팝업 자막·reel.txt 에 맡긴다.
+
+   [대사 분량 — 매 회차 필수, 영상이 잘리지 않게] Flow 는 14초 안에 대사를 다 못 하면 말이 중간에 끊긴다. 대사는 "다 말하고도 1초쯤 남는" 분량으로 쓴다.
+   - 기준 속도: 1초에 공백 제외 약 5자. 컷마다 글자 수 상한 — 훅(0~3초) 18자, Cut 2(3~7초) 16자, Cut 3(7~11.5초) 18자, 엔딩(11.5~14초) 고정 문구. 엔딩을 뺀 대사 합계 52자 이내.
+   - 한 컷에는 한 문장, 수치는 한 문장에 하나만 넣는다. 범위·조건이 긴 수치(예: "250~410원")는 소리 내어 읽으면 길어지니 그만큼 다른 말을 줄인다.
+   - 말투를 살리는 말("고객님", "~거든요", "의외죠?")도 글자 수에 포함된다. 공감 말은 영상 전체에 한 번만, 넣으면 그만큼 다른 말을 뺀다.
+   - 컷 경계를 넘어가는 긴 문장, 한 컷에 두 문장 이어 말하기, 마지막 엔딩 앞에 말 덧붙이기는 금지.
+   - 다 쓴 뒤 컷마다 글자 수를 세어 상한을 넘으면 줄인다. 줄일 때는 수식어·접속어·부가 설명부터 빼고, 훅의 대상 이름과 답의 핵심 수치는 남긴다.
    - ③ 엔딩(Flow 11.5~14초): "추가 정보와 문의는 하마준수에서!" (FINAL SHOT 그대로)
    - 고른 훅 문구와 형태를 approval.txt 에 "릴스 훅: 문구(형태)" 로 적는다.
 
@@ -155,7 +162,7 @@
    - 고객에게 말을 건네듯 쓴다(예: "고객님, 건조기랑 제습기 중에 전기요금 뭐가 더 쌀까요?", "이거 많이들 물어보시는데요"). 호칭은 "고객님"을 쓴다(인사·자기소개는 여전히 금지).
    - "~거든요", "~하시면 돼요", "~더라고요", "사실은요", "그러니까" 같은 자연스러운 구어체 존댓말을 섞고, 대사마다 어미를 다르게 한다.
    - 핵심 포인트는 수치를 나열하지 말고 "그래서 고객님한테 어떤 의미인지"로 이어 말한다(예: "건조기 한 번 돌리면 250원에서 410원 정도 나오거든요" → "제습기는 네 시간 넘게 틀면 거의 비슷해져요"). 숫자·조건은 카드와 같은 값 그대로, 듣고 바로 이해되게 말한다.
-   - 필요하면 짧은 공감·확인 말("이게 제일 헷갈리시죠", "의외죠?")을 넣는다. 글자 수 제한(훅 25자, 핵심 포인트 합계 45자) 안에서 정보보다 말투를 위해 수치를 빼지는 않는다.
+   - 필요하면 짧은 공감·확인 말("이게 제일 헷갈리시죠", "의외죠?")을 넣는다. 단, [대사 분량] 글자 수 상한이 말투보다 우선이다. 상한 안에서 말투를 살리되, 말투를 위해 핵심 수치를 빼지는 않는다.
    - 과장 광고 말투, 지나친 유행어, 반말, 확인되지 않은 내용은 쓰지 않는다.
    - 다 쓴 뒤 소리 내어 읽는다고 생각하고, 요약문·자막처럼 들리는 대사는 고객과 대화하는 말로 다시 고친다.
 
@@ -171,7 +178,7 @@
 
    [고정 진행자] 모든 릴스에 같은 인물이 나온다. 아래 HOST 문단을 매번 **글자 하나 바꾸지 않고** 프롬프트에 넣는다.
    assets/reel_host/ 에 기준 이미지가 있으면 Actions 가 텔레그램으로 같이 보내 주고, 사용자는 그 이미지를 Flow '재료(Ingredients)'로 넣는다(만드는 법: docs/reel_host.md).
-   HOST: The same host appears in every Hamajunsu video and must match the attached host reference images exactly (the main portrait and the front/side/back character sheet): a Korean woman in her early 30s with long dark brown-black hair, center-parted, tied in a low ponytail with a few loose face-framing strands (no bangs), thin round silver metal-rimmed glasses, warm bright smile, natural makeup. She wears a crisp knee-length white lab coat worn open, over a navy button-up collared shirt, navy straight trousers and plain navy sneakers with white soles. Slim, medium height. Her hairstyle, glasses and outfit stay identical from every angle, as in the character sheet. Quick, witty, expressive gestures; she speaks Korean fast, clearly and cheerfully, with accurate lip-sync. She wears exactly this outfit and nothing else in every cut, whatever the concept: no headset, no microphone, no earphones, no hat or cap, no headband, no earrings, necklace, bracelet, ring or watch, no scarf, apron or extra clothing. Her face, hair, glasses and outfit never change; she only holds a prop in her hand when a cut explicitly describes it.
+   HOST: The same host appears in every Hamajunsu video and must match the attached host reference images exactly (the main portrait and the front/side/back character sheet): a Korean woman in her early 30s with long dark brown-black hair, center-parted, tied in a low ponytail with a few loose face-framing strands (no bangs), thin round silver metal-rimmed glasses, warm bright smile, natural makeup. She wears a crisp knee-length white lab coat worn open, over a navy button-up collared shirt, navy straight trousers and plain navy sneakers with white soles. Slim, medium height. Her hairstyle, glasses and outfit stay identical from every angle, as in the character sheet. Quick, witty, expressive gestures; she speaks Korean clearly and cheerfully at a relaxed, natural pace, with accurate lip-sync. She wears exactly this outfit and nothing else in every cut, whatever the concept: no headset, no microphone, no earphones, no hat or cap, no headband, no earrings, necklace, bracelet, ring or watch, no scarf, apron or extra clothing. Her face, hair, glasses and outfit never change; she only holds a prop in her hand when a cut explicitly describes it.
 
    [컨셉 — 매 회차 다르게, 창의적으로] 아래 12가지 중 하나를 고른다.
    - 직전 5회차의 cards/*/flow_prompt.txt 두 번째 줄 "Concept: ..." 을 읽고, 그 5개와 겹치지 않는 것 중 이번 주제에 가장 잘 맞는 것을 고른다(같은 컨셉 연속 금지). 장소·조명·카메라 움직임도 직전 회차와 다르게 한다.
@@ -200,7 +207,8 @@
      Cut 3 (7-11.5s): 핵심 포인트 2(·3)과 훅에 대한 답을 소품·행동 한 가지로 보여 주는 장면
      FINAL SHOT 문단 그대로:
        FINAL SHOT (11.5-14s, always the same composition): the host stands on the LEFT side of the frame, waist-up, filling the left 45% of the frame, facing the camera, still inside this video's world. The upper-right area of the frame (right half, from about 25% to 60% of the frame height) is a plain, uncluttered, evenly lit background with nothing in it. The host points clearly toward that empty upper-right area (the viewer's right), then looks back at the camera with a confident smile and says the closing line. Do NOT draw any QR code, sign, board, screen or object in that area; it must stay empty because a real QR panel is added afterwards.
-     Korean dialogue (spoken by the host to a customer in a warm, natural, conversational consulting tone — like a friendly store expert explaining to the customer in front of her, not reading a script; lip-synced; 대사는 [나레이션 말투] 규칙대로 고객에게 설명하는 구어체): 0-3s: "주제가 담긴 훅(공백 제외 25자 이내, 대상+기준+궁금증)" / 3-7s: "핵심 포인트 1(20자 이내)" / 7-11.5s: "핵심 포인트 2(·3), 훅의 답(25자 이내)" / 11.5-14s: "추가 정보와 문의는 하마준수에서!"
+     Korean dialogue (spoken by the host to a customer in a warm, natural, conversational consulting tone — like a friendly store expert explaining to the customer in front of her, not reading a script; lip-synced; 대사는 [나레이션 말투] 규칙대로 고객에게 설명하는 구어체): 0-3s: "주제가 담긴 훅(공백 제외 18자 이내, 대상+기준+궁금증)" / 3-7s: "핵심 포인트 1(16자 이내)" / 7-11.5s: "핵심 포인트 2, 훅의 답(18자 이내)" / 11.5-14s: "추가 정보와 문의는 하마준수에서!"
+     대사 줄 바로 다음 줄에 이 문장을 그대로 넣는다: Pacing: she speaks at a relaxed, natural pace and finishes each line comfortably within its own cut, with a short natural pause before the next cut. Never rush, never cut a line off mid-sentence, and say only the lines above.
      IMPORTANT 문단 그대로: IMPORTANT: No text, no letters, no numbers, no logos, no brand names, no watermark, no QR code, no on-screen captions anywhere in the video. All Korean captions and the QR panel are added afterwards by the pipeline.
      REALISM 문단 그대로
      · 제품은 실존 모델을 흉내 내지 않고 일반적인 형태로 묘사한다(모델명·로고·고유 디자인 금지). 사실과 다른 기능을 보여주지 않는다. 수치·기준은 카드와 같은 값만 말한다.
@@ -217,7 +225,7 @@
        4줄~ "- " 로 시작하는 요약 2~3줄(카드뉴스 핵심 수치·결론, 줄마다 22자 이내, 카드와 같은 값만. 예: - 소형 건조기 1회 약 250~410원)
      만든 reel_title.jpg 를 직접 열어 글자가 잘리거나 겹치지 않는지, 수치가 카드와 같은지 확인한다. 제목은 릴스 훅과 같은 주제를 보는 순간 알 수 있게 쓴다.
    - 반드시 검사한다: python3.13 reel_overlay.py --check cards/RUN/reel_captions.txt 가 CAPTIONS_OK 를 출력해야 한다. 오류가 나면 문구를 고쳐 다시 검사한다(폰트에 없는 글자·너무 긴 줄·허용되지 않는 문자·시간 오류는 모두 오류).
-   - flow_prompt.txt 를 다시 읽고 확인한다: 1·2줄 Topic·Concept, HOST·FINAL SHOT·IMPORTANT·REALISM 문단이 위와 글자까지 같은지, 14초 한 편(나눔·연장 없음)인지, 첫 대사(훅)만 듣고도 대상과 주제를 알 수 있는지(대상 이름+기준+궁금증), 훅이 확인된 사실에서 나왔고 7~11.5초에 그 답이 나오는지, 대사가 훅 → 핵심 포인트 → 엔딩 순서이고 글자 수 제한을 지키는지, 마무리 대사가 "추가 정보와 문의는 하마준수에서!" 인지, 모든 대사가 고객에게 설명하는 자연스러운 구어체인지(책 읽듯 "~입니다" 나열·요약문 그대로 읽기가 없는지), 컨셉이 직전 5회차와 겹치지 않는지, 컷마다 동작이 한 가지의 평범한 동작인지(떠다님·모핑·순간이동·분신·불가능한 가전 작동이 없는지), 진행자에게 헤드셋·마이크·모자 같은 착용 소품 묘사가 없는지.
+   - flow_prompt.txt 를 다시 읽고 확인한다: 1·2줄 Topic·Concept, HOST·FINAL SHOT·IMPORTANT·REALISM 문단이 위와 글자까지 같은지, 14초 한 편(나눔·연장 없음)인지, 첫 대사(훅)만 듣고도 대상과 주제를 알 수 있는지(대상 이름+기준+궁금증), 훅이 확인된 사실에서 나왔고 7~11.5초에 그 답이 나오는지, 대사가 훅 → 핵심 포인트 → 엔딩 순서이고 컷별 글자 수 상한(훅 18자·Cut 2 16자·Cut 3 18자, 합계 52자, 공백 제외)을 실제로 세어 지키는지, 한 컷에 한 문장인지, Pacing 줄이 들어 있는지, 마무리 대사가 "추가 정보와 문의는 하마준수에서!" 인지, 모든 대사가 고객에게 설명하는 자연스러운 구어체인지(책 읽듯 "~입니다" 나열·요약문 그대로 읽기가 없는지), 컨셉이 직전 5회차와 겹치지 않는지, 컷마다 동작이 한 가지의 평범한 동작인지(떠다님·모핑·순간이동·분신·불가능한 가전 작동이 없는지), 진행자에게 헤드셋·마이크·모자 같은 착용 소품 묘사가 없는지.
 
 [표지 콘텐츠 규칙: 매 게시물 필수 — "보고 싶어지는 표지"]
 - 표지는 게시물의 핵심 요약이다. 제목 1줄=대상, 2줄=가장 중요한 결론 또는 핵심 수치(예: "누진 400kWh 넘으면 단가 2.5배")로, 넘겨 보기 전에도 핵심 정보 한 가지를 얻게 한다. 막연한 표현("확인하세요", "가이드")만으로 제목을 채우지 않는다.
