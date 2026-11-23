@@ -35,3 +35,4 @@
 20261121 | 김장 끝난 뒤 김치냉장고 정리: 염도별 약·중·강 모드 | B | navy | 7장 table, compare, formula, steps, checklist | 승인 만료 (Actions)
 20261122 | 블랙프라이데이 해외 직구 TV: 세금·전압·보증 주의 | B | navy | 7장 table, formula, compare, table, checklist | IG 발행 성공 · FB 발행 성공 · IG 릴스 성공 · FB 릴스 성공 · Flow 영상 사용 (Actions)
 20261123 | 겨울 전기요금 아끼는 가전 설정 5가지 | B | ice | 7장 table, formula, compare, steps, checklist | 승인 만료 (Actions)
+20261123 | 겨울 전기요금 아끼는 가전 설정 5가지 | B | ice | 7장 table, formula, compare, steps, checklist | 승인 만료 (Actions)
