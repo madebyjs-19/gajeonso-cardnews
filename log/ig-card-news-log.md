@@ -36,3 +36,4 @@
 20261122 | 블랙프라이데이 해외 직구 TV: 세금·전압·보증 주의 | B | navy | 7장 table, formula, compare, table, checklist | IG 발행 성공 · FB 발행 성공 · IG 릴스 성공 · FB 릴스 성공 · Flow 영상 사용 (Actions)
 20261123 | 겨울 전기요금 아끼는 가전 설정 5가지 | B | ice | 7장 table, formula, compare, steps, checklist | 승인 만료 (Actions)
 20261123 | 겨울 전기요금 아끼는 가전 설정 5가지 | B | ice | 7장 table, formula, compare, steps, checklist | 승인 만료 (Actions)
+20261124 | 정수기 렌탈 vs 구매 총비용: 4년이면 46만 원 차이 | B | ice | 8장 formula, table, compare, table, steps, checklist | 승인 만료 (Actions)
