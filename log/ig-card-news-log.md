@@ -38,3 +38,4 @@
 20261123 | 겨울 전기요금 아끼는 가전 설정 5가지 | B | ice | 7장 table, formula, compare, steps, checklist | 승인 만료 (Actions)
 20261124 | 정수기 렌탈 vs 구매 총비용: 4년이면 46만 원 차이 | B | ice | 8장 formula, table, compare, table, steps, checklist | 승인 만료 (Actions)
 20261125 | 에어컨 설치비: 기본 배관 넘으면 1m당 19,000원 | B | navy | 8장 formula, table, compare, steps, table, checklist | 승인 만료 (Actions)
+20261126 | 로봇청소기 물걸레 겸용 vs 흡입 전용: 카펫에선 걸레 10mm 리프팅 | B | ice | 8장 table, compare, formula, table, steps, checklist | 승인 만료 (Actions)
