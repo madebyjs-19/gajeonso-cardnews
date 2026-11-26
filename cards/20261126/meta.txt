@@ -1,0 +1,1 @@
+20261126 | 로봇청소기 물걸레 겸용 vs 흡입 전용: 카펫에선 걸레 10mm 리프팅 | B | ice | 8장 table, compare, formula, table, steps, checklist

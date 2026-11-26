@@ -1,0 +1,18 @@
+물걸레 겸용 로봇청소기는 카펫을 만나면 걸레를 10mm 들어 올리고 지나갑니다.
+
+카펫 인식 기준 모 길이 5mm, 리프팅 높이 10mm(삼성 FAQ) — 모가 긴 러그는 닿을 수 있어 금지구역 설정이 필요합니다.
+같은 LG 라인업 기준 흡입 전용(R9) 먼지통 0.6L vs 겸용(RONi) 0.27L, 겸용 스테이션은 먼지 비움·걸레 세척·건조까지 합니다.
+겸용을 고르면 물통 약 4일, 오수통 약 6일에 1번 관리가 늘어납니다(삼성 FAQ, 사용량별 다름).
+
+로봇청소기 고르기 전에 저장해두세요 / 고민 중인 분께 보내주세요
+
+참고자료
+- 삼성전자 로봇청소기 자주 묻는 질문(카펫·문턱·물통 주기): https://www.samsung.com/sec/home-appliances/faq-robot-vacuum-cleaners
+- LG전자 로봇청소기 구매가이드(라인업·용도 비교): https://www.lge.co.kr/story/buying-guide/robot-vacuum-cleaners
+- LG전자 로봇청소기 Wiki 백과사전(세척·건조·카펫 기준): https://www.lge.co.kr/story/buying-guide/robot-vacuum-cleaners-wiki
+
+정확한 수치는 모델·현장별 확인 필요
+상담문의 · 하마준수
+카카오톡 상담: http://pf.kakao.com/_PHwrX/chat
+
+#하마준수 #로봇청소기 #물걸레로봇청소기 #로봇청소기비교
