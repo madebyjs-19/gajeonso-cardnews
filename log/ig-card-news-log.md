@@ -40,3 +40,4 @@
 20261125 | 에어컨 설치비: 기본 배관 넘으면 1m당 19,000원 | B | navy | 8장 formula, table, compare, steps, table, checklist | 승인 만료 (Actions)
 20261126 | 로봇청소기 물걸레 겸용 vs 흡입 전용: 카펫에선 걸레 10mm 리프팅 | B | ice | 8장 table, compare, formula, table, steps, checklist | 승인 만료 (Actions)
 20261127 | 삼성·LG 블프 가전 행사: 2품목 이상 동시 구매 다품목 혜택, 11/30 마감 | C | orange | 8장 poster, table, compare, table, steps, checklist | 승인 만료 (Actions)
+20261128 | 겨울 가습기 세척 주기: 물은 매일, 물통·진동자는 이틀마다 | B | navy | 8장 table, formula, table, compare, steps, checklist | IG 발행 성공 · FB 발행 성공 · IG 릴스 성공 · FB 릴스 성공 · 카드 슬라이드 사용 (Actions)
